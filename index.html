@@ -1570,8 +1570,7 @@ function _renderCronReport(){
   var FILTROS=[
     {k:'todos',l:'Todos'},
     {k:'verm', l:'\uD83D\uDD34 Atrasado'},
-    {k:'amar', l:'\uD83D\uDFE1 No prazo'},
-    {k:'verde',l:'\uD83D\uDFE2 Adiantado'}
+    {k:'verde',l:'\uD83D\uDFE2 No prazo / Adiantado'}
   ];
   document.getElementById('cron-rpt-filters').innerHTML=FILTROS.map(function(fi){
     return'<button class="rel-fchip'+(_cronRptF===fi.k?' on':'')+'" onclick="setCronRptF(\''+fi.k+'\')">'+fi.l+'</button>';
@@ -1597,24 +1596,22 @@ function _renderCronReport(){
       var d1=new Date(m.dp),d2=new Date(dpSS);
       if(isNaN(d1.getTime())||isNaN(d2.getTime()))return;
       var diff=Math.round((d1.getTime()-d2.getTime())/86400000);
-      var fk=diff>30?'verde':diff>=0?'amar':'verm';
+      var fk=diff>=0?'verde':'verm';
       rows.push({emp:emp.nome,marco:m.n,st:m.st,dl:m.dl,dpInf:m.dp,dpSS:dpSS,diff:diff,fk:fk});
     });
   });
   rows.sort(function(a,b){return a.diff-b.diff;});
 
   var nVerm=rows.filter(function(r){return r.fk==='verm';}).length;
-  var nAmar=rows.filter(function(r){return r.fk==='amar';}).length;
   var nVerde=rows.filter(function(r){return r.fk==='verde';}).length;
   var fil=rows.filter(function(r){
     if(_cronRptF==='verm') return r.fk==='verm';
-    if(_cronRptF==='amar') return r.fk==='amar';
     if(_cronRptF==='verde')return r.fk==='verde';
     return true;
   });
 
   document.getElementById('cron-rpt-sub').textContent=
-    fil.length+' marco(s)  \u2014  \uD83D\uDD34 '+nVerm+' atrasados  \uD83D\uDFE1 '+nAmar+' no prazo  \uD83D\uDFE2 '+nVerde+' adiantados';
+    fil.length+' marco(s)  \u2014  \uD83D\uDD34 '+nVerm+' atrasados  \uD83D\uDFE2 '+nVerde+' no prazo / adiantados';
 
   if(!fil.length){
     document.getElementById('cron-rpt-body').innerHTML=
@@ -1623,10 +1620,9 @@ function _renderCronReport(){
   }
 
   var farolCell=function(r){
-    var cls=r.fk==='verm'?'farol-r':r.fk==='amar'?'farol-y':'farol-g';
+    var cls=r.fk==='verm'?'farol-r':'farol-g';
     var absDiff=Math.abs(r.diff);
-    var title=r.fk==='verm'?'SS '+absDiff+'d depois do informativo':
-              r.fk==='verde'?'SS '+absDiff+'d antes do informativo':'Alinhado (+'+r.diff+'d)';
+    var title=r.fk==='verm'?'SS '+absDiff+'d depois do informativo':'SS '+absDiff+'d antes do informativo';
     return'<td class="cron-farol-cell"><span class="farol-dot '+cls+'" title="'+title+'">&#9679;</span></td>';
   };
 
@@ -1648,7 +1644,7 @@ function _renderCronReport(){
     '<th class="cron-dt-h">Farol</th>'+
     '</tr></thead><tbody>'+
     fil.map(function(r){
-      var dc=r.fk==='verm'?'#E74C3C':r.fk==='amar'?'#F39C12':'#27AE60';
+      var dc=r.fk==='verm'?'#E74C3C':'#27AE60';
       var ds=Math.abs(r.diff)+'d';
       return'<tr class="cron-row">'+
         '<td class="cron-nm" style="font-weight:600">'+esc(r.emp)+'</td>'+
