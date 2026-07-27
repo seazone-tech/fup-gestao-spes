@@ -1649,7 +1649,7 @@ function _renderCronReport(){
     '</tr></thead><tbody>'+
     fil.map(function(r){
       var dc=r.fk==='verm'?'#E74C3C':r.fk==='amar'?'#F39C12':'#27AE60';
-      var ds=(r.diff>0?'+':'')+r.diff+'d';
+      var ds=Math.abs(r.diff)+'d';
       return'<tr class="cron-row">'+
         '<td class="cron-nm" style="font-weight:600">'+esc(r.emp)+'</td>'+
         '<td class="cron-nm">'+esc(r.marco)+'</td>'+
