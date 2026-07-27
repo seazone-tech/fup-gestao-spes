@@ -1591,7 +1591,9 @@ function _renderCronReport(){
   var normS=function(s){return(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();};
   var smAll=(typeof SMARTSHEET_DATA!=='undefined')?SMARTSHEET_DATA:{};
 
+  var EXCL_EMPS=['Vistas de Anitá II'];
   ST.emps.forEach(function(emp){
+    if(EXCL_EMPS.indexOf(emp.nome)>=0)return;
     var marcos=_getCronMarcos(emp.nome);
     if(!marcos)return;
     var smData=smAll[emp.nome]||{};
