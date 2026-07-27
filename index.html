@@ -2405,18 +2405,7 @@ function secJuridico(emp){
     html2+='<div style="font-weight:600;font-size:.8rem;color:var(--c-text-2);margin:10px 0 4px">🕐 Histórico recente</div>';
     html2+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><colgroup><col style="width:50%"><col style="width:16%"><col style="width:18%"><col style="width:16%"></colgroup><thead><tr style="background:var(--c-bg-2)"><th style="padding:4px 6px;text-align:left;font-size:.75rem;font-weight:600">Título</th><th style="padding:4px 6px;text-align:left;font-size:.75rem;font-weight:600">Data</th><th style="padding:4px 6px;text-align:left;font-size:.75rem;font-weight:600">Status</th><th style="padding:4px 6px;text-align:left;font-size:.75rem;font-weight:600">ATA</th></tr></thead><tbody>'+rows(past)+'</tbody></table></div>';
   }
-  return'<div style="margin-top:14px">'+
-    '<div style="display:flex;gap:14px;flex-wrap:wrap">'+
-      '<div class="gov-op-card" style="--opc:#1565C0;--opc-bg:#E3F2FD;flex:1;min-width:260px">'+
-        '<div class="gov-op-hd"><span class="gov-op-ico">🏛️</span><span class="gov-op-ttl">Assembléias e Reuniões</span></div>'+
-        '<div class="gov-op-body">'+html2+'</div>'+
-      '</div>'+
-      '<div class="gov-op-card" style="--opc:#2E7D32;--opc-bg:#E8F5E9;flex:1;min-width:180px">'+
-        '<div class="gov-op-hd"><span class="gov-op-ico">📋</span><span class="gov-op-ttl">ACS</span></div>'+
-        '<div class="gov-op-body"><div class="gov-op-lbl" style="margin-top:8px;font-size:.85rem;color:var(--c-text-2)">—</div></div>'+
-      '</div>'+
-    '</div>'+
-  '</div>';
+  return '';
 }
 
 function atualizarPagina(empId){
