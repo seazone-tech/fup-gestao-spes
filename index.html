@@ -1549,9 +1549,9 @@ function printRelatorio(){
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── RELATÓRIO CRONOGRAMA ATRASADO ───────────────────────────────────────────
-var _cronRptF='todos';
+var _cronRptF='verm';
 function openCronReport(){
-  _cronRptF='todos';
+  _cronRptF='verm';
   document.getElementById('cron-ov').classList.remove('hidden');
   _renderCronReport();
 }
@@ -1567,78 +1567,98 @@ function _getCronMarcos(empNome){
 }
 
 function _renderCronReport(){
-  var today=new Date();today.setHours(0,0,0,0);
   var FILTROS=[
     {k:'todos',l:'Todos'},
-    {k:'verm', l:'\uD83D\uDD34 >30 dias'},
-    {k:'amar', l:'\uD83D\uDFE1 1\u201330 dias'}
+    {k:'verm', l:'\uD83D\uDD34 Atrasado'},
+    {k:'amar', l:'\uD83D\uDFE1 No prazo'},
+    {k:'verde',l:'\uD83D\uDFE2 Adiantado'}
   ];
   document.getElementById('cron-rpt-filters').innerHTML=FILTROS.map(function(fi){
-    return '<button class="rel-fchip'+((_cronRptF===fi.k)?' on':'')+'" onclick="setCronRptF(\''+fi.k+'\')">'+fi.l+'</button>';
+    return'<button class="rel-fchip'+(_cronRptF===fi.k?' on':'')+'" onclick="setCronRptF(\''+fi.k+'\')">'+fi.l+'</button>';
   }).join('');
 
   var rows=[];
+  var normS=function(s){return(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();};
+  var smAll=(typeof SMARTSHEET_DATA!=='undefined')?SMARTSHEET_DATA:{};
+
   ST.emps.forEach(function(emp){
     var marcos=_getCronMarcos(emp.nome);
     if(!marcos)return;
+    var smData=smAll[emp.nome]||{};
+    var getSS=function(nome){
+      var k=normS(nome);
+      for(var sk in smData){if(normS(sk)===k)return smData[sk];}
+      return'';
+    };
     marcos.forEach(function(m){
-      if(!m.st||m.st==='Realizado'||m.st==='Planejado')return;
-      if(!m.dp)return;
-      var dpDate=new Date(m.dp);
-      if(isNaN(dpDate.getTime()))return;
-      dpDate.setHours(0,0,0,0);
-      if(dpDate>=today)return;
-      var days=Math.round((today-dpDate)/86400000);
-      rows.push({emp:emp.nome,marco:m.n,st:m.st,dl:m.dl,dp:m.dp,days:days});
+      if(m.st==='Realizado')return;
+      var dpSS=getSS(m.n);
+      if(!dpSS||!m.dp)return;
+      var d1=new Date(m.dp),d2=new Date(dpSS);
+      if(isNaN(d1.getTime())||isNaN(d2.getTime()))return;
+      var diff=Math.round((d1.getTime()-d2.getTime())/86400000);
+      var fk=diff>30?'verde':diff>=0?'amar':'verm';
+      rows.push({emp:emp.nome,marco:m.n,st:m.st,dl:m.dl,dpInf:m.dp,dpSS:dpSS,diff:diff,fk:fk});
     });
   });
-  rows.sort(function(a,b){return b.days-a.days;});
+  rows.sort(function(a,b){return a.diff-b.diff;});
 
+  var nVerm=rows.filter(function(r){return r.fk==='verm';}).length;
+  var nAmar=rows.filter(function(r){return r.fk==='amar';}).length;
+  var nVerde=rows.filter(function(r){return r.fk==='verde';}).length;
   var fil=rows.filter(function(r){
-    if(_cronRptF==='verm')return r.days>30;
-    if(_cronRptF==='amar')return r.days>=1&&r.days<=30;
+    if(_cronRptF==='verm') return r.fk==='verm';
+    if(_cronRptF==='amar') return r.fk==='amar';
+    if(_cronRptF==='verde')return r.fk==='verde';
     return true;
   });
 
-  document.getElementById('cron-rpt-sub').textContent=fil.length+' marco(s) com atraso detectado';
+  document.getElementById('cron-rpt-sub').textContent=
+    fil.length+' marco(s)  \u2014  \uD83D\uDD34 '+nVerm+' atrasados  \uD83D\uDFE1 '+nAmar+' no prazo  \uD83D\uDFE2 '+nVerde+' adiantados';
 
   if(!fil.length){
-    document.getElementById('cron-rpt-body').innerHTML='<div style="padding:32px;text-align:center;color:var(--g4)">Nenhum marco em atraso</div>';
+    document.getElementById('cron-rpt-body').innerHTML=
+      '<div style="padding:32px;text-align:center;color:var(--g4)">Nenhum marco encontrado para este filtro.</div>';
     return;
   }
 
-  var farolCell=function(days){
-    var cls=days>30?'farol-r':'farol-y';
-    var title=days+' dia'+(days===1?'':'s')+' de atraso';
+  var farolCell=function(r){
+    var cls=r.fk==='verm'?'farol-r':r.fk==='amar'?'farol-y':'farol-g';
+    var absDiff=Math.abs(r.diff);
+    var title=r.fk==='verm'?'SS '+absDiff+'d depois do informativo':
+              r.fk==='verde'?'SS '+absDiff+'d antes do informativo':'Alinhado (+'+r.diff+'d)';
     return'<td class="cron-farol-cell"><span class="farol-dot '+cls+'" title="'+title+'">&#9679;</span></td>';
   };
 
   var stBadge=function(v){
-    if(!v||v==='-')return'<span class="cron-miss">—</span>';
+    if(!v)return'<span class="cron-miss">\u2014</span>';
     var lv=v.toLowerCase();
     var cls=lv.indexOf('replanej')>=0?'cron-st-a':lv.indexOf('andamento')>=0?'cron-st-e':'cron-st-n';
     return'<span class="cron-st-badge '+cls+'">'+esc(v)+'</span>';
   };
 
   var html='<div style="overflow-x:auto"><table class="cron-tbl" style="width:100%"><thead><tr>'+
-    '<th style="text-align:left;min-width:160px">Empreendimento</th>'+
-    '<th style="text-align:left;min-width:200px">Marco</th>'+
+    '<th style="text-align:left;min-width:155px">Empreendimento</th>'+
+    '<th style="text-align:left;min-width:195px">Marco</th>'+
     '<th>Status</th>'+
-    '<th class="cron-dt-h">Data Lançamento</th>'+
-    '<th class="cron-dt-h">Data Prevista</th>'+
-    '<th class="cron-dt-h">Atraso</th>'+
+    '<th class="cron-dt-h">Lançamento</th>'+
+    '<th class="cron-dt-h">Informativo</th>'+
+    '<th class="cron-dt-h">Smartsheet</th>'+
+    '<th class="cron-dt-h">\u0394 dias</th>'+
     '<th class="cron-dt-h">Farol</th>'+
     '</tr></thead><tbody>'+
     fil.map(function(r){
-      var atrasoColor=r.days>30?'#E74C3C':'#F39C12';
+      var dc=r.fk==='verm'?'#E74C3C':r.fk==='amar'?'#F39C12':'#27AE60';
+      var ds=(r.diff>0?'+':'')+r.diff+'d';
       return'<tr class="cron-row">'+
         '<td class="cron-nm" style="font-weight:600">'+esc(r.emp)+'</td>'+
         '<td class="cron-nm">'+esc(r.marco)+'</td>'+
         '<td class="cron-st-cell">'+stBadge(r.st)+'</td>'+
-        '<td class="cron-dt-cell">'+(fmtDt(r.dl)||'<span class="cron-miss">—</span>')+'</td>'+
-        '<td class="cron-dt-cell">'+(fmtDt(r.dp)||'<span class="cron-miss">—</span>')+'</td>'+
-        '<td class="cron-dt-cell" style="font-weight:700;color:'+atrasoColor+'">'+r.days+'d</td>'+
-        farolCell(r.days)+
+        '<td class="cron-dt-cell">'+(fmtDt(r.dl)||'<span class="cron-miss">\u2014</span>')+'</td>'+
+        '<td class="cron-dt-cell">'+(fmtDt(r.dpInf)||'<span class="cron-miss">\u2014</span>')+'</td>'+
+        '<td class="cron-dt-cell">'+(fmtDt(r.dpSS)||'<span class="cron-miss">\u2014</span>')+'</td>'+
+        '<td class="cron-dt-cell" style="font-weight:700;color:'+dc+'">'+ds+'</td>'+
+        farolCell(r)+
       '</tr>';
     }).join('')+
     '</tbody></table></div>';
