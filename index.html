@@ -1558,9 +1558,11 @@ function openCronReport(){
 function closeCronReport(){document.getElementById('cron-ov').classList.add('hidden');}
 function setCronRptF(f){_cronRptF=f;_renderCronReport();}
 
+function _nrm(s){return(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();}
 function _getCronMarcos(empNome){
-  for(var k in CRON_DATA){if(nr(k)===nr(empNome))return CRON_DATA[k];}
-  for(var k in CRON_DATA){if(nr(k).indexOf(nr(empNome))>=0||nr(empNome).indexOf(nr(k))>=0)return CRON_DATA[k];}
+  var ne=_nrm(empNome);
+  for(var k in CRON_DATA){if(_nrm(k)===ne)return CRON_DATA[k];}
+  for(var k in CRON_DATA){var nk=_nrm(k);if(nk.indexOf(ne)>=0||ne.indexOf(nk)>=0)return CRON_DATA[k];}
   return null;
 }
 
@@ -1580,7 +1582,7 @@ function _renderCronReport(){
     var marcos=_getCronMarcos(emp.nome);
     if(!marcos)return;
     marcos.forEach(function(m){
-      if(m.st==='Realizado')return;
+      if(!m.st||m.st==='Realizado'||m.st==='Planejado')return;
       if(!m.dp)return;
       var dpDate=new Date(m.dp);
       if(isNaN(dpDate.getTime()))return;
