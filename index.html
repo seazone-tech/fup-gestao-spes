@@ -570,6 +570,7 @@ canvas#obraChart{width:100%;height:100%}
           <button class="fchip" data-f="entrega">🏠 Entrega</button>
         </div>
         <button class="btn btn-outline btn-sm" onclick="openRelatorio()">📄 Relatório</button>
+        <button class="btn btn-outline btn-sm" onclick="openCronReport()">📊 Atrasados</button>
         <button class="btn btn-outline btn-sm" id="btn-geral" onclick="openGeralModal()">📋 Geral</button>
         <button class="btn btn-primary btn-sm" onclick="openModal()">+ Novo Empreendimento</button>
       </div>
@@ -669,6 +670,25 @@ canvas#obraChart{width:100%;height:100%}
         <button class="btn btn-outline" onclick="closeRelatorio()">Fechar</button>
         <button class="btn btn-primary" onclick="printRelatorio()">🖨️ Imprimir / PDF</button>
         <button class="btn btn-primary" onclick="openEnviarSlack()">📤 Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cronograma Atrasado -->
+  <div id="cron-ov" class="modal-ov hidden" onclick="if(event.target===this)closeCronReport()">
+    <div class="rel-modal" style="width:1020px">
+      <div class="rel-hd">
+        <div>
+          <div class="modal-title" style="margin-bottom:3px">📊 Cronograma Atrasado</div>
+          <div id="cron-rpt-sub" style="font-size:12px;color:var(--g4)"></div>
+        </div>
+        <button class="rel-hd-close" onclick="closeCronReport()" title="Fechar">✕</button>
+      </div>
+      <div class="rel-filters" id="cron-rpt-filters"></div>
+      <div id="cron-rpt-body" class="rel-body"></div>
+      <div class="modal-acts" style="border-top:1px solid var(--g1);padding-top:14px;margin-top:14px">
+        <button class="btn btn-outline" onclick="closeCronReport()">Fechar</button>
+        <button class="btn btn-primary" onclick="printCronReport()">🖨️ Imprimir / PDF</button>
       </div>
     </div>
   </div>
@@ -1528,7 +1548,122 @@ function printRelatorio(){
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─── RELATÓRIO CRONOGRAMA ATRASADO ───────────────────────────────────────────
+var _cronRptF='todos';
+function openCronReport(){
+  _cronRptF='todos';
+  document.getElementById('cron-ov').classList.remove('hidden');
+  _renderCronReport();
+}
+function closeCronReport(){document.getElementById('cron-ov').classList.add('hidden');}
+function setCronRptF(f){_cronRptF=f;_renderCronReport();}
+
+function _getCronMarcos(empNome){
+  for(var k in CRON_DATA){if(nr(k)===nr(empNome))return CRON_DATA[k];}
+  for(var k in CRON_DATA){if(nr(k).indexOf(nr(empNome))>=0||nr(empNome).indexOf(nr(k))>=0)return CRON_DATA[k];}
+  return null;
+}
+
+function _renderCronReport(){
+  var today=new Date();today.setHours(0,0,0,0);
+  var FILTROS=[
+    {k:'todos',l:'Todos'},
+    {k:'verm', l:'\uD83D\uDD34 >30 dias'},
+    {k:'amar', l:'\uD83D\uDFE1 1\u201330 dias'}
+  ];
+  document.getElementById('cron-rpt-filters').innerHTML=FILTROS.map(function(fi){
+    return '<button class="rel-fchip'+((_cronRptF===fi.k)?' on':'')+'" onclick="setCronRptF(\''+fi.k+'\')">'+fi.l+'</button>';
+  }).join('');
+
+  var rows=[];
+  ST.emps.forEach(function(emp){
+    var marcos=_getCronMarcos(emp.nome);
+    if(!marcos)return;
+    marcos.forEach(function(m){
+      if(m.st==='Realizado')return;
+      if(!m.dp)return;
+      var dpDate=new Date(m.dp);
+      if(isNaN(dpDate.getTime()))return;
+      dpDate.setHours(0,0,0,0);
+      if(dpDate>=today)return;
+      var days=Math.round((today-dpDate)/86400000);
+      rows.push({emp:emp.nome,marco:m.n,st:m.st,dl:m.dl,dp:m.dp,days:days});
+    });
+  });
+  rows.sort(function(a,b){return b.days-a.days;});
+
+  var fil=rows.filter(function(r){
+    if(_cronRptF==='verm')return r.days>30;
+    if(_cronRptF==='amar')return r.days>=1&&r.days<=30;
+    return true;
+  });
+
+  document.getElementById('cron-rpt-sub').textContent=fil.length+' marco(s) com atraso detectado';
+
+  if(!fil.length){
+    document.getElementById('cron-rpt-body').innerHTML='<div style="padding:32px;text-align:center;color:var(--g4)">Nenhum marco em atraso</div>';
+    return;
+  }
+
+  var farolCell=function(days){
+    var cls=days>30?'farol-r':'farol-y';
+    var title=days+' dia'+(days===1?'':'s')+' de atraso';
+    return'<td class="cron-farol-cell"><span class="farol-dot '+cls+'" title="'+title+'">&#9679;</span></td>';
+  };
+
+  var stBadge=function(v){
+    if(!v||v==='-')return'<span class="cron-miss">—</span>';
+    var lv=v.toLowerCase();
+    var cls=lv.indexOf('replanej')>=0?'cron-st-a':lv.indexOf('andamento')>=0?'cron-st-e':'cron-st-n';
+    return'<span class="cron-st-badge '+cls+'">'+esc(v)+'</span>';
+  };
+
+  var html='<div style="overflow-x:auto"><table class="cron-tbl" style="width:100%"><thead><tr>'+
+    '<th style="text-align:left;min-width:160px">Empreendimento</th>'+
+    '<th style="text-align:left;min-width:200px">Marco</th>'+
+    '<th>Status</th>'+
+    '<th class="cron-dt-h">Data Lançamento</th>'+
+    '<th class="cron-dt-h">Data Prevista</th>'+
+    '<th class="cron-dt-h">Atraso</th>'+
+    '<th class="cron-dt-h">Farol</th>'+
+    '</tr></thead><tbody>'+
+    fil.map(function(r){
+      var atrasoColor=r.days>30?'#E74C3C':'#F39C12';
+      return'<tr class="cron-row">'+
+        '<td class="cron-nm" style="font-weight:600">'+esc(r.emp)+'</td>'+
+        '<td class="cron-nm">'+esc(r.marco)+'</td>'+
+        '<td class="cron-st-cell">'+stBadge(r.st)+'</td>'+
+        '<td class="cron-dt-cell">'+(fmtDt(r.dl)||'<span class="cron-miss">—</span>')+'</td>'+
+        '<td class="cron-dt-cell">'+(fmtDt(r.dp)||'<span class="cron-miss">—</span>')+'</td>'+
+        '<td class="cron-dt-cell" style="font-weight:700;color:'+atrasoColor+'">'+r.days+'d</td>'+
+        farolCell(r.days)+
+      '</tr>';
+    }).join('')+
+    '</tbody></table></div>';
+
+  document.getElementById('cron-rpt-body').innerHTML=html;
+}
+
+function printCronReport(){
+  var sub=document.getElementById('cron-rpt-sub').textContent;
+  var body=document.getElementById('cron-rpt-body').innerHTML;
+  var win=window.open('','_blank');
+  win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Cronograma Atrasado</title>'+
+    '<style>*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}body{padding:24px;font-size:12px}'+
+    'h1{font-size:16px;margin-bottom:6px}p{font-size:11px;color:#666;margin-bottom:16px}'+
+    'table{width:100%;border-collapse:collapse}th{background:#1B2A4A;color:#fff;padding:7px 10px;text-align:left;font-size:11px}'+
+    'td{padding:6px 10px;border-bottom:1px solid #eee;vertical-align:middle}'+
+    'tr:nth-child(even)td{background:#f9f9f9}'+
+    '.r{color:#E74C3C;font-weight:700}.y{color:#F39C12;font-weight:700}'+
+    '@media print{body{padding:0}}</style></head><body>'+
+    '<h1>\uD83D\uDCCA Cronograma Atrasado \u2014 Gest\u00e3o de Projetos SZI</h1>'+
+    '<p>'+sub+'</p>'+body+'</body></html>');
+  win.document.close();
+  win.print();
+}
+
 function closeModal(){
+
   document.getElementById('modal-ov').classList.add('hidden');
   ['fn-nome','fn-cidade','fn-estado','fn-unid','fn-admin'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fn-cor').value='#1B3A5C';
