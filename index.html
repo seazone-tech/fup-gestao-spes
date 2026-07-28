@@ -2483,7 +2483,7 @@ function loadCronograma(empId){
     el.innerHTML='<div class="cron-empty">Sem cronograma cadastrado para este empreendimento.</div>';
     return;
   }
-  el.innerHTML=renderCronMarcos(matched,empId);
+  el.innerHTML=renderCronMarcos(matched,empId,emp.nome);
   var ts=document.getElementById('cron-st-'+empId);
   if(ts)ts.textContent='Atualizado: '+new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 }
