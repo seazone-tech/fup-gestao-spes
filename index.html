@@ -347,6 +347,10 @@ canvas#obraChart{width:100%;height:100%}
 .cron-note-pop textarea{width:100%;box-sizing:border-box;border:1px solid var(--g2);border-radius:5px;padding:6px 8px;font-size:12px;font-family:inherit;resize:vertical;min-height:68px;color:var(--text);background:var(--bg);outline:none}
 .cron-note-pop textarea:focus{border-color:var(--teal)}
 .cron-note-pop-foot{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}
+.cron-filter-row th{padding:3px 4px!important;background:var(--g1)}
+.cron-col-filter{width:100%;box-sizing:border-box;border:1px solid var(--g2);border-radius:4px;padding:3px 6px;font-size:11px;background:var(--bg);color:var(--text);outline:none}
+.cron-col-filter:focus{border-color:var(--teal)}
+.cron-col-filter option{background:var(--bg);color:var(--text)}
 .cron-farol-cell{text-align:center;white-space:nowrap}
 .farol-dot{font-size:13px;line-height:1;cursor:default;user-select:none}
 .farol-g{color:#27AE60}
@@ -1559,13 +1563,14 @@ function printRelatorio(){
 
 // ─── RELATÓRIO CRONOGRAMA ATRASADO ───────────────────────────────────────────
 var _cronRptF='verm';
+var _cronColF={emp:'',marco:'',st:''};
 function openCronReport(){
-  _cronRptF='verm';
+  _cronRptF='verm';_cronColF={emp:'',marco:'',st:''};
   document.getElementById('cron-ov').classList.remove('hidden');
   _renderCronReport();
 }
 function closeCronReport(){document.getElementById('cron-ov').classList.add('hidden');}
-function setCronRptF(f){_cronRptF=f;_renderCronReport();}
+function setCronRptF(f){_cronRptF=f;_cronColF={emp:'',marco:'',st:''};_renderCronReport();}
 
 function _nrm(s){return(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();}
 function _getCronMarcos(empNome){
@@ -1573,6 +1578,28 @@ function _getCronMarcos(empNome){
   for(var k in CRON_DATA){if(_nrm(k)===ne)return CRON_DATA[k];}
   for(var k in CRON_DATA){var nk=_nrm(k);if(nk.indexOf(ne)>=0||ne.indexOf(nk)>=0)return CRON_DATA[k];}
   return null;
+}
+
+function setCronColF(k,v){_cronColF[k]=v;applyCronColFilters();}
+function applyCronColFilters(){
+  var f=_cronColF;
+  var fe=f.emp.toLowerCase(),fm=f.marco.toLowerCase(),fs=f.st.toLowerCase();
+  var total=0,vis=0;
+  document.querySelectorAll('#cron-rpt-body .cron-row').forEach(function(tr){
+    total++;
+    var ok=true;
+    if(fe&&(tr.dataset.emp||'').toLowerCase().indexOf(fe)<0)ok=false;
+    if(fm&&(tr.dataset.marco||'').toLowerCase().indexOf(fm)<0)ok=false;
+    if(fs&&(tr.dataset.st||'').toLowerCase()!==fs)ok=false;
+    tr.style.display=ok?'':'none';
+    if(ok)vis++;
+  });
+  var sub=document.getElementById('cron-rpt-sub');
+  if(sub&&total>0){
+    var base=sub.dataset.base;
+    if(!base){sub.dataset.base=sub.textContent;base=sub.textContent;}
+    sub.textContent=(vis<total)?base+' \u2014 '+vis+' vis\u00edveis':base;
+  }
 }
 
 function _renderCronReport(){
@@ -1647,6 +1674,11 @@ function _renderCronReport(){
     return'<span class="cron-st-badge '+cls+'">'+esc(v)+'</span>';
   };
 
+  var stVals=[];
+  fil.forEach(function(r){if(r.st&&stVals.indexOf(r.st)<0)stVals.push(r.st);});
+  stVals.sort();
+  var stOpts=stVals.map(function(s){return'<option value="'+esc(s)+'"'+((_cronColF.st===s)?' selected':'')+'>'+esc(s)+'</option>';}).join('');
+
   var html='<div style="overflow-x:auto"><table class="cron-tbl" style="width:100%"><thead><tr>'+
     '<th style="text-align:left;min-width:155px">Empreendimento</th>'+
     '<th style="text-align:left;min-width:195px">Marco</th>'+
@@ -1657,11 +1689,18 @@ function _renderCronReport(){
     '<th class="cron-dt-h">\u0394 dias</th>'+
     '<th class="cron-dt-h">Farol</th>'+
     '<th style="width:32px"></th>'+
-    '</tr></thead><tbody>'+
+    '</tr>'+
+    '<tr class="cron-filter-row">'+
+      '<th><input id="cflt-emp" class="cron-col-filter" oninput="setCronColF(\'emp\',this.value)" placeholder="\uD83D\uDD0D empreendimento" value="'+(_cronColF.emp||'')+'" title="Filtrar empreendimento"></th>'+
+      '<th><input id="cflt-marco" class="cron-col-filter" oninput="setCronColF(\'marco\',this.value)" placeholder="\uD83D\uDD0D marco" value="'+(_cronColF.marco||'')+'" title="Filtrar marco"></th>'+
+      '<th><select id="cflt-st" class="cron-col-filter" onchange="setCronColF(\'st\',this.value)"><option value="">Todos</option>'+stOpts+'</select></th>'+
+      '<th colspan="6"></th>'+
+    '</tr>'+
+    '</thead><tbody>'+
     fil.map(function(r,i){
       var dc=r.fk==='verm'?'#E74C3C':'#27AE60';
       var ds=Math.abs(r.diff)+'d';
-      return'<tr class="cron-row">'+
+      return'<tr class="cron-row" data-emp="'+esc(r.emp)+'" data-marco="'+esc(r.marco)+'" data-st="'+(r.st||'')+'">'+
         '<td class="cron-nm" style="font-weight:600">'+esc(r.emp)+'</td>'+
         '<td class="cron-nm">'+esc(r.marco)+'</td>'+
         '<td class="cron-st-cell">'+stBadge(r.st)+'</td>'+
@@ -1691,6 +1730,7 @@ function _renderCronReport(){
     '</tbody></table></div>';
 
   document.getElementById('cron-rpt-body').innerHTML=html;
+  applyCronColFilters();
 }
 
 // ─── ANOTAÇÕES DO RELATÓRIO DE CRONOGRAMA ────────────────────────────────────
