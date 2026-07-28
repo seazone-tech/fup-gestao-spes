@@ -1150,7 +1150,8 @@ function hasRedFarol(emp){
   for(var k in CRON_DATA){if(nr(k)===nr(emp.nome)){matched=CRON_DATA[k];break;}}
   if(!matched){for(var k in CRON_DATA){if(nr(k).indexOf(nr(emp.nome))>=0||nr(emp.nome).indexOf(nr(k))>=0){matched=CRON_DATA[k];break;}}}
   if(!matched)return false;
-  var smData=(typeof SMARTSHEET_DATA!=='undefined'&&SMARTSHEET_DATA[emp.nome])?SMARTSHEET_DATA[emp.nome]:{};
+  var smAll2=(typeof SMARTSHEET_DATA!=='undefined')?SMARTSHEET_DATA:{};
+  var smData=(function(){var ne=nr(emp.nome);for(var k in smAll2){if(nr(k)===ne)return smAll2[k];}return{};}());
   var getSS=function(nome){var k=nr(nome);for(var sk in smData){if(nr(sk)===k)return smData[sk];}return'';};
   return matched.some(function(m){
     var dpSS=getSS(m.n);
@@ -1628,7 +1629,7 @@ function _renderCronReport(){
     if(EXCL_EMPS.indexOf(emp.nome)>=0)return;
     var marcos=_getCronMarcos(emp.nome);
     if(!marcos)return;
-    var smData=smAll[emp.nome]||{};
+    var smData=(function(){var ne=normS(emp.nome);for(var k in smAll){if(normS(k)===ne)return smAll[k];}return{};}());
     var getSS=function(nome){
       var k=normS(nome);
       for(var sk in smData){if(normS(sk)===k)return smData[sk];}
@@ -2320,7 +2321,8 @@ function renderCronMarcos(marcos,empId,empNome){
   };
   var dtCell=function(v){return'<td class="cron-dt-cell">'+(fmtDt(v)||'<span class="cron-miss">—</span>')+'</td>';};
   var normS=function(s){return(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();};
-  var smData=(typeof SMARTSHEET_DATA!=='undefined'&&empNome&&SMARTSHEET_DATA[empNome])?SMARTSHEET_DATA[empNome]:{};
+  var smAll3=(typeof SMARTSHEET_DATA!=='undefined')?SMARTSHEET_DATA:{};
+  var smData=(function(){if(!empNome)return{};var ne=normS(empNome);for(var k in smAll3){if(normS(k)===ne)return smAll3[k];}return{};}());
   var getSS=function(nome){
     var k=normS(nome);
     for(var sk in smData){if(normS(sk)===k)return smData[sk];}
