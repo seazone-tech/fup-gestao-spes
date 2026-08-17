@@ -149,9 +149,8 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .cron-name-cell{display:flex;align-items:center;gap:8px}
 .cron-dot-s{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
 .cron-dot-s.concluido{background:var(--success)}
-.cron-dot-s.andamento{background:var(--primary);animation:cdot-pulse 2s infinite}
+.cron-dot-s.andamento{background:var(--primary)}
 .cron-dot-s.ainicial{background:var(--card);border:1.5px solid var(--border)}
-@keyframes cdot-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--primary) 30%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--primary) 0%,transparent)}}
 .cron-marco-nome.concluido{color:var(--muted-fg)}
 .cron-marco-nome.andamento{color:var(--primary);font-weight:700}
 .cron-marco-nome.ainicial{color:var(--muted-fg);opacity:.5}
@@ -1009,31 +1008,15 @@ const SM_URLS = {
 };
 EMPS_RAW.forEach(function(e){ if(SM_URLS[e.id]) e.sm_url=SM_URLS[e.id]; });
 
-// ─── NEKT Timelines — Informativo julho/2026 ─────────────────────────────────
-// ─── NEKT Timelines — Informativo julho/2026 ─────────────────────────────────
+// ─── NEKT Timelines — dl: junho/2026 | dt/st: julho/2026 ──────────────────────
 const NEKT_TIMELINES = {
   '002': {
-    1: {dl:null,dt:null,st:'concluido'},
-    2: {dl:null,dt:null,st:'concluido'},
-    3: {dl:null,dt:null,st:'concluido'},
-    4: {dl:null,dt:null,st:'concluido'},
-    5: {dl:null,dt:null,st:'concluido'},
-    6: {dl:null,dt:null,st:'concluido'},
   },
   '003': {
-    0: {dl:null,dt:null,st:'concluido'},
-    1: {dl:null,dt:null,st:'concluido'},
-    2: {dl:null,dt:null,st:'concluido'},
-    3: {dl:null,dt:null,st:'concluido'},
-    4: {dl:null,dt:null,st:'concluido'},
-    5: {dl:null,dt:null,st:'concluido'},
-    6: {dl:null,dt:null,st:'concluido'},
   },
   '006': {
     0: {dl:'2023-01-01',dt:'2023-01-01',st:'concluido'},
     2: {dl:'2023-07-01',dt:'2023-05-01',st:'concluido'},
-    3: {dl:null,dt:null,st:'ainicial'},
-    4: {dl:null,dt:null,st:'ainicial'},
     5: {dl:'2026-06-01',dt:'2027-02-01',st:'ainicial'},
   },
   '007': {
@@ -1044,6 +1027,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2023-08-01',dt:'2026-10-30',st:'ainicial'},
     5: {dl:'2025-09-01',dt:'2028-09-01',st:'ainicial'},
     6: {dl:'2025-10-01',dt:'2028-10-01',st:'ainicial'},
+    7: {dl:'2025-10-01',dt:null,st:'ainicial'},
+    9: {dl:'2025-12-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-03-01',dt:null,st:'ainicial'},
   },
   '008': {
     0: {dl:'2022-07-01',dt:'2022-07-01',st:'concluido'},
@@ -1053,6 +1039,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2023-10-01',dt:'2025-11-25',st:'concluido'},
     5: {dl:'2025-09-01',dt:'2026-09-30',st:'ainicial'},
     6: {dl:'2025-10-01',dt:'2026-10-30',st:'ainicial'},
+    7: {dl:'2025-10-01',dt:null,st:'ainicial'},
+    9: {dl:'2025-12-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-03-01',dt:null,st:'ainicial'},
   },
   '009': {
     0: {dl:'2023-06-01',dt:'2023-06-01',st:'concluido'},
@@ -1062,6 +1051,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2023-09-01',dt:'2025-12-15',st:'concluido'},
     5: {dl:'2025-11-01',dt:'2026-08-31',st:'ainicial'},
     6: {dl:'2025-12-01',dt:'2026-09-30',st:'ainicial'},
+    7: {dl:'2025-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2026-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-05-01',dt:null,st:'ainicial'},
   },
   '010': {
     0: {dl:'2022-12-01',dt:'2022-12-01',st:'concluido'},
@@ -1071,6 +1063,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2023-11-01',dt:'2023-08-26',st:'concluido'},
     5: {dl:'2025-12-01',dt:'2026-02-02',st:'concluido'},
     6: {dl:'2026-01-01',dt:'2026-04-09',st:'concluido'},
+    7: {dl:'2026-01-01',dt:null,st:'ainicial'},
+    9: {dl:'2026-03-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-06-01',dt:null,st:'ainicial'},
   },
   '011': {
     0: {dl:'2023-03-01',dt:'2023-03-01',st:'concluido'},
@@ -1080,13 +1075,21 @@ const NEKT_TIMELINES = {
     4: {dl:'2024-06-01',dt:'2026-05-26',st:'concluido'},
     5: {dl:'2026-06-01',dt:'2026-12-31',st:'ainicial'},
     6: {dl:'2026-07-01',dt:'2027-01-30',st:'ainicial'},
+    7: {dl:'2026-07-01',dt:null,st:'ainicial'},
+    9: {dl:'2026-09-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-12-01',dt:null,st:'ainicial'},
   },
   '012': {
+    0: {dl:'2023-06-01',dt:null,st:'ainicial'},
+    1: {dl:'2025-01-01',dt:null,st:'ainicial'},
     2: {dl:'2025-02-01',dt:'2027-02-26',st:'ainicial'},
     3: {dl:'2024-12-01',dt:'2027-02-26',st:'ainicial'},
     4: {dl:'2025-01-01',dt:'2027-04-26',st:'ainicial'},
     5: {dl:'2027-02-01',dt:'2029-02-26',st:'ainicial'},
     6: {dl:'2027-03-01',dt:'2029-03-26',st:'ainicial'},
+    7: {dl:'2027-03-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-05-01',dt:null,st:'ainicial'},
+    10: {dl:'2027-08-01',dt:null,st:'ainicial'},
   },
   '013': {
     0: {dl:'2023-08-01',dt:'2023-08-01',st:'concluido'},
@@ -1096,14 +1099,21 @@ const NEKT_TIMELINES = {
     4: {dl:'2024-10-01',dt:'2026-03-04',st:'concluido'},
     5: {dl:'2026-11-01',dt:'2026-08-30',st:'ainicial'},
     6: {dl:'2026-12-01',dt:'2026-09-30',st:'ainicial'},
+    7: {dl:'2026-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2027-05-01',dt:null,st:'ainicial'},
   },
   '014': {
+    0: {dl:'2023-08-01',dt:null,st:'ainicial'},
     1: {dl:'2024-10-01',dt:'2026-07-23',st:'concluido'},
     2: {dl:'2024-11-01',dt:'2026-08-31',st:'ainicial'},
     3: {dl:'2024-09-01',dt:'2026-08-30',st:'ainicial'},
     4: {dl:'2024-10-01',dt:'2026-10-30',st:'ainicial'},
     5: {dl:'2026-11-01',dt:'2028-08-31',st:'ainicial'},
     6: {dl:'2026-12-01',dt:'2028-09-30',st:'ainicial'},
+    7: {dl:'2026-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2027-05-01',dt:null,st:'ainicial'},
   },
   '015': {
     0: {dl:'2023-11-01',dt:'2023-11-01',st:'concluido'},
@@ -1113,6 +1123,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2025-01-01',dt:'2026-10-21',st:'ainicial'},
     5: {dl:'2027-02-01',dt:'2027-05-14',st:'ainicial'},
     6: {dl:'2027-03-01',dt:'2027-06-14',st:'ainicial'},
+    7: {dl:'2027-03-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-05-01',dt:null,st:'ainicial'},
+    10: {dl:'2027-08-01',dt:null,st:'ainicial'},
   },
   '016': {
     0: {dl:'2024-02-01',dt:'2024-02-01',st:'concluido'},
@@ -1122,23 +1135,33 @@ const NEKT_TIMELINES = {
     4: {dl:'2025-04-01',dt:'2026-07-31',st:'concluido'},
     5: {dl:'2027-11-01',dt:'2027-12-17',st:'ainicial'},
     6: {dl:'2027-12-01',dt:'2028-01-17',st:'ainicial'},
+    7: {dl:'2027-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-05-01',dt:null,st:'ainicial'},
   },
   '017': {
     0: {dl:'2024-03-01',dt:'2024-03-01',st:'concluido'},
     1: {dl:'2025-06-01',dt:'2025-08-11',st:'concluido'},
     2: {dl:'2025-06-01',dt:'2025-08-26',st:'concluido'},
-    3: {dl:'2025-05-01',dt:'2026-08-10',st:'concluido'},
-    4: {dl:'2025-06-01',dt:'2026-10-10',st:'ainicial'},
-    5: {dl:'2027-12-23',dt:'2028-02-24',st:'ainicial'},
-    6: {dl:'2028-01-31',dt:'2028-03-24',st:'ainicial'},
+    3: {dl:'2025-04-02',dt:'2026-08-10',st:'concluido'},
+    4: {dl:'2025-05-02',dt:'2026-10-10',st:'ainicial'},
+    5: {dl:'2027-12-01',dt:'2028-02-24',st:'ainicial'},
+    6: {dl:'2028-01-01',dt:'2028-03-24',st:'ainicial'},
+    7: {dl:'2028-01-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-03-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-06-01',dt:null,st:'ainicial'},
   },
   '018': {
+    0: {dl:'2024-04-01',dt:null,st:'ainicial'},
     1: {dl:'2025-06-01',dt:'2026-10-07',st:'ainicial'},
     2: {dl:'2025-07-01',dt:'2026-11-07',st:'ainicial'},
     3: {dl:'2025-05-01',dt:'2026-10-22',st:'ainicial'},
     4: {dl:'2025-06-01',dt:'2026-12-22',st:'ainicial'},
     5: {dl:'2028-01-01',dt:'2029-05-07',st:'ainicial'},
     6: {dl:'2028-02-01',dt:'2029-06-07',st:'ainicial'},
+    7: {dl:'2028-02-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-04-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-07-01',dt:null,st:'ainicial'},
   },
   '019': {
     0: {dl:'2024-06-01',dt:'2024-06-01',st:'concluido'},
@@ -1148,6 +1171,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2025-08-01',dt:'2026-10-28',st:'ainicial'},
     5: {dl:'2027-09-01',dt:'2028-04-30',st:'ainicial'},
     6: {dl:'2027-10-01',dt:'2028-05-30',st:'ainicial'},
+    7: {dl:'2027-10-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-12-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-02-28',dt:null,st:'ainicial'},
   },
   '020': {
     0: {dl:'2024-07-01',dt:'2024-07-01',st:'concluido'},
@@ -1157,22 +1183,33 @@ const NEKT_TIMELINES = {
     4: {dl:'2025-09-01',dt:'2026-10-31',st:'ainicial'},
     5: {dl:'2028-04-01',dt:'2028-10-26',st:'ainicial'},
     6: {dl:'2028-05-01',dt:'2028-11-26',st:'ainicial'},
+    7: {dl:'2028-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-07-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-10-01',dt:null,st:'ainicial'},
   },
   '021': {
+    0: {dl:'2024-07-01',dt:null,st:'ainicial'},
     1: {dl:'2025-09-01',dt:'2026-12-08',st:'ainicial'},
     2: {dl:'2025-10-01',dt:'2027-01-08',st:'ainicial'},
     3: {dl:'2025-08-01',dt:'2027-01-15',st:'ainicial'},
     4: {dl:'2025-09-01',dt:'2027-03-15',st:'ainicial'},
     5: {dl:'2028-04-01',dt:'2029-07-08',st:'ainicial'},
     6: {dl:'2028-05-01',dt:'2029-08-08',st:'ainicial'},
+    7: {dl:'2028-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-07-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-10-01',dt:null,st:'ainicial'},
   },
   '022': {
+    0: {dl:'2024-08-01',dt:null,st:'ainicial'},
     1: {dl:'2025-09-01',dt:'2026-09-10',st:'ainicial'},
     2: {dl:'2025-10-01',dt:'2026-10-10',st:'ainicial'},
     3: {dl:'2025-08-01',dt:'2026-10-02',st:'ainicial'},
     4: {dl:'2025-09-01',dt:'2026-12-02',st:'ainicial'},
     5: {dl:'2028-04-01',dt:'2029-04-10',st:'ainicial'},
     6: {dl:'2028-05-01',dt:'2029-05-10',st:'ainicial'},
+    7: {dl:'2028-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-04-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-09-01',dt:null,st:'ainicial'},
   },
   '023': {
     0: {dl:'2024-08-01',dt:'2024-08-01',st:'concluido'},
@@ -1182,6 +1219,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2025-10-01',dt:'2026-10-21',st:'ainicial'},
     5: {dl:'2028-05-01',dt:'2028-05-04',st:'ainicial'},
     6: {dl:'2028-06-01',dt:'2028-06-04',st:'ainicial'},
+    7: {dl:'2028-06-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-08-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-11-01',dt:null,st:'ainicial'},
   },
   '024': {
     0: {dl:'2024-09-01',dt:'2024-09-01',st:'concluido'},
@@ -1191,6 +1231,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2025-10-01',dt:'2026-10-10',st:'ainicial'},
     5: {dl:'2027-11-01',dt:'2027-12-06',st:'ainicial'},
     6: {dl:'2027-12-01',dt:'2028-01-06',st:'ainicial'},
+    7: {dl:'2027-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-05-01',dt:null,st:'ainicial'},
   },
   '025': {
     0: {dl:'2024-10-01',dt:'2024-10-01',st:'concluido'},
@@ -1200,6 +1243,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2025-12-01',dt:'2026-12-30',st:'ainicial'},
     5: {dl:'2028-07-01',dt:'2028-12-06',st:'ainicial'},
     6: {dl:'2028-08-01',dt:'2029-01-06',st:'ainicial'},
+    7: {dl:'2028-08-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-10-01',dt:null,st:'ainicial'},
+    10: {dl:'2029-01-01',dt:null,st:'ainicial'},
   },
   '026': {
     0: {dl:'2024-12-01',dt:'2024-12-01',st:'concluido'},
@@ -1209,23 +1255,33 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-02-01',dt:'2027-02-01',st:'ainicial'},
     5: {dl:'2029-03-01',dt:'2029-03-01',st:'ainicial'},
     6: {dl:'2029-04-01',dt:'2029-04-01',st:'ainicial'},
+    7: {dl:'2029-04-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-06-01',dt:null,st:'ainicial'},
+    10: {dl:'2029-09-01',dt:null,st:'ainicial'},
   },
   '027': {
+    0: {dl:'2024-11-01',dt:null,st:'ainicial'},
     1: {dl:'2026-01-01',dt:'2026-11-27',st:'ainicial'},
     2: {dl:'2026-02-01',dt:'2026-12-27',st:'ainicial'},
     3: {dl:'2025-12-01',dt:'2026-12-18',st:'ainicial'},
     4: {dl:'2026-01-01',dt:'2027-02-18',st:'ainicial'},
     5: {dl:'2028-08-01',dt:'2029-06-27',st:'ainicial'},
     6: {dl:'2028-09-01',dt:'2029-07-27',st:'ainicial'},
+    7: {dl:'2028-09-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-11-01',dt:null,st:'ainicial'},
+    10: {dl:'2029-02-01',dt:null,st:'ainicial'},
   },
   '028': {
     0: {dl:'2024-11-01',dt:'2024-11-01',st:'concluido'},
-    1: {dl:'2027-02-15',dt:'2026-08-03',st:'concluido'},
+    1: {dl:'2027-01-01',dt:'2026-08-03',st:'concluido'},
     2: {dl:'2027-02-01',dt:'2027-02-01',st:'ainicial'},
     3: {dl:'2026-12-01',dt:'2026-12-01',st:'ainicial'},
     4: {dl:'2027-01-01',dt:'2027-01-01',st:'ainicial'},
     5: {dl:'2029-08-01',dt:'2029-08-01',st:'ainicial'},
     6: {dl:'2029-09-01',dt:'2029-09-01',st:'ainicial'},
+    7: {dl:'2029-09-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-11-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-02-01',dt:null,st:'ainicial'},
   },
   '029': {
     0: {dl:'2025-01-01',dt:'2025-01-01',st:'concluido'},
@@ -1235,14 +1291,21 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-04-01',dt:'2026-12-08',st:'ainicial'},
     5: {dl:'2029-11-01',dt:'2029-11-01',st:'ainicial'},
     6: {dl:'2029-12-01',dt:'2029-12-01',st:'ainicial'},
+    7: {dl:'2029-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-05-01',dt:null,st:'ainicial'},
   },
   '030': {
     0: {dl:'2025-03-01',dt:'2025-03-01',st:'concluido'},
+    1: {dl:'2027-06-01',dt:null,st:'ainicial'},
     2: {dl:'2027-06-01',dt:'2027-06-01',st:'ainicial'},
     3: {dl:'2027-04-01',dt:'2027-04-01',st:'ainicial'},
     4: {dl:'2027-05-01',dt:'2027-05-01',st:'ainicial'},
     5: {dl:'2029-06-01',dt:'2029-06-01',st:'ainicial'},
     6: {dl:'2029-07-01',dt:'2029-07-01',st:'ainicial'},
+    7: {dl:'2029-07-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-09-01',dt:null,st:'ainicial'},
+    10: {dl:'2029-12-01',dt:null,st:'ainicial'},
   },
   '031': {
     0: {dl:'2025-04-01',dt:'2025-04-01',st:'concluido'},
@@ -1252,6 +1315,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-05-01',dt:'2027-05-01',st:'ainicial'},
     5: {dl:'2030-01-01',dt:'2030-01-01',st:'ainicial'},
     6: {dl:'2030-02-01',dt:'2030-02-01',st:'ainicial'},
+    7: {dl:'2030-02-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-07-01',dt:null,st:'ainicial'},
   },
   '032': {
     0: {dl:'2025-04-01',dt:'2025-04-01',st:'concluido'},
@@ -1261,6 +1327,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-05-01',dt:'2027-05-01',st:'ainicial'},
     5: {dl:'2029-07-01',dt:'2029-07-01',st:'ainicial'},
     6: {dl:'2029-08-01',dt:'2029-08-01',st:'ainicial'},
+    7: {dl:'2029-08-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-10-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-01-01',dt:null,st:'ainicial'},
   },
   '033': {
     0: {dl:'2025-05-01',dt:'2025-05-01',st:'concluido'},
@@ -1270,24 +1339,33 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-07-01',dt:'2027-07-01',st:'ainicial'},
     5: {dl:'2030-03-01',dt:'2030-03-01',st:'ainicial'},
     6: {dl:'2030-04-01',dt:'2030-04-01',st:'ainicial'},
+    7: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-06-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-09-01',dt:null,st:'ainicial'},
   },
   '034': {
     0: {dl:'2025-06-01',dt:'2025-06-01',st:'concluido'},
-    1: {dl:'2027-08-12',dt:'2026-12-25',st:'ainicial'},
+    1: {dl:'2027-08-01',dt:'2026-12-25',st:'ainicial'},
     2: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
     3: {dl:'2027-07-01',dt:'2027-07-01',st:'ainicial'},
     4: {dl:'2027-08-01',dt:'2027-08-01',st:'ainicial'},
     5: {dl:'2029-09-01',dt:'2029-09-01',st:'ainicial'},
     6: {dl:'2029-10-01',dt:'2029-10-01',st:'ainicial'},
+    7: {dl:'2029-10-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-12-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-03-01',dt:null,st:'ainicial'},
   },
   '035': {
     0: {dl:'2025-07-01',dt:'2025-07-01',st:'concluido'},
-    1: {dl:'2027-10-30',dt:'2026-09-24',st:'ainicial'},
+    1: {dl:'2027-09-01',dt:'2026-09-24',st:'ainicial'},
     2: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
     3: {dl:'2027-08-01',dt:'2027-08-01',st:'ainicial'},
     4: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
     5: {dl:'2029-10-01',dt:'2029-10-01',st:'ainicial'},
     6: {dl:'2029-11-01',dt:'2029-11-01',st:'ainicial'},
+    7: {dl:'2029-11-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-01-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-04-01',dt:null,st:'ainicial'},
   },
   '036': {
     0: {dl:'2025-07-01',dt:'2025-07-01',st:'concluido'},
@@ -1297,6 +1375,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
     5: {dl:'2029-10-01',dt:'2029-10-01',st:'ainicial'},
     6: {dl:'2029-11-01',dt:'2029-11-01',st:'ainicial'},
+    7: {dl:'2029-11-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-01-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-04-01',dt:null,st:'ainicial'},
   },
   '037': {
     0: {dl:'2025-07-01',dt:'2025-07-01',st:'concluido'},
@@ -1306,6 +1387,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
     5: {dl:'2030-04-01',dt:'2030-04-01',st:'ainicial'},
     6: {dl:'2030-05-01',dt:'2030-05-01',st:'ainicial'},
+    7: {dl:'2030-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-07-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-10-01',dt:null,st:'ainicial'},
   },
   '038': {
     0: {dl:'2025-08-01',dt:'2025-08-01',st:'concluido'},
@@ -1315,14 +1399,21 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
     5: {dl:'2030-05-01',dt:'2030-05-01',st:'ainicial'},
     6: {dl:'2030-06-01',dt:'2030-06-01',st:'ainicial'},
+    7: {dl:'2030-06-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-08-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-11-01',dt:null,st:'ainicial'},
   },
   '039': {
     0: {dl:'2025-08-01',dt:'2025-08-01',st:'concluido'},
+    1: {dl:'2027-10-01',dt:null,st:'ainicial'},
     2: {dl:'2027-11-01',dt:'2027-11-01',st:'ainicial'},
     3: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
     4: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
     5: {dl:'2030-05-01',dt:'2030-05-01',st:'ainicial'},
     6: {dl:'2030-06-01',dt:'2030-06-01',st:'ainicial'},
+    7: {dl:'2030-06-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-08-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-11-01',dt:null,st:'ainicial'},
   },
   '040': {
     0: {dl:'2025-09-01',dt:'2025-09-01',st:'concluido'},
@@ -1332,6 +1423,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-11-01',dt:'2027-11-01',st:'ainicial'},
     5: {dl:'2030-12-01',dt:'2030-12-01',st:'ainicial'},
     6: {dl:'2031-01-01',dt:'2031-01-01',st:'ainicial'},
+    7: {dl:'2031-01-01',dt:null,st:'ainicial'},
+    9: {dl:'2031-03-01',dt:null,st:'ainicial'},
+    10: {dl:'2031-06-01',dt:null,st:'ainicial'},
   },
   '041': {
     0: {dl:'2025-10-01',dt:'2025-10-01',st:'concluido'},
@@ -1341,6 +1435,9 @@ const NEKT_TIMELINES = {
     4: {dl:'2027-12-01',dt:'2027-12-01',st:'ainicial'},
     5: {dl:'2030-01-01',dt:'2030-01-01',st:'ainicial'},
     6: {dl:'2030-02-01',dt:'2030-02-01',st:'ainicial'},
+    7: {dl:'2030-02-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-07-01',dt:null,st:'ainicial'},
   },
   '042': {
     0: {dl:'2025-10-01',dt:'2025-10-01',st:'concluido'},
@@ -1350,11 +1447,33 @@ const NEKT_TIMELINES = {
     4: {dl:'2028-01-01',dt:'2028-01-01',st:'ainicial'},
     5: {dl:'2030-08-01',dt:'2030-08-01',st:'ainicial'},
     6: {dl:'2030-09-01',dt:'2030-09-01',st:'ainicial'},
+    7: {dl:'2030-09-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-11-01',dt:null,st:'ainicial'},
+    10: {dl:'2031-02-01',dt:null,st:'ainicial'},
   },
   '043': {
+    0: {dl:'2025-12-01',dt:null,st:'ainicial'},
     1: {dl:'2028-02-01',dt:'2027-07-30',st:'ainicial'},
     2: {dl:'2028-03-01',dt:'2028-03-01',st:'ainicial'},
+    3: {dl:'2028-01-01',dt:null,st:'ainicial'},
+    4: {dl:'2028-02-01',dt:null,st:'ainicial'},
     5: {dl:'2030-03-01',dt:'2030-03-01',st:'ainicial'},
+    6: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    7: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-06-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-09-01',dt:null,st:'ainicial'},
+  },
+  '044': {
+    0: {dl:'2025-10-01',dt:null,st:'ainicial'},
+    1: {dl:'2028-03-01',dt:null,st:'ainicial'},
+    2: {dl:'2028-04-01',dt:null,st:'ainicial'},
+    3: {dl:'2028-02-01',dt:null,st:'ainicial'},
+    4: {dl:'2028-03-01',dt:null,st:'ainicial'},
+    5: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    6: {dl:'2030-05-01',dt:null,st:'ainicial'},
+    7: {dl:'2030-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-07-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-10-01',dt:null,st:'ainicial'},
   },
 };
 
@@ -2215,12 +2334,12 @@ function renderCronograma(){
       const rowBorder=newGroup&&ri>0?'border-top:2px solid var(--border)':'';
       return`<tr style="${rowBorder}">
         ${empCell}
-        <td style="font-size:11px"><div style="display:flex;align-items:center">${stDot(r.st)}<span style="color:${r.st==='andamento'?'var(--primary)':r.st==='concluido'?'var(--muted-fg)':'var(--fg)'}">${esc(r.marco)}</span></div></td>
+        <td style="font-size:12px"><div style="display:flex;align-items:center">${stDot(r.st)}<span style="color:${r.st==='andamento'?'var(--primary)':r.st==='concluido'?'var(--muted-fg)':'var(--fg)'}">${esc(r.marco)}</span></div></td>
         <td class="date-cell">${fmtD(r.dl)||'—'}</td>
         <td class="date-cell">${fmtD(r.dr)||'—'}</td>
         <td class="date-cell">${fmtD(r.dt)||'—'}</td>
         <td class="date-cell" style="text-align:center;${smStyle}">${smDt}</td>
-        <td style="text-align:center;font-size:11px">${deltaC}</td>
+        <td style="text-align:center;font-size:12px">${deltaC}</td>
         <td></td>
       </tr>`;
     }).join(''):`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted-fg);font-size:12px">Nenhum resultado com os filtros selecionados.</td></tr>`}</tbody>
