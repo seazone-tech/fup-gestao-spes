@@ -1330,7 +1330,7 @@ function renderDetail(emp){
             <th style="text-align:center">Lançamento</th>
             <th style="text-align:center">Repactuação</th>
             <th style="text-align:center;border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)">Tendência</th>
-            <th style="text-align:center;width:80px">Smartsheet</th>
+            <th style="text-align:center;width:90px">Data SM</th>
           </tr></thead>
           <tbody>
             ${(function(){
@@ -1340,14 +1340,16 @@ function renderDetail(emp){
               const svgOk=`<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`;
               const svgAnd=`<div style="width:6px;height:6px;border-radius:50%;background:white"></div>`;
               const uid='cs'+Math.random().toString(36).slice(2,7);
-              const smLinkSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
-              const smCol=emp.sm_url?`<td style="text-align:center;padding:6px 10px"><a href="${emp.sm_url}" target="_blank" rel="noopener" style="color:var(--primary);display:inline-flex;align-items:center;gap:3px;font-size:10px">${smLinkSvg}</a></td>`:`<td style="text-align:center;font-size:10px;color:var(--muted-fg)">—</td>`;
+              const smData=SMARTSHEET_MARCOS[emp.id]||{};
               return mseq.map(function(m,i){
                 const d=mdates[i];
                 const ic=m.st==='concluido'?svgOk:m.st==='andamento'?svgAnd:'';
                 const drCell=`<td class="date-cell" style="text-align:center">${fmtD(d.dr)||'—'}</td>`;
                 const hasSubs=(m.subs||[]).length>0;
                 const chevron=hasSubs?`<svg class="sub-chev" style="flex-shrink:0;transition:transform 180ms;color:var(--muted-fg)" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`:'';
+                const smDate=smData[i]?fmtD(smData[i].dt)||'—':'—';
+                const smDateStyle=smData[i]&&smData[i].st==='concluido'?'color:var(--success);font-weight:600':smData[i]&&smData[i].st==='andamento'?'color:var(--primary);font-weight:600':'color:var(--muted-fg)';
+                const smCol=`<td class="date-cell" style="text-align:center;${smDateStyle}">${smDate}</td>`;
                 const parentRow=`<tr class="cron-row-${m.st}${hasSubs?' cron-has-subs':''}" ${hasSubs?`onclick="tglSubs('${uid+i}',this)" style="cursor:pointer"`:''}>
                   <td><div class="cron-name-cell">
                     <div class="cron-dot-s ${m.st}">${ic}</div>
@@ -1721,10 +1723,17 @@ function renderHistorico(){
       </span>
     </div>`;
   }).join('');
-  c.innerHTML=`<div class="painel-split">
-    <div class="painel-list" id="histList">${listItems}</div>
-    <div class="painel-detail-wrap" id="hist-detail">${renderHistCards()}</div>
-  </div>`;
+  c.innerHTML=`
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+      <button class="btn btn-primary" onclick="openModalHist()" style="gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Registro
+      </button>
+    </div>
+    <div class="painel-split">
+      <div class="painel-list" id="histList">${listItems}</div>
+      <div class="painel-detail-wrap" id="hist-detail">${renderHistCards()}</div>
+    </div>`;
 }
 
 // ─── CRONOGRAMA ──────────────────────────────────────────────────────────────
@@ -1834,7 +1843,7 @@ function renderCronograma(){
       ${thC('dl','Lançamento')}
       ${thC('dr','Repactuado')}
       ${thC('dt','Tendência')}
-      <th style="text-align:center;white-space:nowrap">Smartsheet</th>
+      <th style="text-align:center;white-space:nowrap">Data SM</th>
       ${thC('delta','Δ Marco')}
       <th></th>
     </tr></thead>
@@ -1845,9 +1854,9 @@ function renderCronograma(){
         ?`<td style="font-size:11px;font-weight:400;color:var(--fg);text-transform:uppercase;letter-spacing:.04em;vertical-align:top;padding-top:8px">${esc(r.nome_emp)}</td>`
         :`<td style="border-top:none;color:transparent;font-size:8px">·</td>`;
       const deltaC=r.delta===null?'—':(r.delta>0?`<span style="color:var(--warn);font-weight:600">+${r.delta}d</span>`:(r.delta<0?`<span style="color:var(--success);font-weight:600">${r.delta}d</span>`:`<span style="color:var(--muted-fg)">0d</span>`));
-      const smCell=r.emp.sm_url
-        ?`<a href="${r.emp.sm_url}" target="_blank" rel="noopener" style="color:var(--primary);display:inline-flex;align-items:center;gap:3px;font-size:10px">${smLinkSvg}</a>`
-        :'—';
+      const smData=SMARTSHEET_MARCOS[r.emp.id]||{};
+      const smDt=smData[r.i]?fmtD(smData[r.i].dt)||'—':'—';
+      const smStyle=smData[r.i]&&smData[r.i].st==='concluido'?'color:var(--success);font-weight:600':smData[r.i]&&smData[r.i].st==='andamento'?'color:var(--primary);font-weight:600':'color:var(--muted-fg)';
       const rowBorder=newGroup&&ri>0?'border-top:2px solid var(--border)':'';
       return`<tr style="${rowBorder}">
         ${empCell}
@@ -1855,7 +1864,7 @@ function renderCronograma(){
         <td class="date-cell">${fmtD(r.dl)||'—'}</td>
         <td class="date-cell">${fmtD(r.dr)||'—'}</td>
         <td class="date-cell">${fmtD(r.dt)||'—'}</td>
-        <td style="text-align:center;font-size:10px">${smCell}</td>
+        <td class="date-cell" style="text-align:center;${smStyle}">${smDt}</td>
         <td style="text-align:center;font-size:11px">${deltaC}</td>
         <td></td>
       </tr>`;
@@ -1865,6 +1874,7 @@ function renderCronograma(){
 
 // ─── MODAL ───────────────────────────────────────────────────────────────────
 function openModal(){document.getElementById('modalFup').classList.add('open');document.getElementById('mData').value=TODAY.toISOString().split('T')[0];if(curEmpId)document.getElementById('mEmp').value=curEmpId;}
+function openModalHist(){document.getElementById('modalFup').classList.add('open');document.getElementById('mData').value=TODAY.toISOString().split('T')[0];if(histSelId)document.getElementById('mEmp').value=histSelId;}
 function closeModal(){document.getElementById('modalFup').classList.remove('open');}
 function salvarModal(){
   const empId=document.getElementById('mEmp').value;
