@@ -1,0 +1,1746 @@
+<title>SpotSys — FUP: Gestão de SPEs</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --primary:#0055FF;--primary-fg:#FFF;
+  --sidebar-bg:#FFF;--sidebar-fg:#080E32;--sidebar-active-bg:#193CB8;--sidebar-active-fg:#FFF;--sidebar-hover:#F3F3F5;
+  --bg:#FFF;--fg:#080E32;--card:#FFF;--card-fg:#141A3C;--border:#E6E7EA;--muted:#E6E7EA;--muted-fg:#6B6E84;--accent:#F3F3F5;
+  --success:#059669;--warn:#CA3500;--warn-bg:#FFD6A8;--danger:#E7000B;--danger-bg:#FFE2E2;
+  --font:'Helvetica Neue',-apple-system,BlinkMacSystemFont,sans-serif;--r-lg:8px;--r-xl:12px;--r-full:9999px;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --primary:#3D7FFF;--sidebar-bg:#060C18;--sidebar-fg:#EDF0FA;--sidebar-active-bg:#3D7FFF;--sidebar-hover:#101422;
+  --bg:#080D1C;--fg:#EDF0FA;--card:#0E1326;--card-fg:#EDF0FA;--border:#242840;--muted:#161B30;--muted-fg:#8A8FAD;--accent:#131829;
+  --warn-bg:#441306;--danger-bg:#460809;
+}}
+:root[data-theme="dark"]{
+  --primary:#3D7FFF;--sidebar-bg:#060C18;--sidebar-fg:#EDF0FA;--sidebar-active-bg:#3D7FFF;--sidebar-hover:#101422;
+  --bg:#080D1C;--fg:#EDF0FA;--card:#0E1326;--card-fg:#EDF0FA;--border:#242840;--muted:#161B30;--muted-fg:#8A8FAD;--accent:#131829;
+  --warn-bg:#441306;--danger-bg:#460809;
+}
+:root[data-theme="light"]{
+  --primary:#0055FF;--sidebar-bg:#FFF;--sidebar-fg:#080E32;--sidebar-active-bg:#193CB8;--sidebar-hover:#F3F3F5;
+  --bg:#FFF;--fg:#080E32;--card:#FFF;--card-fg:#141A3C;--border:#E6E7EA;--muted:#E6E7EA;--muted-fg:#6B6E84;--accent:#F3F3F5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--fg);font-size:14px}
+.shell{display:flex;height:100vh;overflow:hidden}
+/* SIDEBAR */
+.sidebar{width:240px;flex-shrink:0;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-logo{padding:16px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-mark{width:28px;height:28px;border-radius:7px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
+.logo-text{font-size:15px;font-weight:700}.logo-sub{font-size:10px;font-weight:400;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.03em}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:1px}
+.sidebar-nav::-webkit-scrollbar{width:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--r-lg);cursor:pointer;color:var(--sidebar-fg);font-size:13px;font-weight:500;transition:background 120ms}
+.nav-item:hover{background:var(--sidebar-hover)}.nav-item.active{background:var(--sidebar-active-bg);color:var(--sidebar-active-fg)}
+.nav-sub{display:flex;align-items:center;gap:9px;padding:5px 10px 5px 32px;border-radius:var(--r-lg);cursor:pointer;color:var(--sidebar-fg);font-size:12px;font-weight:500;transition:background 120ms}
+.nav-sub:hover{background:var(--sidebar-hover)}.nav-sub.active{background:var(--sidebar-active-bg);color:var(--sidebar-active-fg)}
+.nav-section{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-fg);padding:12px 10px 4px}
+.nav-divider{height:1px;background:var(--border);margin:6px 4px}
+.sidebar-user{border-top:1px solid var(--border);padding:12px;display:flex;align-items:center;gap:10px}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.user-name{font-size:12px;font-weight:600}.user-email{font-size:10px;color:var(--muted-fg)}
+.user-tag{display:inline-block;padding:1px 8px;border-radius:99px;background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);font-size:10px;font-weight:700;margin-top:2px}
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.main::-webkit-scrollbar{width:6px}.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:10}
+.topbar-path{font-size:12px;color:var(--muted-fg);display:flex;align-items:center;gap:6px}
+.topbar-path span{color:var(--fg);font-weight:600}
+.theme-btn{padding:6px 10px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--muted-fg);font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:var(--font)}
+.content{padding:28px;flex:1}
+.module-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.module-icon{width:42px;height:42px;border-radius:11px;background:var(--primary);color:#fff;display:grid;place-items:center;box-shadow:0 4px 14px color-mix(in srgb,var(--primary) 30%,transparent)}
+.module-title{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.module-sub{font-size:11px;color:var(--muted-fg);margin-top:2px}
+/* CONTROLS */
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.select-building{flex:1 1 220px;max-width:320px;padding:8px 12px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:13px;font-family:var(--font);cursor:pointer;outline:none}
+.view-toggle{display:inline-flex;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:3px}
+.view-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--muted-fg);border:none;cursor:pointer;font-family:var(--font);transition:all 150ms;white-space:nowrap}
+.view-btn.active{background:var(--primary);color:#fff}.view-btn:not(.active):hover{background:var(--accent);color:var(--fg)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-lg);font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--fg);cursor:pointer;font-family:var(--font)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+/* OVERVIEW GRID */
+.overview-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.overview-stat{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border:1px solid var(--border);border-radius:var(--r-lg);background:var(--card)}
+.overview-stat-n{font-size:22px;font-weight:800;line-height:1}
+.overview-stat-l{font-size:10px;color:var(--muted-fg);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+/* SPLIT LAYOUT */
+.painel-split{display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:start}
+.painel-list{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);overflow-y:auto;max-height:calc(100vh - 152px);position:sticky;top:16px}
+.painel-list-item{padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background 100ms;user-select:none}
+.painel-list-item:last-child{border-bottom:none}
+.painel-list-item:hover{background:var(--accent)}
+.painel-list-item.pli-active{background:color-mix(in srgb,var(--primary) 7%,transparent);border-left:3px solid var(--primary)}
+.painel-list-item:not(.pli-active){border-left:3px solid transparent}
+.pli-nome{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--card-fg)}
+.pli-active .pli-nome{color:var(--primary);font-weight:600}
+.pli-dots{display:flex;gap:4px;flex-shrink:0}
+.pli-dot{width:7px;height:7px;border-radius:50%}
+.painel-detail-wrap{min-width:0}
+.painel-detail-wrap .detail-back{display:none}
+.emp-mini{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);padding:14px 16px;cursor:pointer;transition:box-shadow 120ms,border-color 120ms;display:flex;flex-direction:column;gap:8px}
+.emp-mini:hover{box-shadow:0 4px 16px color-mix(in srgb,var(--primary) 12%,transparent);border-color:color-mix(in srgb,var(--primary) 30%,var(--border))}
+.emp-mini.brd-critico{border-color:color-mix(in srgb,var(--danger) 35%,var(--border))}
+.emp-mini.brd-atencao{border-color:color-mix(in srgb,var(--warn) 35%,var(--border))}
+.emp-mini-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.emp-code{font-size:10px;font-weight:700;color:var(--muted-fg);font-variant-numeric:tabular-nums}
+.score-dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;flex-shrink:0}
+.score-dot.critico{background:var(--danger-bg);color:var(--danger)}
+.score-dot.atencao{background:var(--warn-bg);color:var(--warn)}
+.score-dot.ok{background:#DCFCE7;color:#166534}
+:root[data-theme="dark"] .score-dot.ok{background:#052E16;color:#4ADE80}
+:root[data-theme="dark"] .score-dot.atencao{background:#3A3200;color:#FFE94D}
+:root[data-theme="dark"] .score-dot.critico{background:#450A0A;color:#FCA5A5}
+.emp-mini-name{font-size:13px;font-weight:700;color:var(--card-fg);line-height:1.3}
+.fase-pill{display:inline-block;padding:2px 10px;border-radius:var(--r-full);font-size:11px;font-weight:600;background:var(--accent);color:var(--muted-fg)}
+.fase-pill.preobra,.fase-pill.obra,.fase-pill.entrega{background:var(--accent);color:var(--muted-fg)}
+.mini-bar-row{display:flex;align-items:center;gap:6px}
+.mini-bar-track{flex:1;height:4px;background:var(--muted);border-radius:2px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:2px;background:var(--primary)}
+.mini-bar-pct{font-size:10px;font-weight:700;color:var(--muted-fg);width:28px;text-align:right;font-variant-numeric:tabular-nums}
+/* DETAIL PAGE */
+.detail-page{display:flex;flex-direction:column;gap:20px}
+.detail-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted-fg);cursor:pointer;padding:6px 10px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);margin-bottom:4px}
+.detail-back:hover{background:var(--accent)}
+/* Detail Hero */
+.detail-hero{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);overflow:hidden}
+.hero-stripe{height:5px}
+.hero-stripe.critico{background:var(--danger)}
+.hero-stripe.atencao{background:var(--warn)}
+.hero-stripe.ok{background:var(--success)}
+.hero-body{padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hero-name{font-size:18px;font-weight:400;color:var(--card-fg);letter-spacing:-.02em;line-height:1.2}
+.hero-farois{display:flex;gap:14px;flex-shrink:0}
+.urg-badge{padding:4px 14px;border-radius:var(--r-full);font-size:11px;font-weight:700}
+.urg-critico{background:var(--danger-bg);color:var(--danger)}
+.urg-atencao{background:var(--warn-bg);color:var(--warn)}
+.urg-ok{background:#DCFCE7;color:#166534}
+:root[data-theme="dark"] .urg-ok{background:#052E16;color:#4ADE80}
+:root[data-theme="dark"] .urg-atencao{background:#3A3200;color:#FFE94D}
+:root[data-theme="dark"] .urg-critico{background:#450A0A;color:#FCA5A5}
+.dchips-row{display:flex;gap:8px;flex-wrap:wrap}
+.dchip{display:inline-flex;flex-direction:column;align-items:center;gap:2px;padding:7px 14px;border-radius:var(--r-lg);background:var(--accent);border:1px solid var(--border);min-width:88px}
+.dchip-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-fg)}
+.dchip-value{font-size:12px;font-weight:700;color:var(--card-fg);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dchip-value.late{color:var(--danger)}
+.hero-prog{display:flex;flex-direction:column;gap:9px}
+.prog-row{display:flex;align-items:center;gap:10px}
+.prog-label{font-size:11px;font-weight:600;color:var(--muted-fg);width:130px;flex-shrink:0}
+.prog-track{flex:1;height:8px;background:var(--muted);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px}
+.prog-fill.f{background:var(--primary)}
+.prog-fill.fin{background:var(--success)}
+.prog-pct{font-size:12px;font-weight:700;color:var(--card-fg);width:36px;text-align:right;font-variant-numeric:tabular-nums}
+/* CRONOGRAMA CARD TABLE */
+.cron-card{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);overflow:hidden}
+.cron-card-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--card-fg);letter-spacing:-.01em;background:var(--accent)}
+.cron-table{width:100%;border-collapse:collapse;font-size:12px}
+.cron-table thead th{padding:6px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-fg);text-align:right;background:var(--accent);border-bottom:1px solid var(--border)}
+.cron-table thead th:first-child{text-align:left;min-width:200px}
+.cron-table tbody td{padding:6px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:11px;font-weight:400}
+.cron-table tbody tr:last-child td,.cron-table tbody .sub-last td{border-bottom:1px solid var(--border)}
+.cron-table tbody tr:last-child td{border-bottom:none}
+.date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:10px;white-space:nowrap;color:var(--muted-fg)}
+.cron-row-andamento .date-cell{color:var(--primary);font-weight:600}
+.cron-name-cell{display:flex;align-items:center;gap:8px}
+.cron-dot-s{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
+.cron-dot-s.concluido{background:var(--success)}
+.cron-dot-s.andamento{background:var(--primary);animation:cdot-pulse 2s infinite}
+.cron-dot-s.ainicial{background:var(--card);border:1.5px solid var(--border)}
+@keyframes cdot-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--primary) 30%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--primary) 0%,transparent)}}
+.cron-marco-nome.concluido{color:var(--muted-fg)}
+.cron-marco-nome.andamento{color:var(--primary);font-weight:700}
+.cron-marco-nome.ainicial{color:var(--muted-fg);opacity:.5}
+/* Sub-marcos */
+.cron-sub-row td{padding:4px 14px 4px 42px;border-bottom:none;background:color-mix(in srgb,var(--accent) 60%,var(--card))}
+.cron-sub-row:last-of-type td{border-bottom:1px solid var(--border)}
+.cron-sub-cell{display:flex;align-items:center;gap:6px;font-size:12px}
+.cron-sub-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cron-sub-dot.concluido{background:var(--success)}
+.cron-sub-dot.andamento{background:var(--primary)}
+.cron-sub-dot.ainicial{background:var(--border)}
+.marco-dates{font-size:10px;color:var(--muted-fg);margin-left:26px;display:flex;gap:8px;flex-wrap:wrap}
+.marco-dates span{display:inline-flex;align-items:center;gap:3px}
+.sub-list{margin-left:26px;margin-top:3px;display:flex;flex-direction:column;gap:2px}
+.sub-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted-fg)}
+.sub-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sub-dot.concluido{background:var(--success)}
+.sub-dot.andamento{background:var(--primary)}
+.sub-dot.ainicial{background:var(--muted-fg)}
+/* CAIXINHAS GRID */
+.caixinhas-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.caixinhas-grid{grid-template-columns:1fr}}
+.caixinha{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);overflow:hidden;display:flex;flex-direction:column}
+.cx-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--accent)}
+.cx-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex-shrink:0}
+.cx-icon-ia{background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary)}
+.cx-icon-ass{background:color-mix(in srgb,var(--success) 14%,transparent);color:var(--success)}
+.cx-icon-com{background:color-mix(in srgb,#7C3AED 14%,transparent);color:#7C3AED}
+.cx-icon-cap{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.cx-title{font-size:11px;font-weight:700;color:var(--card-fg);flex:1;letter-spacing:-.01em}
+.cx-badge-count{padding:2px 8px;border-radius:var(--r-full);font-size:11px;font-weight:700;background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary)}
+.cx-body{padding:14px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+/* IA items */
+.ia-item-new{border-left:3px solid;padding:8px 10px;border-radius:0 var(--r-lg) var(--r-lg) 0;background:var(--accent);display:flex;flex-direction:column;gap:4px}
+.ia-item-new.reuniao{border-color:var(--primary)}
+.ia-item-new.wpp{border-color:var(--success)}
+.ia-item-tag{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.ia-fonte{font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;display:inline-block}
+.ia-fonte.reuniao{background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary)}
+.ia-fonte.wpp{background:color-mix(in srgb,var(--success) 15%,transparent);color:var(--success)}
+.ia-text{font-size:12px;color:var(--card-fg);line-height:1.5}
+/* Assembleias rows */
+.ass-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.ass-row:last-child{border-bottom:none;padding-bottom:0}
+.ass-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex-shrink:0}
+.ass-icon-cal{background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary)}
+.ass-icon-doc{background:color-mix(in srgb,var(--success) 10%,transparent);color:var(--success)}
+.ass-info{flex:1;display:flex;flex-direction:column;gap:2px}
+.ass-label{font-size:11px;font-weight:600;color:var(--card-fg)}
+.ass-sub{font-size:10px;color:var(--muted-fg)}
+.mini-pill{padding:2px 8px;border-radius:var(--r-full);font-size:11px;font-weight:700}
+.mp-prev{background:color-mix(in srgb,var(--muted-fg) 12%,transparent);color:var(--muted-fg)}
+.mp-conf{background:#DCFCE7;color:#166534}
+:root[data-theme="dark"] .mp-conf{background:#052E16;color:#4ADE80}
+.mp-and{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)}
+.mp-sem{background:var(--muted);color:var(--muted-fg)}
+/* Comunicados */
+.com-item{padding:10px;border-radius:var(--r-lg);background:var(--accent);display:flex;flex-direction:column;gap:5px}
+.com-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.com-data{font-size:10px;color:var(--muted-fg);font-variant-numeric:tabular-nums}
+.com-tipo{padding:1px 7px;border-radius:var(--r-full);font-size:10px;font-weight:700}
+.ct-info{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)}
+.ct-urg{background:var(--danger-bg);color:var(--danger)}
+.ct-fin{background:var(--warn-bg);color:var(--warn)}
+.com-text{font-size:12px;color:var(--card-fg);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Chamada de Capital */
+.cap-box{border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.cap-box.alto{border-color:var(--danger)}
+.cap-box.atencao{border-color:var(--warn)}
+.cap-stripe{height:3px}
+.cap-stripe.alto{background:var(--danger)}
+.cap-stripe.atencao{background:var(--warn)}
+.cap-stripe.ok{background:var(--success)}
+.cap-inner{padding:10px 12px}
+.cap-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cap-status{font-size:13px;font-weight:800;color:var(--card-fg)}
+.risco-chip{padding:2px 9px;border-radius:var(--r-full);font-size:11px;font-weight:700}
+.rc-alto{background:var(--danger-bg);color:var(--danger)}
+.rc-atencao{background:var(--warn-bg);color:var(--warn)}
+.rc-ok{background:#DCFCE7;color:#166534}
+:root[data-theme="dark"] .rc-ok{background:#052E16;color:#4ADE80}
+.cap-detail{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:8px}
+.cap-det-row{display:flex;justify-content:space-between;font-size:11px}
+.cap-det-label{color:var(--muted-fg)}
+.cap-det-val{font-weight:700;color:var(--card-fg);font-variant-numeric:tabular-nums}
+/* FUP SECTION */
+.fup-section{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card)}
+.fup-sec-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--accent)}
+.fup-sec-title{font-size:11px;font-weight:700;color:var(--card-fg);display:flex;align-items:center;gap:7px;letter-spacing:-.01em}
+.fup-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.fup-card{border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--accent)}
+.fup-card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fup-card-date{font-size:11px;font-weight:700;color:var(--card-fg);font-variant-numeric:tabular-nums;flex-shrink:0}
+.fup-card-resp{font-size:11px;color:var(--muted-fg);margin-left:auto;flex-shrink:0}
+.fup-card-disc{font-size:12px;color:var(--card-fg);line-height:1.5}
+.fup-card-enc{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:8px}
+.fup-bullet{display:flex;gap:6px;font-size:12px;color:var(--muted-fg);line-height:1.4;align-items:flex-start}
+.fup-bullet-dot{flex-shrink:0;margin-top:5px;width:5px;height:5px;border-radius:50%;background:var(--muted-fg);opacity:.5}
+.fup-form{display:flex;flex-direction:column;gap:10px}
+.fup-form-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-fg);margin-bottom:2px}
+.fup-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fup-field{display:flex;flex-direction:column;gap:3px}
+.fup-field label{font-size:10px;font-weight:600;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.04em}
+.fup-inp{padding:7px 10px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:12px;font-family:var(--font);outline:none;width:100%}
+.fup-inp:focus{border-color:var(--primary)}
+.fup-ta{resize:vertical;min-height:56px}
+.fup-btn{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:var(--r-lg);font-size:12px;font-weight:700;background:var(--primary);color:#fff;border:none;cursor:pointer;font-family:var(--font)}
+/* DETAIL 2-COLUNAS */
+.detail-cols{display:grid;grid-template-columns:3fr 2fr;gap:16px;align-items:stretch}
+@media(max-width:800px){.detail-cols{grid-template-columns:1fr}}
+.detail-col-right{display:flex;flex-direction:column;gap:12px;height:100%}
+.farol-mini-card{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);padding:12px 16px;display:flex;align-items:center;gap:16px}
+.farol-mini-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted-fg);flex-shrink:0}
+.farol-mini-dots{display:flex;gap:20px;flex:1}
+.farol-dot-item{display:flex;flex-direction:column;align-items:center;gap:4px}
+.farol-dot-circle{width:16px;height:16px;border-radius:50%}
+.farol-dot-name{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-fg)}
+.caixinhas-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:900px){.caixinhas-3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.caixinhas-3{grid-template-columns:1fr}}
+/* FAROL TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r-xl);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{border-bottom:1px solid var(--border);background:var(--accent)}
+th{padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted-fg);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background 100ms}
+tbody tr:last-child{border-bottom:none}
+td{padding:10px 14px;color:var(--card-fg);background:var(--card);vertical-align:middle}
+tbody tr:hover td{background:var(--accent)}
+.score-chip{padding:3px 10px;border-radius:var(--r-full);font-size:12px;font-weight:800;display:inline-block}
+.sc-c{background:var(--danger-bg);color:var(--danger)}
+.sc-a{background:var(--warn-bg);color:var(--warn)}
+.sc-o{background:#DCFCE7;color:#166534}
+:root[data-theme="dark"] .sc-o{background:#052E16;color:#4ADE80}
+.det-btn{padding:5px 12px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--primary);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.det-btn:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
+/* HIST TABLE */
+.hist-filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.hist-sel{padding:7px 12px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:12px;font-family:var(--font);outline:none;cursor:pointer}
+.expand-tr{display:none}.expand-tr.open{display:table-row}
+.expand-td{background:color-mix(in srgb,var(--primary) 3%,var(--card))!important;padding:12px 18px;font-size:12px;line-height:1.6}
+.expand-td h4{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted-fg);letter-spacing:.05em;margin-bottom:3px;margin-top:8px}
+.expand-td h4:first-child{margin-top:0}
+.expand-td pre{white-space:pre-wrap;font-family:var(--font);font-size:12px}
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px}
+.overlay.open{display:flex}
+.ov-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2)}
+.ov-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.ov-title{font-size:16px;font-weight:700}
+.ov-close{padding:5px;border:none;background:transparent;cursor:pointer;color:var(--muted-fg);border-radius:var(--r-lg)}
+.ov-close:hover{background:var(--accent)}
+.mf{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.mf label{font-size:10px;font-weight:600;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.04em}
+.mi{padding:8px 12px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:13px;font-family:var(--font);outline:none;width:100%}
+.mi:focus{border-color:var(--primary)}
+.mta{resize:vertical;min-height:72px}
+.ov-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.ov-cancel{padding:8px 16px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.ov-save{padding:8px 20px;border-radius:var(--r-lg);border:none;background:var(--primary);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)}
+svg{display:inline-block;vertical-align:middle}
+.empty{text-align:center;padding:48px 0;color:var(--muted-fg);font-size:13px}
+</style>
+
+<!-- MODAL NOVO FUP -->
+<div class="overlay" id="modalFup">
+  <div class="ov-card">
+    <div class="ov-head">
+      <div class="ov-title">Novo Registro FUP</div>
+      <button class="ov-close" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="mf"><label>Empreendimento</label><select id="mEmp" class="mi"></select></div>
+      <div class="mf"><label>Fonte</label><input type="text" id="mTipo" class="mi" placeholder="Ex: Reunião FUP, WhatsApp, E-mail..."></div>
+    </div>
+    <div class="mf"><label>Data</label><input type="date" id="mData" class="mi"></div>
+    <div class="mf"><label>Histórico</label><textarea id="mHist" class="mi mta" placeholder="Registre o que foi discutido, decisões e encaminhamentos..."></textarea></div>
+    <div class="ov-footer">
+      <button class="ov-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="ov-save" onclick="salvarModal()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">S</div>
+      <div><div class="logo-text">SpotSys</div><div class="logo-sub">Seazone</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Início</div>
+      <div class="nav-section">Áreas</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Marketplace</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Financeiro</div>
+      <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20"/><path d="M5 20V8l7-5 7 5v12"/><path d="M9 20v-5h6v5"/></svg>PMO</div>
+      <div class="nav-sub"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/></svg>Assembleias</div>
+      <div class="nav-sub active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><polyline points="22 4 13 13 8 8 2 14"/></svg>FUP — Gestão de SPEs</div>
+      <div class="nav-divider"></div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Indicadores</div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar">B</div>
+      <div><div class="user-name">Bruna Zanella</div><div class="user-email">obras.pmo@seazone.com.br</div><div class="user-tag">PMO</div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-path">PMO <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg> <span>FUP — Gestão de SPEs</span></div>
+      <button class="theme-btn" onclick="toggleTheme()">
+        <svg id="themeIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="themeLabel">Dark</span>
+      </button>
+    </div>
+
+    <div class="content">
+      <div class="module-header">
+        <div class="module-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><polyline points="22 4 13 13 8 8 2 14"/></svg>
+        </div>
+        <div>
+          <div class="module-title">FUP — Gestão de SPEs</div>
+          <div class="module-sub">Acompanhamento semanal dos empreendimentos Spot</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <select id="buildingSelect" class="select-building" onchange="onEmpChange()">
+          <option value="">Todos os empreendimentos</option>
+        </select>
+        <div class="view-toggle">
+          <button class="view-btn active" id="btnPainel" onclick="switchView('painel')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Painel
+          </button>
+          <button class="view-btn" id="btnCronograma" onclick="switchView('cronograma')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>Cronograma
+          </button>
+          <button class="view-btn" id="btnFarol" onclick="switchView('farol')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>Farol
+          </button>
+          <button class="view-btn" id="btnHistorico" onclick="switchView('historico')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Histórico
+          </button>
+        </div>
+      </div>
+
+      <div id="view-painel"></div>
+      <div id="view-cronograma" style="display:none"></div>
+      <div id="view-farol" style="display:none"></div>
+      <div id="view-historico" style="display:none"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const TODAY = new Date('2026-08-17');
+
+// Empreendimentos — dados reais do Smartsheet '0. Cronogramas Unificados' (gerado 2026-08-17)
+// fase: 'preobra'|'obra'|'entrega'
+const EMPS_RAW = [
+  {id:'002',nome:'Lagoa Spot',fase:'entrega',pf:100.0,pfin:100.0,dl:'2024-10-14',dt:'2026-12-25',dr:'2027-01-13',risco:'semrisco',pag:'Vigente',pv:'2026-09-01',pval:'R$ 210.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'concluido'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'concluido'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'003',nome:'Rosa Spot',fase:'entrega',pf:100.0,pfin:100.0,dl:'2025-03-11',dt:'2026-10-20',dr:'2026-08-12',risco:'semrisco',pag:'Vigente',pv:'2026-09-15',pval:'R$ 185.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'concluido'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'concluido'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'007',nome:'Barra Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2022-04-28',dt:'2027-07-20',dr:'2027-11-24',risco:'semrisco',pag:'Paralisado',pv:'2026-08-20',pval:'R$ 540.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'008',nome:'Rosa Sul Spot',fase:'entrega',pf:49.2,pfin:49.2,dl:'2026-03-09',dt:'2027-06-08',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-08-01',pval:'R$ 320.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'009',nome:'Ingleses Spot',fase:'entrega',pf:0.0,pfin:0.0,dl:'2026-03-09',dt:'',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-10-01',pval:'R$ 275.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'010',nome:'Urubici Spot',fase:'entrega',pf:0.0,pfin:0.0,dl:'',dt:'',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-01',pval:'R$ 285.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'andamento'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'011',nome:'Japaratinga Spot',fase:'obra',pf:69.5,pfin:69.5,dl:'2024-10-01',dt:'2026-12-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-10-15',pval:'R$ 140.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'012',nome:'Imbassai Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2023-04-05',dt:'2027-07-07',dr:'2025-10-06',risco:'semrisco',pag:'Paralisado',pv:'2026-08-20',pval:'R$ 520.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'013',nome:'Trancoso Spot',fase:'entrega',pf:47.1,pfin:47.1,dl:'2026-03-09',dt:'2027-06-08',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-07-01',pval:'R$ 460.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'014',nome:'Salvador Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2023-08-30',dt:'2027-01-14',dr:'2025-09-26',risco:'semrisco',pag:'Vigente',pv:'2026-09-10',pval:'R$ 310.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'015',nome:'Campeche Spot',fase:'obra',pf:54.6,pfin:54.6,dl:'2025-04-01',dt:'2027-03-16',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-01',pval:'R$ 230.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'016',nome:'Urubici Spot II',fase:'obra',pf:32.9,pfin:32.9,dl:'2025-06-03',dt:'2027-11-17',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-07-01',pval:'R$ 380.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'017',nome:'Canasvieiras Spot',fase:'obra',pf:0.0,pfin:0.0,dl:'',dt:'2028-08-22',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-01',pval:'R$ 195.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'018',nome:'Ilha do Campeche Spot',fase:'preobra',pf:27.8,pfin:27.8,dl:'2024-02-02',dt:'2027-06-10',dr:'2025-12-31',risco:'semrisco',pag:'Vigente',pv:'2026-10-20',pval:'R$ 260.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'019',nome:'Rosa Norte Spot',fase:'obra',pf:0.0,pfin:0.0,dl:'2026-04-22',dt:'2028-03-20',dr:null,risco:'semrisco',pag:'Paralisado',pv:'2026-08-25',pval:'R$ 490.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'020',nome:'Cachoeira Spot',fase:'obra',pf:4.6,pfin:4.6,dl:'2026-04-24',dt:'2028-10-26',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-05',pval:'R$ 305.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'021',nome:'Sul da Ilha Spot',fase:'preobra',pf:36.4,pfin:36.4,dl:'2024-05-07',dt:'2027-06-02',dr:'2027-01-28',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 110.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'022',nome:'Morro das Pedras Spot',fase:'preobra',pf:23.5,pfin:23.5,dl:'2024-05-08',dt:'2029-08-01',dr:'2026-04-24',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 90.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'023',nome:'Batel Spot',fase:'obra',pf:11.3,pfin:11.3,dl:'2025-11-05',dt:'2028-05-04',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-12-01',pval:'R$ 175.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'024',nome:'Jurerê Beach Spot',fase:'obra',pf:30.2,pfin:30.2,dl:'2025-07-24',dt:'2027-10-19',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-15',pval:'R$ 240.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'025',nome:'Marista 144 Spot',fase:'obra',pf:0.0,pfin:0.0,dl:'2028-01-25',dt:'2029-06-26',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 130.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'026',nome:'Ilha do Campeche II Spot',fase:'preobra',pf:43.8,pfin:43.8,dl:'2024-07-17',dt:'2027-07-12',dr:'2026-09-15',risco:'semrisco',pag:'Vigente',pv:'2026-12-10',pval:'R$ 215.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'027',nome:'Santo Antonio Spot',fase:'preobra',pf:53.3,pfin:53.3,dl:'2024-08-29',dt:'2030-09-02',dr:'2027-03-31',risco:'semrisco',pag:'Vigente',pv:'2027-01-15',pval:'R$ 155.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'028',nome:'Meireles Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2024-09-26',dt:'2027-03-22',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-12-01',pval:'R$ 200.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'029',nome:'Cachoeira Beach Spot',fase:'preobra',pf:50.0,pfin:50.0,dl:'2024-11-26',dt:'2029-06-12',dr:'2027-04-12',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 145.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'030',nome:'Bonito Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-01-28',dt:'2031-10-03',dr:'2028-04-24',risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 120.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'031',nome:'Santinho Spot',fase:'preobra',pf:25.0,pfin:25.0,dl:'2025-01-22',dt:'2029-03-30',dr:'2028-02-24',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 185.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'032',nome:'Jurerê Spot II',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-02-14',dt:'2027-05-25',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 160.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'033',nome:'Caraguá Spot',fase:'obra',pf:0.0,pfin:0.0,dl:'2028-02-04',dt:'2028-02-04',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-20',pval:'R$ 270.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'034',nome:'Bonito Spot II',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-04-10',dt:'2030-02-07',dr:'2028-02-08',risco:'semrisco',pag:'Vigente',pv:'2027-05-01',pval:'R$ 105.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'035',nome:'Itacare Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-05-26',dt:'2029-05-08',dr:'2027-06-03',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 135.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'036',nome:'Barra Grande Spot',fase:'entrega',pf:0.0,pfin:0.0,dl:'2027-06-03',dt:'2027-11-01',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 95.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'037',nome:'Ponta das Canas Spot',fase:'preobra',pf:11.8,pfin:11.8,dl:'2025-05-16',dt:'2028-02-15',dr:'2027-05-04',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 150.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'038',nome:'Foz Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-06-27',dt:'2027-06-25',dr:'2027-05-10',risco:'semrisco',pag:'Vigente',pv:'2026-12-15',pval:'R$ 180.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'039',nome:'Canas Beach Spot',fase:'preobra',pf:23.1,pfin:23.1,dl:'2025-05-28',dt:'2028-01-03',dr:'2027-05-10',risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 125.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'040',nome:'Ponta das Canas Spot II',fase:'preobra',pf:10.5,pfin:10.5,dl:'2025-06-04',dt:'2030-09-03',dr:'2027-05-25',risco:'semrisco',pag:'Vigente',pv:'2027-06-01',pval:'R$ 88.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'041',nome:'Novo Campeche Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-08-15',dt:'2027-07-20',dr:'2027-06-25',risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 115.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'042',nome:'Natal Spot',fase:'preobra',pf:39.2,pfin:39.2,dl:'2025-08-20',dt:'2028-02-29',dr:'2027-01-28',risco:'semrisco',pag:'Vigente',pv:'2027-07-01',pval:'R$ 80.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'043',nome:'Jurerê Spot III',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-06-10',dt:'2027-11-09',dr:'2027-08-06',risco:'semrisco',pag:'Vigente',pv:'2027-08-01',pval:'R$ 75.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'044',nome:'Novo Campeche Spot II',fase:'preobra',pf:18.2,pfin:18.2,dl:'2025-10-02',dt:'2028-02-07',dr:'2027-07-06',risco:'semrisco',pag:'Vigente',pv:'2027-09-01',pval:'R$ 70.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+];
+
+// Marcos por fase (legado — usado internamente para leitura de st)
+const MARCOS_DEF = {
+  preobra:[
+    {nome:'Alvará de Construção',subs:[]},
+    {nome:'Projetos Executivos',subs:['Fase I','Fase II']},
+    {nome:'Orçamento Executivo',subs:['Fase I','Fase II']},
+  ],
+  obra:[
+    {nome:'Estrutura',subs:[]},
+    {nome:'Instalações e Elevador',subs:[]},
+    {nome:'Acabamentos e Mobiliário Solto',subs:[]},
+  ],
+  entrega:[
+    {nome:'Habite-se',subs:[]},
+    {nome:'Vistoria e Aceite das Chaves',subs:[]},
+    {nome:'Ligação Definitiva',subs:[]},
+    {nome:'Decor',subs:[]},
+    {nome:'Individualização das Matrículas',subs:[]},
+  ],
+};
+
+// Marcos lineares (cronograma único, 11 etapas em ordem) com sub-marcos
+const MARCOS_SEQ=[
+  {nome:'Lançamento do Empreendimento',subs:[]},
+  {nome:'Alvará de Construção',subs:['Regularização Terreno','Licenciamento Ambiental','Aprovação Projeto Arquitetônico']},
+  {nome:'Inicio das Obras',subs:[]},
+  {nome:'Projetos Executivos',subs:[]},
+  {nome:'Orçamento Executivo',subs:[]},
+  {nome:'Conclusão das Obras',subs:[]},
+  {nome:'Ligação Definitiva',subs:[]},
+  {nome:'Vistoria e Aceite das Chaves',subs:[]},
+  {nome:'Decor',subs:[]},
+  {nome:'Habite-se e Inicio das Operações',subs:[]},
+  {nome:'Individualização das Matrículas',subs:[]},
+];
+
+// Gera statuses de marco baseado na fase do empreendimento
+function genMarcos(emp){
+  const ordemFases=['preobra','obra','entrega'];
+  const idxFase=ordemFases.indexOf(emp.fase);
+  const result={};
+  ordemFases.forEach((f,fi)=>{
+    result[f]=MARCOS_DEF[f].map((m,mi)=>{
+      let st;
+      // Usa status armazenado do Smartsheet se disponível
+      if(emp.marcos&&emp.marcos[f]&&emp.marcos[f][mi]){
+        st=emp.marcos[f][mi].st;
+      } else {
+        if(fi<idxFase) st='concluido';
+        else if(fi===idxFase){
+          const total=MARCOS_DEF[f].length;
+          const done=Math.floor((emp.pf/100)*(total-1));
+          if(mi<done) st='concluido';
+          else if(mi===done) st=(emp.risco==='alto'?'risco':emp.risco==='atencao'?'risco':'andamento');
+          else st='ainicial';
+        }
+        else st='ainicial';
+      }
+      const subs=(m.subs||[]).map((s,si)=>({nome:s,st:(st==='concluido'?'concluido':si===0&&st==='andamento'?'andamento':'ainicial')}));
+      return{nome:m.nome,st,subs};
+    });
+  });
+  return result;
+}
+
+// Interpola datas dos 11 marcos a partir das datas-chave do empreendimento
+function genMarcosDates(emp){
+  const N=MARCOS_SEQ.length;
+  function lerp(d1,d2,f){
+    if(!d1||!d2)return null;
+    const t1=new Date(d1).getTime(),t2=new Date(d2).getTime();
+    return new Date(Math.round(t1+(t2-t1)*f)).toISOString().split('T')[0];
+  }
+  return MARCOS_SEQ.map(function(_,i){
+    const f=i===0?0:i/(N-1);
+    // Lançamento: plano original ~80% do horizonte repactuação/tendência (era mais otimista)
+    const refEnd=emp.dr||emp.dt;
+    const dlEndMs=refEnd?new Date(emp.dl).getTime()+(new Date(refEnd).getTime()-new Date(emp.dl).getTime())*0.8:null;
+    const dlEnd=dlEndMs?new Date(dlEndMs).toISOString().split('T')[0]:null;
+    return{
+      dl:f===0?emp.dl:lerp(emp.dl,dlEnd||emp.dt,f),
+      dr:emp.dr?(f===0?emp.dl:lerp(emp.dl,emp.dr,f)):null,
+      dt:emp.dt?(f===0?emp.dl:lerp(emp.dl,emp.dt,f)):null,
+    };
+  });
+}
+
+// Gera sequência linear de 11 marcos com status para o detalhe
+function genMarcosSeq(emp){
+  const mo=emp.marcos||{};
+  const pre=mo.preobra||[];
+  const obr=mo.obra||[];
+  const ent=mo.entrega||[];
+  const fi={preobra:0,obra:1,entrega:2}[emp.fase]||0;
+  function getSt(arr,i){
+    const v=(arr[i]||{}).st||'ainicial';
+    return(v==='risco'||v==='alerta')?'andamento':v;
+  }
+  const obraFin=fi>1?'concluido':fi===1?(
+    obr.every(function(m){return(m.st||'ainicial')==='concluido';})?'concluido':
+    obr.some(function(m){return['andamento','risco','alerta'].indexOf(m.st||'')>=0;})?'andamento':'ainicial'
+  ):'ainicial';
+  const sts=[
+    emp.dl?'concluido':'ainicial',          // 0 Lançamento
+    fi>0?'concluido':getSt(pre,0),          // 1 Alvará
+    fi>0?'concluido':'ainicial',            // 2 Inicio das Obras
+    fi>0?'concluido':getSt(pre,1),          // 3 Projetos Executivos
+    fi>0?'concluido':getSt(pre,2),          // 4 Orçamento Executivo
+    obraFin,                                // 5 Conclusão das Obras
+    fi>1?getSt(ent,2):'ainicial',           // 6 Ligação Definitiva
+    fi>1?getSt(ent,1):'ainicial',           // 7 Vistoria e Aceite das Chaves
+    fi>1?getSt(ent,3):'ainicial',           // 8 Decor
+    fi>1?getSt(ent,0):'ainicial',           // 9 Habite-se e Inicio das Operações
+    fi>1?getSt(ent,4):'ainicial',           // 10 Individualização das Matrículas
+  ];
+  return MARCOS_SEQ.map(function(m,i){
+    const st=sts[i];
+    // Sub-marcos: herdam status proporcional ao do pai
+    const subsArr=(m.subs||[]).map(function(s,si){
+      if(st==='concluido')return{nome:s,st:'concluido'};
+      if(st==='andamento')return{nome:s,st:si===0?'andamento':'ainicial'};
+      return{nome:s,st:'ainicial'};
+    });
+    return{nome:m.nome,st:st,subs:subsArr};
+  });
+}
+
+const ASSEMBLEIAS={
+  '002':{tipo:'AGO',data:'2026-09-10',st:'Prevista'},
+  '003':{tipo:'AGO',data:'2026-09-15',st:'Prevista'},
+  '007':{tipo:'AGE',data:'2026-08-25',st:'Confirmada'},
+  '008':{tipo:'AGO',data:'2026-10-01',st:'Prevista'},
+  '009':{tipo:'AGO',data:'2026-10-10',st:'Prevista'},
+  '010':{tipo:'AGO',data:'2026-09-20',st:'Prevista'},
+  '011':{tipo:'AGO',data:'2026-10-15',st:'Prevista'},
+  '012':{tipo:'AGE',data:'2026-08-28',st:'Confirmada'},
+  '013':{tipo:'AGO',data:'2026-10-05',st:'Prevista'},
+  '014':{tipo:'AGO',data:'2026-11-10',st:'Prevista'},
+  '015':{tipo:'AGO',data:'2026-11-01',st:'Prevista'},
+  '016':{tipo:'AGO',data:'2026-10-10',st:'Prevista'},
+  '017':{tipo:'AGO',data:'2026-11-15',st:'Prevista'},
+  '018':{tipo:'AGO',data:'2026-11-20',st:'Prevista'},
+  '019':{tipo:'AGE',data:'2026-08-22',st:'Confirmada'},
+  '020':{tipo:'AGO',data:'2026-09-05',st:'Prevista'},
+  '021':{tipo:'AGO',data:'2027-01-15',st:'Prevista'},
+  '022':{tipo:'AGO',data:'2027-02-01',st:'Prevista'},
+  '023':{tipo:'AGO',data:'2026-12-01',st:'Prevista'},
+  '024':{tipo:'AGO',data:'2026-11-15',st:'Prevista'},
+  '025':{tipo:'AGO',data:'2027-03-01',st:'Prevista'},
+  '026':{tipo:'AGO',data:'2026-12-10',st:'Prevista'},
+  '027':{tipo:'AGO',data:'2027-01-15',st:'Prevista'},
+  '028':{tipo:'AGO',data:'2026-12-01',st:'Prevista'},
+  '029':{tipo:'AGO',data:'2027-02-01',st:'Prevista'},
+  '030':{tipo:'AGO',data:'2027-04-01',st:'Prevista'},
+  '031':{tipo:'AGO',data:'2027-01-01',st:'Prevista'},
+  '032':{tipo:'AGO',data:'2027-03-01',st:'Prevista'},
+  '033':{tipo:'AGO',data:'2026-09-20',st:'Prevista'},
+  '034':{tipo:'AGO',data:'2027-05-01',st:'Prevista'},
+  '035':{tipo:'AGO',data:'2027-02-01',st:'Prevista'},
+  '036':{tipo:'AGO',data:'2027-04-01',st:'Prevista'},
+  '037':{tipo:'AGO',data:'2027-01-01',st:'Prevista'},
+  '038':{tipo:'AGO',data:'2026-12-15',st:'Prevista'},
+  '039':{tipo:'AGO',data:'2027-04-01',st:'Prevista'},
+  '040':{tipo:'AGO',data:'2027-06-01',st:'Prevista'},
+  '041':{tipo:'AGO',data:'2027-03-01',st:'Prevista'},
+  '042':{tipo:'AGO',data:'2027-07-01',st:'Prevista'},
+  '043':{tipo:'AGO',data:'2027-08-01',st:'Prevista'},
+  '044':{tipo:'AGO',data:'2027-09-01',st:'Prevista'},
+};
+
+const ACS={
+  '002':{ativo:true,fase:'Vistoria final',inicio:'2026-07-15',prev:'2026-09-30'},
+  '003':{ativo:true,fase:'Aceite de chaves',inicio:'2026-08-01',prev:'2026-10-15'},
+  '008':{ativo:true,fase:'Inspeção técnica',inicio:'2026-06-20',prev:'2026-09-01'},
+  '010':{ativo:true,fase:'Análise documental',inicio:'2026-07-01',prev:'2026-09-30'},
+  '011':{ativo:true,fase:'Relatório parcial',inicio:'2026-07-10',prev:'2026-10-31'},
+  '012':{ativo:true,fase:'Inspeção técnica',inicio:'2026-06-15',prev:'2026-08-31'},
+  '013':{ativo:true,fase:'Análise documental',inicio:'2026-07-20',prev:'2026-10-01'},
+  '015':{ativo:true,fase:'Análise documental',inicio:'2026-08-01',prev:'2026-11-01'},
+  '016':{ativo:true,fase:'Relatório final',inicio:'2026-07-20',prev:'2026-09-15'},
+  '019':{ativo:true,fase:'Análise documental',inicio:'2026-07-10',prev:'2026-09-20'},
+  '027':{ativo:true,fase:'Inspeção técnica',inicio:'2026-08-10',prev:'2026-11-30'},
+};
+
+const COMS={
+  '002':[
+    {data:'2026-08-15',canal:'Grupo Lagoa Spot Investidores',tipo:'Informativo',txt:'Habite-se emitido. Próximos passos: ligação definitiva e individualização das matrículas.'},
+    {data:'2026-08-01',canal:'Grupo Lagoa Spot Investidores',tipo:'Financeiro',txt:'Demonstrativo financeiro de julho disponível na pasta compartilhada.'},
+  ],
+  '003':[
+    {data:'2026-08-10',canal:'Grupo Rosa Spot',tipo:'Informativo',txt:'Decor concluído. Vistoria e aceite agendados para setembro.'},
+  ],
+  '007':[
+    {data:'2026-08-10',canal:'Grupo Barra Spot',tipo:'Urgente',txt:'Reunião emergencial com construtora marcada para 22/08.'},
+    {data:'2026-07-30',canal:'Grupo Barra Spot',tipo:'Financeiro',txt:'Chamada de capital em análise pelo board.'},
+    {data:'2026-07-15',canal:'Grupo Barra Spot',tipo:'Urgente',txt:'Obras suspensas por falta de pagamento. Situação em monitoramento.'},
+  ],
+  '008':[
+    {data:'2026-08-12',canal:'Grupo Rosa Sul Spot',tipo:'Financeiro',txt:'Pagamentos em atraso. PMO em contato com construtora para regularização.'},
+    {data:'2026-08-01',canal:'Grupo Rosa Sul Spot',tipo:'Informativo',txt:'Estrutura 49% concluída. Prazo sendo monitorado.'},
+  ],
+  '009':[
+    {data:'2026-08-05',canal:'Grupo Ingleses Spot',tipo:'Informativo',txt:'Projeto em fase de entrega. Cronograma sendo validado com a construtora.'},
+  ],
+  '010':[
+    {data:'2026-08-14',canal:'Grupo Urubici Spot Investidores',tipo:'Informativo',txt:'Habite-se em andamento. PMO acompanha processo junto à prefeitura.'},
+    {data:'2026-08-01',canal:'Grupo Urubici Spot Investidores',tipo:'Financeiro',txt:'Demonstrativo financeiro de julho disponível na pasta.'},
+  ],
+  '011':[
+    {data:'2026-08-08',canal:'Grupo Japaratinga Spot',tipo:'Informativo',txt:'Obra no 3º pavimento. Progresso físico: 69,5%.'},
+  ],
+  '012':[
+    {data:'2026-08-12',canal:'Grupo Imbassaí Spot',tipo:'Urgente',txt:'Pagamentos paralisados desde jun/2026. Reunião convocada.'},
+    {data:'2026-07-28',canal:'Grupo Imbassaí Spot',tipo:'Urgente',txt:'Construtora em default. Jurídico acionado.'},
+  ],
+  '013':[
+    {data:'2026-08-08',canal:'Grupo Trancoso Spot',tipo:'Financeiro',txt:'Situação de inadimplência persistente. Risco de chamada de capital.'},
+    {data:'2026-07-20',canal:'Grupo Trancoso Spot',tipo:'Informativo',txt:'Nova proposta de entrega: dez/2026. Aditivo contratual em elaboração.'},
+  ],
+  '014':[
+    {data:'2026-08-05',canal:'Grupo Salvador Spot',tipo:'Informativo',txt:'Alvará e projetos executivos em fase avançada de aprovação.'},
+  ],
+  '015':[
+    {data:'2026-08-10',canal:'Grupo Campeche Spot',tipo:'Informativo',txt:'Obra no 2º pavimento. Progresso: 54,6%. Cronograma dentro do previsto.'},
+  ],
+  '016':[
+    {data:'2026-08-11',canal:'Grupo Urubici Spot II',tipo:'Financeiro',txt:'Pagamentos em atraso há 30 dias. Construtora notificada.'},
+    {data:'2026-08-01',canal:'Grupo Urubici Spot II',tipo:'Informativo',txt:'Estrutura em 32,9%. PMO monitora ritmo de obras.'},
+  ],
+  '017':[
+    {data:'2026-08-05',canal:'Grupo Canasvieiras Spot',tipo:'Informativo',txt:'Obras iniciadas. Fundação concluída, estrutura em início.'},
+  ],
+  '018':[
+    {data:'2026-08-08',canal:'Grupo Ilha do Campeche',tipo:'Informativo',txt:'Alvará em análise na prefeitura. Previsão de liberação: setembro.'},
+  ],
+  '019':[
+    {data:'2026-08-11',canal:'Grupo Rosa Norte Spot',tipo:'Urgente',txt:'Construtora notificada por atraso de 5 meses no cronograma.'},
+    {data:'2026-07-25',canal:'Grupo Rosa Norte Spot',tipo:'Urgente',txt:'Obras paralisadas. Situação financeira crítica na construtora.'},
+    {data:'2026-07-10',canal:'Grupo Rosa Norte Spot',tipo:'Financeiro',txt:'Chamada de capital pode ser necessária. Board em análise.'},
+  ],
+  '020':[
+    {data:'2026-08-09',canal:'Grupo Cachoeira Spot',tipo:'Informativo',txt:'Obra iniciada. Fundação em execução. Progresso: 4,6%.'},
+  ],
+  '021':[
+    {data:'2026-08-06',canal:'Grupo Sul da Ilha Spot',tipo:'Informativo',txt:'Alvará em aprovação. Projetos executivos em andamento.'},
+  ],
+  '022':[
+    {data:'2026-08-04',canal:'Grupo Morro das Pedras',tipo:'Informativo',txt:'Projetos executivos em fase II. Alvará previsto para outubro.'},
+  ],
+  '023':[
+    {data:'2026-08-07',canal:'Grupo Batel Spot',tipo:'Informativo',txt:'Instalações em andamento. Progresso: 11,3%.'},
+  ],
+  '024':[
+    {data:'2026-08-09',canal:'Grupo Jurerê Beach Spot',tipo:'Informativo',txt:'Estrutura em andamento. Progresso: 30,2%. Prazo dentro do previsto.'},
+  ],
+  '025':[
+    {data:'2026-08-03',canal:'Grupo Marista 144',tipo:'Informativo',txt:'Obras com início previsto para Q4/2028. Alvará em processo.'},
+  ],
+  '026':[
+    {data:'2026-08-06',canal:'Grupo Ilha Campeche II',tipo:'Informativo',txt:'Alvará em análise. Repactuação prevista para setembro/2026.'},
+  ],
+  '027':[
+    {data:'2026-08-08',canal:'Grupo Santo Antonio Spot',tipo:'Informativo',txt:'Projetos executivos em andamento. ACS iniciado.'},
+  ],
+  '028':[
+    {data:'2026-08-05',canal:'Grupo Meireles Spot',tipo:'Informativo',txt:'Alvará e projetos em fase inicial de aprovação.'},
+  ],
+  '029':[
+    {data:'2026-08-04',canal:'Grupo Cachoeira Beach',tipo:'Informativo',txt:'Projetos 50% elaborados. Repactuação: abr/2027.'},
+  ],
+  '030':[
+    {data:'2026-08-03',canal:'Grupo Bonito Spot',tipo:'Informativo',txt:'Alvará em análise. Obra prevista para 2031.'},
+  ],
+  '031':[
+    {data:'2026-08-05',canal:'Grupo Santinho Spot',tipo:'Informativo',txt:'Alvará em tramitação. Projetos 25% concluídos.'},
+  ],
+  '032':[
+    {data:'2026-08-04',canal:'Grupo Jurerê Spot II',tipo:'Informativo',txt:'Projetos executivos em fase inicial. Alvará pendente.'},
+  ],
+  '033':[
+    {data:'2026-08-13',canal:'Grupo Caraguá Spot',tipo:'Informativo',txt:'Obras iniciadas. Construtora apresentou cronograma revisado.'},
+    {data:'2026-08-01',canal:'Grupo Caraguá Spot',tipo:'Financeiro',txt:'Fluxo de caixa monitorado. Pagamentos em dia.'},
+  ],
+  '034':[
+    {data:'2026-08-03',canal:'Grupo Bonito Spot II',tipo:'Informativo',txt:'Alvará em aprovação. Início de obras previsto para 2028.'},
+  ],
+  '035':[
+    {data:'2026-08-04',canal:'Grupo Itacaré Spot',tipo:'Informativo',txt:'Projetos em elaboração. Repactuação: jun/2027.'},
+  ],
+  '036':[
+    {data:'2026-08-05',canal:'Grupo Barra Grande Spot',tipo:'Informativo',txt:'Fase de entrega iniciada. Habite-se em processo.'},
+  ],
+  '037':[
+    {data:'2026-08-04',canal:'Grupo Ponta das Canas',tipo:'Informativo',txt:'Alvará em tramitação. Projetos 11,8% elaborados.'},
+  ],
+  '038':[
+    {data:'2026-08-03',canal:'Grupo Foz Spot',tipo:'Informativo',txt:'Alvará em análise na prefeitura de Foz do Iguaçu.'},
+  ],
+  '039':[
+    {data:'2026-08-04',canal:'Grupo Canas Beach',tipo:'Informativo',txt:'Projetos 23% concluídos. Repactuação: mai/2027.'},
+  ],
+  '040':[
+    {data:'2026-08-03',canal:'Grupo Ponta das Canas II',tipo:'Informativo',txt:'Projetos em elaboração. Repactuação: mai/2027.'},
+  ],
+  '041':[
+    {data:'2026-08-04',canal:'Grupo Novo Campeche',tipo:'Informativo',txt:'Alvará em aprovação. Obras previstas para 2027.'},
+  ],
+  '042':[
+    {data:'2026-08-03',canal:'Grupo Natal Spot',tipo:'Informativo',txt:'Projetos 39% elaborados. Repactuação: jan/2027.'},
+  ],
+  '043':[
+    {data:'2026-08-03',canal:'Grupo Jurerê Spot III',tipo:'Informativo',txt:'Projetos em elaboração. Repactuação: ago/2027.'},
+  ],
+  '044':[
+    {data:'2026-08-03',canal:'Grupo Novo Campeche II',tipo:'Informativo',txt:'Projetos 18% elaborados. Repactuação: jul/2027.'},
+  ],
+};
+
+const IA_UPD={
+  '002':[
+    {fonte:'reuniao',txt:'Habite-se emitido em julho. Pendências: ligação definitiva e individualização de matrículas.'},
+    {fonte:'wpp',txt:'Investidores satisfeitos com o progresso. Chaves previstas para entrega em Q4/2026.'},
+  ],
+  '003':[
+    {fonte:'reuniao',txt:'Decor 100% concluído. Vistoria agendada para setembro com investidores.'},
+  ],
+  '007':[
+    {fonte:'reuniao',txt:'Pagamentos à construtora suspensos. Obras parcialmente paralisadas desde jul/2026.'},
+    {fonte:'wpp',txt:'Sócios acionaram advogado. Reunião de mediação agendada para 25/08.'},
+  ],
+  '008':[
+    {fonte:'reuniao',txt:'Pagamentos em atraso há 45 dias. Construtora ameaça paralisia. PMO em negociação.'},
+    {fonte:'wpp',txt:'Grupo questiona atraso nos pagamentos. PMO enviou nota explicativa com cronograma de regularização.'},
+  ],
+  '009':[
+    {fonte:'reuniao',txt:'Fase de entrega. Habite-se aguardando validação da prefeitura.'},
+  ],
+  '010':[
+    {fonte:'reuniao',txt:'Habite-se em andamento junto à prefeitura. Prazo estimado: 60 dias para emissão.'},
+    {fonte:'wpp',txt:'Investidores aguardam atualização do prazo de entrega das chaves.'},
+  ],
+  '011':[
+    {fonte:'reuniao',txt:'Obra no 3º pavimento. Estrutura 69,5% concluída. Ritmo dentro do cronograma.'},
+  ],
+  '012':[
+    {fonte:'reuniao',txt:'Construtora em default desde junho. Risco de chamada de capital avaliado em R$ 520 mil.'},
+    {fonte:'wpp',txt:'Investidores pedem reunião presencial. Marcada para 22/08 em Florianópolis.'},
+  ],
+  '013':[
+    {fonte:'reuniao',txt:'Entrega estimada para dez/2026. Atraso de 14 meses vs. data original.'},
+    {fonte:'wpp',txt:'Grupo questiona atraso. PMO preparou comunicado formal com nova timeline.'},
+  ],
+  '014':[
+    {fonte:'reuniao',txt:'Alvará em fase avançada na prefeitura de Salvador. Projetos executivos em revisão.'},
+  ],
+  '015':[
+    {fonte:'reuniao',txt:'Progresso de 54,6%. Instalações hidráulicas iniciadas no 2º pavimento.'},
+  ],
+  '016':[
+    {fonte:'reuniao',txt:'Pagamentos em atraso. Construtora comprometeu-se a regularizar até 31/08.'},
+    {fonte:'wpp',txt:'Sócios questionam atraso nos repasses. PMO monitora situação diariamente.'},
+  ],
+  '017':[
+    {fonte:'reuniao',txt:'Fundação concluída. Estrutura em início. Obras dentro do cronograma inicial.'},
+  ],
+  '018':[
+    {fonte:'reuniao',txt:'Alvará aguardando análise da Comissão de Patrimônio Histórico. Prazo incerto.'},
+  ],
+  '019':[
+    {fonte:'reuniao',txt:'Atraso acumulado de ~150 dias. Nova data de entrega ainda não formalizada.'},
+    {fonte:'wpp',txt:'Grupo em alta tensão; PMO respondeu com nota explicativa e cronograma revisado.'},
+  ],
+  '020':[
+    {fonte:'reuniao',txt:'Fundação em execução. Obras iniciadas em abril/2026. Progresso: 4,6%.'},
+  ],
+  '021':[
+    {fonte:'reuniao',txt:'Alvará com previsão de emissão em setembro. Projetos executivos em elaboração.'},
+  ],
+  '022':[
+    {fonte:'reuniao',txt:'Projetos executivos fase II. Repactuação prevista: abr/2026 (já vencida). PMO monitora.'},
+  ],
+  '023':[
+    {fonte:'reuniao',txt:'Instalações em andamento. 11,3% de progresso. Cronograma dentro do previsto.'},
+  ],
+  '024':[
+    {fonte:'reuniao',txt:'Estrutura e instalações em andamento simultâneo. Progresso: 30,2%.'},
+  ],
+  '025':[
+    {fonte:'reuniao',txt:'Início de obras previsto para 2028. Alvará em processo de aprovação.'},
+  ],
+  '026':[
+    {fonte:'reuniao',txt:'Alvará em análise. Projetos executivos a iniciar após aprovação do alvará.'},
+  ],
+  '027':[
+    {fonte:'reuniao',txt:'Projetos executivos 53% elaborados. ACS iniciado para acompanhamento técnico.'},
+  ],
+  '028':[
+    {fonte:'reuniao',txt:'Alvará e projetos em fase muito inicial. Nenhum marco crítico identificado.'},
+  ],
+  '029':[
+    {fonte:'reuniao',txt:'Projetos 50% elaborados. Obras previstas para long prazo (2029).'},
+  ],
+  '030':[
+    {fonte:'reuniao',txt:'Empreendimento de longo prazo. Alvará em análise. Sem marcos críticos no curto prazo.'},
+  ],
+  '031':[
+    {fonte:'reuniao',txt:'Alvará em tramitação. Projetos em elaboração inicial.'},
+  ],
+  '032':[
+    {fonte:'reuniao',txt:'Projetos executivos iniciados. Alvará aguardando protocolo.'},
+  ],
+  '033':[
+    {fonte:'reuniao',txt:'Obras iniciadas. Construtora apresentou novo cronograma com entregas mensais.'},
+    {fonte:'wpp',txt:'Grupo ativo. PMO enviou primeiro comunicado de acompanhamento.'},
+  ],
+  '034':[
+    {fonte:'reuniao',txt:'Alvará em aprovação. Obras previstas para 2030. Sem urgências no momento.'},
+  ],
+  '035':[
+    {fonte:'reuniao',txt:'Projetos em elaboração. Repactuação: jun/2027. Empreendimento sem criticidades.'},
+  ],
+  '036':[
+    {fonte:'reuniao',txt:'Fase de entrega iniciada. Habite-se em tramitação na prefeitura.'},
+  ],
+  '037':[
+    {fonte:'reuniao',txt:'Projetos em elaboração. Alvará pendente. Cronograma de longo prazo (2028).'},
+  ],
+  '038':[
+    {fonte:'reuniao',txt:'Alvará protocolado. Projetos em elaboração. Empreendimento em fase inicial.'},
+  ],
+  '039':[
+    {fonte:'reuniao',txt:'Projetos 23% elaborados. Sem criticidades imediatas.'},
+  ],
+  '040':[
+    {fonte:'reuniao',txt:'Projetos em fase muito inicial. Longo prazo (2030). Monitoramento mensal.'},
+  ],
+  '041':[
+    {fonte:'reuniao',txt:'Alvará em aprovação. Obras com início previsto para meados de 2027.'},
+  ],
+  '042':[
+    {fonte:'reuniao',txt:'Projetos 39% elaborados. Repactuação: jan/2027. Evolução dentro do esperado.'},
+  ],
+  '043':[
+    {fonte:'reuniao',txt:'Projetos em elaboração. Repactuação: ago/2027. Sem marcos críticos.'},
+  ],
+  '044':[
+    {fonte:'reuniao',txt:'Projetos 18% elaborados. Monitoramento trimestral. Longo prazo.'},
+  ],
+};
+
+// FUP seed data
+const FUP_SEED=[
+  // Urubici Spot (010)
+  {id:1,empId:'010',data:'2026-08-10',tipo:'gestao',part:'Bruna Z., Lucas M., Felipe G. (construtora)',disc:'Revisão de cronograma para emissão do Habite-se. Prefeitura solicitou documentação complementar.',enc:'1. Enviar docs complementares até 15/08\n2. Agendar vistoria municipal para setembro',resp:'Bruna Z.'},
+  {id:2,empId:'010',data:'2026-07-14',tipo:'gestao',part:'Bruna Z., Marcos T.',disc:'Alinhamento com construtora sobre pendências de Decor. Cronograma revisado.',enc:'1. Construtora entrega itens pendentes até 20/07\n2. Novo FUP em 30 dias',resp:'Bruna Z.'},
+  {id:3,empId:'010',data:'2026-06-10',tipo:'gestao',part:'Bruna Z., equipe PMO',disc:'Reunião de acompanhamento mensal. Obras de acabamento concluídas. Decor em andamento.',enc:'1. Acompanhar Decor\n2. Preparar dossiê para Habite-se',resp:'Bruna Z.'},
+  // Barra Spot (007)
+  {id:4,empId:'007',data:'2026-08-08',tipo:'gestao',part:'Bruna Z., Marina S., Adv. Peixoto',disc:'Pagamentos paralisados. Construtora ameaçou paralisia total das obras. Contrato em análise pelo jurídico.',enc:'1. Contato com diretoria financeira até 12/08\n2. Elaborar relatório ao board\n3. Avaliar antecipação de cotas',resp:'Bruna Z.'},
+  {id:5,empId:'007',data:'2026-07-15',tipo:'gestao',part:'Bruna Z., Ana P.',disc:'Primeira reunião de crise após suspensão de obras. Construtora exige pagamento em atraso.',enc:'1. Board deve deliberar sobre pagamento até 22/07\n2. Jurídico revisa contrato',resp:'Bruna Z.'},
+  {id:6,empId:'007',data:'2026-06-20',tipo:'gestao',part:'Bruna Z., Ricardo P.',disc:'Alerta de risco financeiro. Construtora sinaliza dificuldade de caixa.',enc:'1. Monitorar próximos pagamentos\n2. Acionar diretoria se houver novo atraso',resp:'Ricardo P.'},
+  // Trancoso Spot (013)
+  {id:7,empId:'013',data:'2026-08-06',tipo:'gestao',part:'Bruna Z., Ricardo P.',disc:'Revisão de repactuação com construtora. Nova proposta de entrega: dez/2026. Atraso acumulado de ~14 meses.',enc:'1. Formalizar nova data em aditivo contratual\n2. Comunicar investidores até 10/08',resp:'Ricardo P.'},
+  {id:8,empId:'013',data:'2026-07-01',tipo:'entrega',part:'Bruna Z., equipe Trancoso',disc:'FUP Entrega: vistoria técnica revelou pendências em acabamentos. Construtora comprometida a regularizar.',enc:'1. Construtora envia cronograma de correções até 07/07\n2. Nova vistoria em 30 dias',resp:'Bruna Z.'},
+  {id:9,empId:'013',data:'2026-06-05',tipo:'gestao',part:'Bruna Z., Ana P.',disc:'Reunião mensal. Atraso confirmado. Inadimplência identificada em 3 cotas.',enc:'1. Acionar inadimplentes via jurídico\n2. Avaliar chamada de capital',resp:'Ana P.'},
+  // Imbassai Spot (012)
+  {id:10,empId:'012',data:'2026-08-03',tipo:'gestao',part:'Bruna Z., Ana P. (financeiro)',disc:'Construtora em default. Chamada de capital de R$ 520 mil em avaliação para cobrir gap financeiro.',enc:'1. Aprovar chamada no board\n2. Comunicar investidores com antecedência de 30 dias',resp:'Bruna Z.'},
+  {id:11,empId:'012',data:'2026-07-10',tipo:'gestao',part:'Bruna Z., Adv. Peixoto',disc:'Construtora notificada extrajudicialmente. Prazo de 15 dias para regularização ou rescisão contratual.',enc:'1. Aguardar resposta da construtora\n2. Preparar alternativas: nova construtora ou rescisão',resp:'Bruna Z.'},
+  {id:12,empId:'012',data:'2026-06-15',tipo:'gestao',part:'Bruna Z., equipe PMO',disc:'Primeira reunião de crise. Obras paradas há 2 semanas por falta de pagamento.',enc:'1. Contato urgente com diretoria financeira\n2. Reunião presencial com board em 48h',resp:'Bruna Z.'},
+  // Urubici Spot II (016)
+  {id:13,empId:'016',data:'2026-08-11',tipo:'gestao',part:'Bruna Z., Lucas M.',disc:'Pagamentos em atraso há 45 dias. Construtora apresentou plano de regularização.',enc:'1. Monitorar regularização até 31/08\n2. FUP em 30 dias',resp:'Bruna Z.'},
+  {id:14,empId:'016',data:'2026-07-08',tipo:'gestao',part:'Bruna Z., equipe PMO',disc:'Reunião mensal. Estrutura em 32,9%. Risco de atraso identificado.',enc:'1. Construtora comprometida com aceleração\n2. Monitorar ritmo semanal',resp:'Lucas M.'},
+  // Rosa Norte Spot (019)
+  {id:15,empId:'019',data:'2026-08-11',tipo:'gestao',part:'Bruna Z., Marina S., Adv. Peixoto',disc:'Atraso de 150 dias. Construtora sem previsão formal de entrega. Obras paralisadas.',enc:'1. Emitir notificação formal\n2. Reunião com sócios e board até 20/08',resp:'Bruna Z.'},
+  {id:16,empId:'019',data:'2026-07-14',tipo:'gestao',part:'Bruna Z., Ricardo P.',disc:'Segunda reunião de crise. Construtora apresentou novo cronograma com atraso de 6 meses adicionais.',enc:'1. Analisar viabilidade do novo cronograma\n2. Comunicar investidores',resp:'Ricardo P.'},
+  {id:17,empId:'019',data:'2026-06-10',tipo:'gestao',part:'Bruna Z., equipe PMO',disc:'Obras paralisadas por questões trabalhistas na construtora. PMO acionou jurídico.',enc:'1. Jurídico monitora situação\n2. Board delibera sobre próximos passos',resp:'Bruna Z.'},
+  // Cachoeira Spot (020)
+  {id:18,empId:'020',data:'2026-08-09',tipo:'gestao',part:'Bruna Z., Lucas M.',disc:'Kick-off do FUP. Obras iniciadas em abril. Fundação em execução. Progresso: 4,6%.',enc:'1. Estabelecer ciclo mensal de FUP\n2. Alinhar com construtora sobre marcos',resp:'Lucas M.'},
+  // Caraguá Spot (033)
+  {id:19,empId:'033',data:'2026-08-13',tipo:'gestao',part:'Bruna Z., equipe Caraguá',disc:'Kick-off do FUP. Obras iniciadas. Construtora apresentou cronograma físico-financeiro.',enc:'1. Validar cronograma com PMO\n2. Estabelecer grupo WhatsApp de investidores',resp:'Bruna Z.'},
+  {id:20,empId:'033',data:'2026-07-20',tipo:'gestao',part:'Bruna Z., Marcos T.',disc:'Primeira reunião pós-lançamento. Alvará obtido. Obras com início imediato.',enc:'1. Construtora inicia mobilização\n2. PMO define frequência de FUP',resp:'Bruna Z.'},
+  // Lagoa Spot (002)
+  {id:21,empId:'002',data:'2026-08-05',tipo:'entrega',part:'Bruna Z., equipe Lagoa',disc:'FUP Entrega: Habite-se emitido em julho. Pendências: ligação definitiva, individualização de matrículas.',enc:'1. Acompanhar processo de ligação definitiva\n2. Cartório: iniciar individualização',resp:'Bruna Z.'},
+  // Rosa Spot (003)
+  {id:22,empId:'003',data:'2026-08-07',tipo:'entrega',part:'Bruna Z., Lucas M.',disc:'FUP Entrega: Decor concluído. Vistoria agendada para setembro. Individualização em andamento.',enc:'1. Confirmar vistoria com investidores\n2. Acompanhar individualização no cartório',resp:'Lucas M.'},
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const SK='pmo-fup-spes-v2';
+const SK_SEED='pmo-fup-seeded-v2';
+let S={fup:[],coment:{}};
+let farolSort={col:null,dir:1};
+let cronSort={col:null,dir:1};
+let cronFilter='todas';
+let cronEmpFilter='';
+let cronMarcoFilter='';
+let histSelId=null;
+let curView='painel';
+let curEmpId=null;
+
+function loadData(){
+  if(!localStorage.getItem(SK_SEED)){
+    S.fup=FUP_SEED.map(r=>({...r}));
+    saveData();
+    localStorage.setItem(SK_SEED,'1');
+  } else {
+    const d=localStorage.getItem(SK);
+    if(d) S=JSON.parse(d);
+    else{S.fup=FUP_SEED.map(r=>({...r}));saveData();}
+  }
+}
+function saveData(){localStorage.setItem(SK,JSON.stringify(S));}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function daysDiff(ds){if(!ds)return null;return Math.round((new Date(ds)-TODAY)/86400000);}
+function atraso(emp){
+  // diferença assinada: positivo = atrasado, negativo = adiantado
+  const ref=emp.dr||emp.dl;
+  if(!ref||!emp.dt)return 0;
+  return Math.round((new Date(emp.dt)-new Date(ref))/86400000);
+}
+// Retorna o marco ativo (sequência linear) e seu atraso em dias
+function marcoAtual(emp){
+  const marcos=genMarcosSeq(emp);
+  const at=atraso(emp);
+  const emAnd=marcos.find(m=>m.st==='andamento');
+  if(emAnd)return{nome:emAnd.nome,st:'andamento',atraso:at};
+  const emAin=marcos.find(m=>m.st==='ainicial');
+  if(emAin)return{nome:emAin.nome,st:'ainicial',atraso:0};
+  return null;
+}
+function marcoAtualDt(emp){
+  const marcos=genMarcosSeq(emp);
+  const dates=genMarcosDates(emp);
+  let idx=marcos.findIndex(function(m){return m.st==='andamento';});
+  if(idx<0)idx=marcos.findIndex(function(m){return m.st==='ainicial';});
+  return idx>=0?(dates[idx]||{}).dt||null:null;
+}
+function marcoAtualDates(emp){
+  const marcos=genMarcosSeq(emp);
+  const dates=genMarcosDates(emp);
+  let idx=marcos.findIndex(function(m){return m.st==='andamento';});
+  if(idx<0)idx=marcos.findIndex(function(m){return m.st==='ainicial';});
+  return idx>=0?(dates[idx]||{dl:null,dr:null,dt:null}):{dl:null,dr:null,dt:null};
+}
+function calcScore(emp){
+  const at=atraso(emp);
+  const rc=emp.risco==='alto'?30:emp.risco==='atencao'?15:0;
+  const ass=ASSEMBLEIAS[emp.id];
+  const assV=ass&&ass.data&&daysDiff(ass.data)<-30?20:0;
+  const pagV=emp.pag==='Paralisado'?15:emp.pag==='Em atraso'?10:0;
+  return Math.min(100,Math.round(Math.min(at/3,45)+rc+assV+pagV));
+}
+function urgClass(s){return s>=70?'critico':s>=40?'atencao':'ok';}
+function urgLabel(s){return s>=70?'🔴 Crítico':s>=40?'🟡 Atenção':'🟢 Ok';}
+function fmtD(d){if(!d)return'—';const[y,m,dy]=d.split('-');return`${dy}/${m}/${y}`;}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ─── THEME ───────────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const r=document.documentElement;
+  const dark=r.dataset.theme==='dark';
+  r.dataset.theme=dark?'light':'dark';
+  localStorage.setItem('pmo-theme',r.dataset.theme);
+  document.getElementById('themeLabel').textContent=dark?'Dark':'Light';
+  updateThemeIcon(!dark);
+}
+function updateThemeIcon(isDark){
+  const ic=document.getElementById('themeIcon');
+  ic.innerHTML=isDark
+    ?'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    :'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+
+// ─── SELECT ──────────────────────────────────────────────────────────────────
+function populateSelect(){
+  const sel=document.getElementById('buildingSelect');
+  sel.innerHTML='<option value="">Todos os empreendimentos</option>';
+  EMPS_RAW.forEach(e=>{
+    const o=document.createElement('option');
+    o.value=e.id;o.textContent=e.nome;
+    sel.appendChild(o);
+  });
+  const ms=document.getElementById('mEmp');
+  ms.innerHTML='';
+  EMPS_RAW.forEach(e=>{
+    const o=document.createElement('option');
+    o.value=e.id;o.textContent=e.nome;
+    ms.appendChild(o);
+  });
+}
+function onEmpChange(){
+  const v=document.getElementById('buildingSelect').value;
+  curEmpId=v||null;
+  renderCurrentView();
+}
+
+// ─── VIEW SWITCH ─────────────────────────────────────────────────────────────
+function switchView(v){
+  curView=v;
+  ['painel','cronograma','farol','historico'].forEach(vv=>{
+    document.getElementById('view-'+vv).style.display=vv===v?'':'none';
+    document.getElementById('btn'+vv.charAt(0).toUpperCase()+vv.slice(1)).classList.toggle('active',vv===v);
+  });
+  renderCurrentView();
+}
+function renderCurrentView(){
+  if(curView==='painel')renderPainel();
+  if(curView==='cronograma')renderCronograma();
+  if(curView==='farol')renderFarol();
+  if(curView==='historico')renderHistorico();
+}
+
+// ─── PAINEL ──────────────────────────────────────────────────────────────────
+function renderPainel(){
+  const c=document.getElementById('view-painel');
+  const sorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
+  if(!curEmpId&&sorted.length)curEmpId=sorted[0].id;
+  const emp=EMPS_RAW.find(function(e){return e.id===curEmpId;})||sorted[0];
+  const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+  const listHtml=sorted.map(function(e){
+    const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
+    const act=e.id===curEmpId?'pli-active':'';
+    return`<div class="painel-list-item ${act}" data-id="${e.id}" onclick="goToEmp('${e.id}')">
+      <span class="pli-nome">${esc(e.nome)}</span>
+      <span class="pli-dots">
+        <span class="pli-dot" style="background:${dotC(fa)}"></span>
+        <span class="pli-dot" style="background:${dotC(fi)}"></span>
+        <span class="pli-dot" style="background:${dotC(fc)}"></span>
+      </span>
+    </div>`;
+  }).join('');
+  c.innerHTML=`<div class="painel-split">
+    <div class="painel-list" id="painelList">${listHtml}</div>
+    <div class="painel-detail-wrap" id="painel-detail">${emp?renderDetail(emp):''}</div>
+  </div>`;
+}
+
+function goToEmp(id){
+  curEmpId=id;
+  const sel=document.getElementById('buildingSelect');
+  if(sel)sel.value=id;
+  // Update active state in list without full re-render
+  document.querySelectorAll('.painel-list-item').forEach(function(el){
+    const active=el.dataset.id===id;
+    el.classList.toggle('pli-active',active);
+  });
+  // Update detail panel only
+  const emp=EMPS_RAW.find(function(e){return e.id===id;});
+  const det=document.getElementById('painel-detail');
+  if(emp&&det)det.innerHTML=renderDetail(emp);
+}
+
+// ─── DETAIL ──────────────────────────────────────────────────────────────────
+function renderDetail(emp){
+  const score=calcScore(emp);
+  const urg=urgClass(score);
+  const ass=ASSEMBLEIAS[emp.id]||{tipo:null,data:null,st:'Sem previsão'};
+  const acs=ACS[emp.id]||{ativo:false};
+  const coms=COMS[emp.id]||[];
+  const ias=IA_UPD[emp.id]||[];
+  const fupsEmp=S.fup.filter(f=>f.empId===emp.id).sort((a,b)=>b.data.localeCompare(a.data));
+  const faseLabel={preobra:'Pré-Obra',obra:'Obra',entrega:'Entrega'};
+  const atrasoDias=atraso(emp);
+  const fa=calcFarolAtraso(emp),fi=calcFarolIA(emp),fc=calcFarolCapital(emp);
+  function fdot(f,name){const c=f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';return`<div class="farol-dot-item"><div class="farol-dot-circle" style="background:${c};box-shadow:0 0 7px ${c}55"></div><div class="farol-dot-name">${name}</div></div>`;};
+
+  return`
+  <div class="detail-page">
+    <button class="detail-back" onclick="goBack()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Todos os empreendimentos
+    </button>
+
+    <!-- HERO -->
+    <div class="detail-hero">
+      <div class="hero-body">
+        <div class="hero-name">${esc(emp.nome)}</div>
+        <div class="hero-farois">
+          ${fdot(fa,'Cronograma')}
+          ${fdot(fi,'IA')}
+          ${fdot(fc,'Ch. Capital')}
+        </div>
+      </div>
+    </div>
+
+    <!-- CRONOGRAMA + IA/FAROL -->
+    <div class="detail-cols">
+    <!-- COL ESQUERDA: Cronograma -->
+    <div class="cron-card">
+      <div class="cron-card-head">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+        Cronograma
+      </div>
+      <div style="overflow-x:auto">
+        <table class="cron-table">
+          <thead><tr>
+            <th style="text-align:left">Marco</th>
+            <th style="text-align:center">Lançamento</th>
+            <th style="text-align:center">Repactuação</th>
+            <th style="text-align:center;border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)">Tendência</th>
+            <th style="text-align:center;width:80px">Smartsheet</th>
+          </tr></thead>
+          <tbody>
+            ${(function(){
+              const mseq=genMarcosSeq(emp);
+              const mdates=genMarcosDates(emp);
+              const hasDr=true;
+              const svgOk=`<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+              const svgAnd=`<div style="width:6px;height:6px;border-radius:50%;background:white"></div>`;
+              const uid='cs'+Math.random().toString(36).slice(2,7);
+              const smLinkSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+              const smCol=emp.sm_url?`<td style="text-align:center;padding:6px 10px"><a href="${emp.sm_url}" target="_blank" rel="noopener" style="color:var(--primary);display:inline-flex;align-items:center;gap:3px;font-size:10px">${smLinkSvg}</a></td>`:`<td style="text-align:center;font-size:10px;color:var(--muted-fg)">—</td>`;
+              return mseq.map(function(m,i){
+                const d=mdates[i];
+                const ic=m.st==='concluido'?svgOk:m.st==='andamento'?svgAnd:'';
+                const drCell=`<td class="date-cell" style="text-align:center">${fmtD(d.dr)||'—'}</td>`;
+                const hasSubs=(m.subs||[]).length>0;
+                const chevron=hasSubs?`<svg class="sub-chev" style="flex-shrink:0;transition:transform 180ms;color:var(--muted-fg)" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`:'';
+                const parentRow=`<tr class="cron-row-${m.st}${hasSubs?' cron-has-subs':''}" ${hasSubs?`onclick="tglSubs('${uid+i}',this)" style="cursor:pointer"`:''}>
+                  <td><div class="cron-name-cell">
+                    <div class="cron-dot-s ${m.st}">${ic}</div>
+                    <span class="cron-marco-nome ${m.st}">${esc(m.nome)}</span>
+                    ${chevron}
+                  </div></td>
+                  <td class="date-cell">${fmtD(d.dl)||'—'}</td>
+                  ${drCell}
+                  <td class="date-cell" style="border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)">${fmtD(d.dt)||'—'}</td>
+                  ${smCol}
+                </tr>`;
+                const spanCount=2;
+                const subRows=(m.subs||[]).map(function(s,si){
+                  const sdot=`<div style="width:7px;height:7px;border-radius:50%;background:${s.st==='concluido'?'var(--success)':s.st==='andamento'?'var(--primary)':'var(--border)'};flex-shrink:0"></div>`;
+                  const scolor=s.st==='andamento'?'var(--primary)':s.st==='ainicial'?'var(--muted-fg)':'var(--muted-fg)';
+                  const sopacity=s.st==='ainicial'?.55:1;
+                  return`<tr class="cron-sub-row sub-of-${uid+i}" style="display:none">
+                    <td colspan="${2+spanCount}" style="border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)"><div class="cron-sub-cell" style="padding-left:32px">
+                      ${sdot}
+                      <span style="color:${scolor};opacity:${sopacity};font-size:11px">${esc(s.nome)}</span>
+                    </div></td>
+                    ${smCol}
+                  </tr>`;
+                }).join('');
+                return parentRow+subRows;
+              }).join('');
+            })()}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- COL DIREITA: IA -->
+    <div class="detail-col-right">
+      <!-- IA -->
+      <div class="caixinha" style="flex:1">
+        <div class="cx-head">
+          <div class="cx-icon cx-icon-ia"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <div class="cx-title">IA — Resumo Semanal</div>
+          ${ias.length?`<div class="cx-badge-count">${ias.length}</div>`:''}
+        </div>
+        <div class="cx-body">
+          ${ias.length?ias.map(ia=>`
+            <div class="ia-item-new ${ia.fonte}">
+              <div class="ia-item-tag"><span class="ia-fonte ${ia.fonte}">${ia.fonte==='reuniao'?'Reunião FUP':'WhatsApp'}</span></div>
+              <div class="ia-text">${esc(ia.txt)}</div>
+            </div>`).join('')
+          :`<div style="font-size:12px;color:var(--muted-fg);padding:4px 0">Nenhuma atualização registrada nesta semana.</div>`}
+        </div>
+      </div>
+    </div><!-- /detail-col-right -->
+    </div><!-- /detail-cols -->
+
+    <!-- CAIXINHAS 3 col: Assembleias, Comunicados, Capital -->
+    <div class="caixinhas-3">
+
+      <!-- ASSEMBLEIAS & ACS -->
+      <div class="caixinha">
+        <div class="cx-head">
+          <div class="cx-icon cx-icon-ass"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/></svg></div>
+          <div class="cx-title">Assembleias & ACS</div>
+        </div>
+        <div class="cx-body">
+          <div class="ass-row">
+            <div class="ass-icon ass-icon-cal"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div class="ass-info">
+              <div class="ass-label">${ass.tipo?esc(ass.tipo):'Próxima assembleia'}</div>
+              <div class="ass-sub">${ass.data?fmtD(ass.data):'Sem data definida'}</div>
+            </div>
+            <div class="mini-pill ${ass.st==='Confirmada'?'mp-conf':ass.st==='Prevista'?'mp-prev':'mp-sem'}">${ass.st}</div>
+          </div>
+          <div class="ass-row">
+            <div class="ass-icon ass-icon-doc"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16h16V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div class="ass-info">
+              <div class="ass-label">ACS${acs.ativo?' — '+esc(acs.fase):''}</div>
+              <div class="ass-sub">${acs.ativo?`Início: ${fmtD(acs.inicio)} · Prev: ${fmtD(acs.prev)}`:'Não iniciado'}</div>
+            </div>
+            <div class="mini-pill ${acs.ativo?'mp-and':'mp-sem'}">${acs.ativo?'Em andamento':'—'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMUNICADOS -->
+      <div class="caixinha">
+        <div class="cx-head">
+          <div class="cx-icon cx-icon-com"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div class="cx-title">Comunicados WPP</div>
+          ${coms.length?`<div class="cx-badge-count">${coms.length}</div>`:''}
+        </div>
+        <div class="cx-body">
+          ${coms.length?coms.slice(0,3).map(c=>`<div class="com-item">
+            <div class="com-meta"><span class="com-data">${fmtD(c.data)}</span><span class="com-tipo ${c.tipo==='Urgente'?'ct-urg':c.tipo==='Financeiro'?'ct-fin':'ct-info'}">${c.tipo}</span></div>
+            <div class="com-text">${esc(c.txt)}</div>
+          </div>`).join('')
+          :`<div style="font-size:11px;color:var(--muted-fg);padding:4px 0">Nenhum comunicado registrado.</div>`}
+        </div>
+      </div>
+
+      <!-- CHAMADA DE CAPITAL -->
+      <div class="caixinha">
+        <div class="cx-head">
+          <div class="cx-icon cx-icon-cap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+          <div class="cx-title">Chamada de Capital</div>
+          <span class="risco-chip ${emp.risco==='alto'?'rc-alto':emp.risco==='atencao'?'rc-atencao':'rc-ok'}">${emp.risco==='alto'?'⚠ Iminente':emp.risco==='atencao'?'⚡ Monitorar':'✓ OK'}</span>
+        </div>
+        <div class="cx-body">
+          <div class="cap-box ${emp.risco}">
+            <div class="cap-stripe ${emp.risco==='ok'?'ok':emp.risco}"></div>
+            <div class="cap-inner">
+              <div class="cap-top"><div class="cap-status">${esc(emp.pag)}</div></div>
+              <div class="cap-detail">
+                <div class="cap-det-row"><span class="cap-det-label">Próx. vencimento</span><span class="cap-det-val">${fmtD(emp.pv)}</span></div>
+                <div class="cap-det-row"><span class="cap-det-label">Valor estimado</span><span class="cap-det-val">${emp.pval}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUP SECTION -->
+    <div class="fup-section">
+      <div class="fup-sec-head">
+        <div class="fup-sec-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Histórico
+        </div>
+      </div>
+      <div class="fup-body">
+        ${fupsEmp.length?fupsEmp.map(f=>{
+          const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':(f.tipo||'—');
+          const tipoColor=f.tipo==='entrega'?'var(--success)':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
+          const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,${tipoColor} 12%,transparent);color:${tipoColor}">${esc(tipoTxt)}</span>`;
+          const histTxt=f.hist||f.disc||'';
+          const bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){
+            return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^\d+\.\s*/,''))}</span></div>`;
+          }).join('');
+          return`<div class="fup-card">
+            <div class="fup-card-top">
+              <span class="fup-card-date">${fmtD(f.data)}</span>
+              ${tipoBadge}
+            </div>
+            ${bullets?`<div class="fup-card-enc">${bullets}</div>`:''}
+          </div>`;
+        }).join('')
+        :''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindFupForm(){}
+
+function goBack(){
+  renderPainel();
+}
+
+function salvarFup(empId){
+  const data=document.getElementById(`fd-${empId}`).value;
+  const hist=document.getElementById(`fh-${empId}`).value;
+  if(!data||!hist){alert('Preencha a data e o histórico.');return;}
+  const tipo=document.getElementById(`ft-${empId}`)?.value||'gestao';
+  S.fup.push({id:Date.now(),empId,data,tipo,hist,disc:hist,enc:''});
+  saveData();
+  const emp=EMPS_RAW.find(e=>e.id===empId);
+  const det=document.getElementById('painel-detail');
+  if(det)det.innerHTML=renderDetail(emp);
+  else document.getElementById('view-painel').innerHTML=renderDetail(emp);
+}
+
+// ─── FAROL HELPERS ───────────────────────────────────────────────────────────
+const WORDS_RED=['paralis','embargo','irregular','inadimpl','bloqueio','notificaç','autuaç','infraç','embargo','judicial','liminar'];
+const WORDS_AMB=['atraso','pendên','revisão','negociaç','impasse','demora','indefin','suspens'];
+function calcFarolAtraso(emp){
+  const at=(marcoAtual(emp)||{atraso:0}).atraso;
+  if(at>30)return'r';if(at>0)return'a';return'g';
+}
+function calcFarolIA(emp){
+  const ias=IA_UPD[emp.id]||[];
+  const txt=ias.map(function(ia){return ia.txt.toLowerCase();}).join(' ');
+  if(!txt)return'g';
+  if(WORDS_RED.some(function(k){return txt.includes(k);}))return'r';
+  if(WORDS_AMB.some(function(k){return txt.includes(k);}))return'a';
+  return'g';
+}
+function calcFarolCapital(emp){
+  const cap=emp.capital||'ok';
+  if(cap==='nok')return'r';
+  if(cap==='analise')return'a';
+  return'g';
+}
+function capitalLabel(emp){
+  const cap=emp.capital||'ok';
+  if(cap==='nok')return'NOK';
+  if(cap==='analise')return'Em análise';
+  return'OK';
+}
+function farolPri(f){return f==='r'?2:f==='a'?1:0;}
+function tglSubs(gid,tr){
+  const rows=document.querySelectorAll('.sub-of-'+gid);
+  const open=tr.dataset.open==='1';
+  rows.forEach(function(r){r.style.display=open?'none':'';});
+  tr.dataset.open=open?'0':'1';
+  const chev=tr.querySelector('.sub-chev');
+  if(chev)chev.style.transform=open?'':'rotate(90deg)';
+}
+function farolDot(f,title){
+  const c=f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';
+  return`<div title="${title}" style="display:flex;flex-direction:column;align-items:center;gap:2px">
+    <div style="width:14px;height:14px;border-radius:50%;background:${c};box-shadow:0 0 6px ${c}55"></div>
+    <div style="font-size:8px;font-weight:700;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.04em">${title}</div>
+  </div>`;
+}
+
+// ─── FAROL ───────────────────────────────────────────────────────────────────
+function renderFarol(){
+  const c=document.getElementById('view-farol');
+  const emps=[...EMPS_RAW].map(function(e){
+    const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
+    return Object.assign({},e,{
+      score:calcScore(e),
+      _fa:fa,_fi:fi,_fc:fc,
+      _sortKey:farolPri(fa)*16+farolPri(fi)*4+farolPri(fc),
+      _marcoAt:(marcoAtual(e)||{atraso:0}).atraso
+    });
+  }).sort(function(a,b){return b._sortKey-a._sortKey||b._marcoAt-a._marcoAt;});
+  if(farolSort.col){
+    const d=farolSort.dir;
+    emps.sort(function(a,b){
+      if(farolSort.col==='farol')return d*(b._sortKey-a._sortKey);
+      if(farolSort.col==='emp'){const na=a.nome.toLowerCase(),nb=b.nome.toLowerCase();return d*(na<nb?-1:na>nb?1:0);}
+      if(farolSort.col==='fase'){return d*(a.fase<b.fase?-1:a.fase>b.fase?1:0);}
+      if(farolSort.col==='dt'){const da=marcoAtualDates(a).dt||'',db=marcoAtualDates(b).dt||'';return d*(da<db?-1:da>db?1:0);}
+      if(farolSort.col==='dl'){const da=marcoAtualDates(a).dl||'',db=marcoAtualDates(b).dl||'';return d*(da<db?-1:da>db?1:0);}
+      if(farolSort.col==='dr'){const da=marcoAtualDates(a).dr||'',db=marcoAtualDates(b).dr||'';return d*(da<db?-1:da>db?1:0);}
+      if(farolSort.col==='delta')return d*(a._marcoAt-b._marcoAt);
+      return 0;
+    });
+  }
+  const faseLabel={preobra:'Pré-Obra',obra:'Obra',entrega:'Entrega'};
+  if(!S.coment)S.coment={};
+  const colW='11.11%';
+  c.innerHTML=`<div class="tbl-wrap"><table style="table-layout:fixed;width:100%">
+    <colgroup>${Array(9).fill(`<col style="width:${colW}">`).join('')}</colgroup>
+    <thead><tr>
+      ${['emp','fase','marco','dl','dr','dt','delta','farol',''].map(function(k,i){
+        const labels=['Empreendimento','Fase','Marco Atual','Lançamento','Repactuado','Tendência','Δ Marco','Farol',''];
+        const aligns=['left','center','left','center','center','center','center','center','center'];
+        if(!k)return`<th></th>`;
+        const active=farolSort.col===k;
+        const arrow=active?(farolSort.dir===1?'↑':'↓'):'';
+        return`<th onclick="sortFarol('${k}')" style="text-align:${aligns[i]};cursor:pointer;user-select:none;white-space:nowrap">${labels[i]}${arrow?` <span style="color:var(--primary);font-size:10px">${arrow}</span>`:''}</th>`;
+      }).join('')}
+    </tr></thead>
+    <tbody>${emps.map(function(e){
+      const mc=marcoAtual(e);
+      const mcd=marcoAtualDates(e);
+      const marcoAt=e._marcoAt;
+      const difLabel=marcoAt===0?'—':marcoAt>0?'+'+marcoAt+'d':marcoAt+'d';
+      const difColor=marcoAt>0?'var(--danger)':marcoAt<0?'var(--success)':'var(--muted-fg)';
+      const marcoHtml=mc
+        ?`<span style="font-size:12px;font-weight:400;color:var(--card-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${esc(mc.nome)}</span>`
+        :`<span style="color:var(--muted-fg)">—</span>`;
+      const hasComent=!!(S.coment[e.id]);
+      const balloonColor=hasComent?'var(--primary)':'var(--muted-fg)';
+      const balloonFill=hasComent?'currentColor':'none';
+      const balloon=`<button onclick="tglComent('cmt-${e.id}','${e.id}')" style="background:none;border:none;cursor:pointer;padding:4px;color:${balloonColor};display:inline-flex;align-items:center;border-radius:4px" title="${hasComent?'Ver/editar comentário':'Adicionar comentário'}"><svg width="14" height="14" viewBox="0 0 24 24" fill="${balloonFill}" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>`;
+      return`<tr id="fr-${e.id}">
+        <td style="font-size:11px;font-weight:400;color:var(--card-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.nome)}</td>
+        <td style="text-align:center"><span class="fase-pill ${e.fase}">${faseLabel[e.fase]}</span></td>
+        <td style="overflow:hidden">${marcoHtml}</td>
+        <td style="text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-fg)">${fmtD(mcd.dl)||'—'}</td>
+        <td style="text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-fg)">${fmtD(mcd.dr)||'—'}</td>
+        <td style="text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-fg)">${fmtD(mcd.dt)||'—'}</td>
+        <td style="text-align:center;font-weight:400;font-size:12px;color:${difColor};font-variant-numeric:tabular-nums">${difLabel}</td>
+        <td><div style="display:flex;gap:8px;align-items:center;justify-content:center">
+          ${farolDot(e._fa,'Cron')}
+          ${farolDot(e._fi,'IA')}
+          ${farolDot(e._fc,'Cap')}
+        </div></td>
+        <td style="text-align:center">${balloon}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+// ─── HISTÓRICO ───────────────────────────────────────────────────────────────
+function renderHistCards(){
+  const fupsF=(histSelId
+    ?[...S.fup].filter(function(f){return f.empId===histSelId;})
+    :[...S.fup]
+  ).sort(function(a,b){return b.data.localeCompare(a.data);});
+
+  // IA entries: pull from IA_UPD for selected emp or all emps
+  const iaEntries=[];
+  const empsIA=histSelId?[EMPS_RAW.find(function(e){return e.id===histSelId;})].filter(Boolean):EMPS_RAW;
+  empsIA.forEach(function(emp){
+    (IA_UPD[emp.id]||[]).forEach(function(ia){
+      iaEntries.push({empId:emp.id,empNome:emp.nome,fonte:ia.fonte,txt:ia.txt});
+    });
+  });
+
+  if(!fupsF.length&&!iaEntries.length)return`<div style="padding:24px;color:var(--muted-fg);font-size:13px">Nenhum registro encontrado.</div>`;
+
+  const fupCards=fupsF.map(function(f){
+    const emp=EMPS_RAW.find(function(e){return e.id===f.empId;});
+    const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':(f.tipo||'—');
+    const tipoColor=f.tipo==='entrega'?'var(--success)':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
+    const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,${tipoColor} 12%,transparent);color:${tipoColor}">${esc(tipoTxt)}</span>`;
+    const histTxt=f.hist||f.disc||'';
+    const bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){
+      return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^\d+\.\s*/,''))}</span></div>`;
+    }).join('');
+    const empLabel=!histSelId&&emp?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg);margin-left:auto">${esc(emp.nome)}</span>`:'';
+    return`<div class="fup-card">
+      <div class="fup-card-top">
+        <span class="fup-card-date">${fmtD(f.data)}</span>
+        ${tipoBadge}
+        ${empLabel}
+      </div>
+      ${bullets?`<div class="fup-card-enc">${bullets}</div>`:''}
+    </div>`;
+  }).join('');
+
+  const iaCards=iaEntries.length?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);display:flex;flex-direction:column;gap:10px">${iaEntries.map(function(ia){
+    const empLabel=!histSelId?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg);margin-left:auto">${esc(ia.empNome)}</span>`:'';
+    const fonteLabel=ia.fonte==='reuniao'?'Reunião FUP':'WhatsApp';
+    const fonteBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,#7C3AED 12%,transparent);color:#7C3AED">${esc(fonteLabel)}</span>`;
+    const iaBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,#7C3AED 18%,transparent);color:#7C3AED">IA</span>`;
+    const bullets=ia.txt.split(/[.\n]/).filter(function(l){return l.trim().length>10;}).map(function(l){
+      return`<div class="fup-bullet"><div class="fup-bullet-dot" style="background:#7C3AED"></div><span>${esc(l.trim())}</span></div>`;
+    }).join('');
+    return`<div class="fup-card" style="border-left:3px solid #7C3AED22">
+      <div class="fup-card-top">
+        ${iaBadge}
+        ${fonteBadge}
+        ${empLabel}
+      </div>
+      ${bullets?`<div class="fup-card-enc">${bullets}</div>`:`<div class="fup-card-enc"><div class="fup-bullet"><div class="fup-bullet-dot" style="background:#7C3AED"></div><span>${esc(ia.txt)}</span></div></div>`}
+    </div>`;
+  }).join('')}</div>`:'';
+
+  return`<div style="display:flex;flex-direction:column;gap:10px">${fupCards}${iaCards}</div>`;
+}
+
+function selectHistEmp(id){
+  histSelId=id||null;
+  document.querySelectorAll('#histList .painel-list-item').forEach(function(el){
+    el.classList.toggle('pli-active',el.dataset.hid===id);
+  });
+  const det=document.getElementById('hist-detail');
+  if(det)det.innerHTML=renderHistCards();
+}
+
+function renderHistorico(){
+  const c=document.getElementById('view-historico');
+  const sorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
+  const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+  const todosAct=!histSelId;
+  const listItems=`<div class="painel-list-item ${todosAct?'pli-active':''}" data-hid="" onclick="selectHistEmp('')">
+      <span class="pli-nome">Todos</span>
+    </div>`+sorted.map(function(e){
+    const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
+    const act=histSelId===e.id;
+    return`<div class="painel-list-item ${act?'pli-active':''}" data-hid="${e.id}" onclick="selectHistEmp('${e.id}')">
+      <span class="pli-nome">${esc(e.nome)}</span>
+      <span class="pli-dots">
+        <span class="pli-dot" style="background:${dotC(fa)}"></span>
+        <span class="pli-dot" style="background:${dotC(fi)}"></span>
+        <span class="pli-dot" style="background:${dotC(fc)}"></span>
+      </span>
+    </div>`;
+  }).join('');
+  c.innerHTML=`<div class="painel-split">
+    <div class="painel-list" id="histList">${listItems}</div>
+    <div class="painel-detail-wrap" id="hist-detail">${renderHistCards()}</div>
+  </div>`;
+}
+
+// ─── CRONOGRAMA ──────────────────────────────────────────────────────────────
+function sortCronograma(col){
+  if(cronSort.col===col)cronSort.dir*=-1;else{cronSort.col=col;cronSort.dir=1;}
+  renderCronograma();
+}
+function setCronFilter(f){cronFilter=f;renderCronograma();}
+function applyCronFilters(){
+  cronEmpFilter=document.getElementById('cfEmp')?.value||'';
+  cronMarcoFilter=document.getElementById('cfMarco')?.value||'';
+  renderCronograma();
+}
+function renderCronograma(){
+  const c=document.getElementById('view-cronograma');
+  const smLinkSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+
+  // Build all rows
+  let rows=[];
+  EMPS_RAW.forEach(function(emp){
+    const mseq=genMarcosSeq(emp);
+    const mdates=genMarcosDates(emp);
+    mseq.forEach(function(m,i){
+      const d=mdates[i];
+      const ref=d.dr||d.dl;
+      const deltaD=(d.dt&&ref)?Math.round((new Date(d.dt)-new Date(ref))/86400000):null;
+      rows.push({emp,nome_emp:emp.nome,marco:m.nome,st:m.st,i,dl:d.dl,dr:d.dr,dt:d.dt,delta:deltaD});
+    });
+  });
+
+  // Apply filters
+  if(cronFilter!=='todas') rows=rows.filter(function(r){return r.st===cronFilter;});
+  if(cronEmpFilter) rows=rows.filter(function(r){return r.emp.id===cronEmpFilter;});
+  if(cronMarcoFilter) rows=rows.filter(function(r){return r.i===parseInt(cronMarcoFilter);});
+
+  // Sort
+  if(cronSort.col){
+    const d=cronSort.dir;
+    rows.sort(function(a,b){
+      if(cronSort.col==='emp'){return d*(a.nome_emp.localeCompare(b.nome_emp,'pt'));}
+      if(cronSort.col==='marco'){return d*(a.i-b.i);}
+      if(cronSort.col==='dl'){return d*((a.dl||'').localeCompare(b.dl||''));}
+      if(cronSort.col==='dr'){return d*((a.dr||'').localeCompare(b.dr||''));}
+      if(cronSort.col==='dt'){return d*((a.dt||'').localeCompare(b.dt||''));}
+      if(cronSort.col==='delta'){const da=a.delta===null?9999:a.delta,db=b.delta===null?9999:b.delta;return d*(da-db);}
+      return 0;
+    });
+  } else {
+    rows.sort(function(a,b){
+      const ne=a.nome_emp.localeCompare(b.nome_emp,'pt');
+      return ne!==0?ne:a.i-b.i;
+    });
+  }
+
+  // Helpers
+  function thC(col,label,align){
+    const active=cronSort.col===col;
+    const arr=active?(cronSort.dir===1?'↑':'↓'):'';
+    return`<th onclick="sortCronograma('${col}')" style="text-align:${align||'center'};cursor:pointer;user-select:none;white-space:nowrap">${label}${arr?` <span style="color:var(--primary);font-size:10px">${arr}</span>`:''}</th>`;
+  }
+  const stDot=function(st){
+    const col=st==='concluido'?'#22C55E':st==='andamento'?'var(--primary)':'var(--border)';
+    return`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${col};flex-shrink:0;margin-right:5px"></span>`;
+  };
+  const pillStyle=function(active){
+    return active
+      ?'padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;background:var(--primary);color:#fff;border:none;cursor:pointer;font-family:var(--font)'
+      :'padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;background:var(--accent);color:var(--muted-fg);border:none;cursor:pointer;font-family:var(--font)';
+  };
+
+  // Empreendimento options for select
+  const empsSorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
+  const empOpts=empsSorted.map(function(e){
+    return`<option value="${e.id}"${cronEmpFilter===e.id?' selected':''}>${esc(e.nome)}</option>`;
+  }).join('');
+
+  // Marco options for select
+  const marcoOpts=MARCOS_SEQ.map(function(m,i){
+    return`<option value="${i}"${cronMarcoFilter===String(i)?' selected':''}>${esc(m.nome)}</option>`;
+  }).join('');
+
+  const selStyle='padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:11px;font-family:var(--font);cursor:pointer;min-width:160px';
+
+  c.innerHTML=`
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <button style="${pillStyle(cronFilter==='todas')}" onclick="setCronFilter('todas')">Todas</button>
+    <button style="${pillStyle(cronFilter==='andamento')}" onclick="setCronFilter('andamento')">Em andamento</button>
+    <button style="${pillStyle(cronFilter==='ainicial')}" onclick="setCronFilter('ainicial')">A iniciar</button>
+    <button style="${pillStyle(cronFilter==='concluido')}" onclick="setCronFilter('concluido')">Concluídas</button>
+    <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+    <select id="cfEmp" style="${selStyle}" onchange="applyCronFilters()">
+      <option value="">Todos os empreendimentos</option>${empOpts}
+    </select>
+    <select id="cfMarco" style="${selStyle}" onchange="applyCronFilters()">
+      <option value="">Todos os marcos</option>${marcoOpts}
+    </select>
+    ${(cronFilter!=='todas'||cronEmpFilter||cronMarcoFilter)?`<button onclick="cronFilter='todas';cronEmpFilter='';cronMarcoFilter='';renderCronograma()" style="padding:4px 10px;border-radius:6px;font-size:11px;font-family:var(--font);background:transparent;border:1px solid var(--border);color:var(--muted-fg);cursor:pointer">Limpar filtros</button>`:''}
+    <span style="margin-left:auto;font-size:11px;color:var(--muted-fg)">${rows.length} linha${rows.length!==1?'s':''}</span>
+  </div>
+  <div class="tbl-wrap"><table style="table-layout:fixed;width:100%">
+    <colgroup>
+      <col style="width:18%"><col style="width:22%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:8%"><col style="width:11%"><col style="width:8%">
+    </colgroup>
+    <thead><tr>
+      ${thC('emp','Empreendimento','left')}
+      ${thC('marco','Marco','left')}
+      ${thC('dl','Lançamento')}
+      ${thC('dr','Repactuado')}
+      ${thC('dt','Tendência')}
+      <th style="text-align:center;white-space:nowrap">Smartsheet</th>
+      ${thC('delta','Δ Marco')}
+      <th></th>
+    </tr></thead>
+    <tbody>${rows.length?rows.map(function(r,ri){
+      const prevEmpId=ri>0?rows[ri-1].emp.id:null;
+      const newGroup=r.emp.id!==prevEmpId;
+      const empCell=newGroup
+        ?`<td style="font-size:11px;font-weight:400;color:var(--fg);text-transform:uppercase;letter-spacing:.04em;vertical-align:top;padding-top:8px">${esc(r.nome_emp)}</td>`
+        :`<td style="border-top:none;color:transparent;font-size:8px">·</td>`;
+      const deltaC=r.delta===null?'—':(r.delta>0?`<span style="color:var(--warn);font-weight:600">+${r.delta}d</span>`:(r.delta<0?`<span style="color:var(--success);font-weight:600">${r.delta}d</span>`:`<span style="color:var(--muted-fg)">0d</span>`));
+      const smCell=r.emp.sm_url
+        ?`<a href="${r.emp.sm_url}" target="_blank" rel="noopener" style="color:var(--primary);display:inline-flex;align-items:center;gap:3px;font-size:10px">${smLinkSvg}</a>`
+        :'—';
+      const rowBorder=newGroup&&ri>0?'border-top:2px solid var(--border)':'';
+      return`<tr style="${rowBorder}">
+        ${empCell}
+        <td style="font-size:11px"><div style="display:flex;align-items:center">${stDot(r.st)}<span style="color:${r.st==='andamento'?'var(--primary)':r.st==='concluido'?'var(--muted-fg)':'var(--fg)'}">${esc(r.marco)}</span></div></td>
+        <td class="date-cell">${fmtD(r.dl)||'—'}</td>
+        <td class="date-cell">${fmtD(r.dr)||'—'}</td>
+        <td class="date-cell">${fmtD(r.dt)||'—'}</td>
+        <td style="text-align:center;font-size:10px">${smCell}</td>
+        <td style="text-align:center;font-size:11px">${deltaC}</td>
+        <td></td>
+      </tr>`;
+    }).join(''):`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted-fg);font-size:12px">Nenhum resultado com os filtros selecionados.</td></tr>`}</tbody>
+  </table></div>`;
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(){document.getElementById('modalFup').classList.add('open');document.getElementById('mData').value=TODAY.toISOString().split('T')[0];if(curEmpId)document.getElementById('mEmp').value=curEmpId;}
+function closeModal(){document.getElementById('modalFup').classList.remove('open');}
+function salvarModal(){
+  const empId=document.getElementById('mEmp').value;
+  const data=document.getElementById('mData').value;
+  const hist=document.getElementById('mHist').value;
+  if(!data||!hist){alert('Preencha data e histórico.');return;}
+  const tipo=document.getElementById('mTipo').value||'gestao';
+  S.fup.push({id:Date.now(),empId,data,tipo,hist,disc:hist,enc:''});
+  saveData();closeModal();
+  document.getElementById('mHist').value='';
+  renderCurrentView();
+}
+document.getElementById('modalFup').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// ─── SORT FAROL ──────────────────────────────────────────────────────────────
+function sortFarol(col){
+  farolSort.dir=farolSort.col===col?farolSort.dir*-1:1;
+  farolSort.col=col;
+  renderFarol();
+}
+
+// ─── COMENTÁRIOS FAROL ───────────────────────────────────────────────────────
+function tglComent(trId,empId){
+  const ex=document.getElementById(trId);
+  if(ex){ex.remove();return;}
+  const srcRow=document.getElementById('fr-'+empId);
+  if(!srcRow)return;
+  if(!S.coment)S.coment={};
+  const cur=S.coment[empId]||'';
+  const exTr=document.createElement('tr');
+  exTr.id=trId;
+  exTr.innerHTML=`<td colspan="7" style="padding:8px 16px 10px;background:var(--accent);border-bottom:1px solid var(--border)"><div style="display:flex;gap:8px;align-items:flex-start"><textarea id="cmtxt-${empId}" style="flex:1;min-height:56px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--card-fg);font-size:12px;resize:vertical;font-family:inherit">${esc(cur)}</textarea><button onclick="salvarComent('${empId}')" style="padding:5px 12px;background:var(--primary);color:white;border:none;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0">Salvar</button></div></td>`;
+  srcRow.parentNode.insertBefore(exTr,srcRow.nextSibling);
+  document.getElementById('cmtxt-'+empId).focus();
+}
+function salvarComent(empId){
+  if(!S.coment)S.coment={};
+  S.coment[empId]=(document.getElementById('cmtxt-'+empId)||{}).value||'';
+  saveData();
+  const ex=document.getElementById('cmt-'+empId);
+  if(ex)ex.remove();
+  renderFarol();
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+loadData();
+populateSelect();
+const th=localStorage.getItem('pmo-theme')||'light';
+document.documentElement.dataset.theme=th;
+document.getElementById('themeLabel').textContent=th==='dark'?'Light':'Dark';
+updateThemeIcon(th==='dark');
+renderPainel();
+</script>
