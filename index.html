@@ -145,15 +145,17 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .cron-table tbody tr:last-child td,.cron-table tbody .sub-last td{border-bottom:1px solid var(--border)}
 .cron-table tbody tr:last-child td{border-bottom:none}
 .date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:10px;white-space:nowrap;color:var(--muted-fg)}
-.cron-row-andamento .date-cell{color:var(--primary);font-weight:600}
+.cron-row-andamento .date-cell{color:var(--muted-fg)}
 .cron-name-cell{display:flex;align-items:center;gap:8px}
 .cron-dot-s{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
 .cron-dot-s.concluido{background:var(--success)}
 .cron-dot-s.andamento{background:var(--primary)}
+.cron-dot-s.proximo{background:var(--primary);animation:cdot-pulse 2s infinite}
 .cron-dot-s.ainicial{background:var(--card);border:1.5px solid var(--border)}
 .cron-marco-nome.concluido{color:var(--muted-fg)}
 .cron-marco-nome.andamento{color:var(--primary);font-weight:700}
 .cron-marco-nome.ainicial{color:var(--muted-fg);opacity:.5}
+@keyframes cdot-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--primary) 30%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--primary) 0%,transparent)}}
 /* Sub-marcos */
 .cron-sub-row td{padding:4px 14px 4px 42px;border-bottom:none;background:color-mix(in srgb,var(--accent) 60%,var(--card))}
 .cron-sub-row:last-of-type td{border-bottom:1px solid var(--border)}
@@ -1815,18 +1817,21 @@ function renderDetail(emp){
               const svgAnd=`<div style="width:6px;height:6px;border-radius:50%;background:white"></div>`;
               const uid='cs'+Math.random().toString(36).slice(2,7);
               const smData=SMARTSHEET_MARCOS[emp.id]||{};
+              let lastConclIdx=-1;
+              mseq.forEach(function(m,i){if(m.st==='concluido')lastConclIdx=i;});
+              const proxIdx=lastConclIdx+1;
               return mseq.map(function(m,i){
                 const d=mdates[i];
-                const ic=m.st==='concluido'?svgOk:m.st==='andamento'?svgAnd:'';
-                const drCell=`<td class="date-cell" style="text-align:center">${fmtD(d.dr)||'—'}</td>`;
+                const ic=m.st==='concluido'?svgOk:(i===proxIdx||m.st==='andamento')?svgAnd:'';
+                const drCell=`<td class="date-cell" style="text-align:center">—</td>`;
                 const hasSubs=(m.subs||[]).length>0;
                 const chevron=hasSubs?`<svg class="sub-chev" style="flex-shrink:0;transition:transform 180ms;color:var(--muted-fg)" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`:'';
                 const smDate=smData[i]?fmtD(smData[i].dt)||'—':'—';
-                const smDateStyle=smData[i]&&smData[i].st==='concluido'?'color:var(--success);font-weight:600':smData[i]&&smData[i].st==='andamento'?'color:var(--primary);font-weight:600':'color:var(--muted-fg)';
-                const smCol=`<td class="date-cell" style="text-align:center;${smDateStyle}">${smDate}</td>`;
+                const smCol=`<td class="date-cell" style="text-align:center">${smDate}</td>`;
+                const dotClass=i===proxIdx?'proximo':m.st;
                 const parentRow=`<tr class="cron-row-${m.st}${hasSubs?' cron-has-subs':''}" ${hasSubs?`onclick="tglSubs('${uid+i}',this)" style="cursor:pointer"`:''}>
                   <td><div class="cron-name-cell">
-                    <div class="cron-dot-s ${m.st}">${ic}</div>
+                    <div class="cron-dot-s ${dotClass}">${ic}</div>
                     <span class="cron-marco-nome ${m.st}">${esc(m.nome)}</span>
                     ${chevron}
                   </div></td>
