@@ -331,6 +331,7 @@ canvas#obraChart{width:100%;height:100%}
 .cron-row:hover td{background:#f7fafc}
 .cron-row .cron-nm{font-weight:500;color:var(--navy)}
 .cron-dt-cell{text-align:center;white-space:nowrap;font-size:11px;color:var(--tmid)}
+.cron-sep-l{border-left:1px solid rgba(41,128,185,.3)!important}
 .cron-st-cell{white-space:nowrap}
 .cron-st-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.2px}
 .cron-st-c{background:#EAFAF1;color:var(--green)}
@@ -1582,10 +1583,16 @@ function _getCronMarcos(empNome){
 }
 
 function setCronColF(k,v){_cronColF[k]=v;applyCronColFilters();}
+function _normDateFilter(v){
+  // Converte "MM/YYYY" ou "M/YYYY" → "YYYY-MM" para buscar em datas ISO
+  var m=(v||'').match(/^(\d{1,2})\/(\d{4})$/);
+  if(m)return m[2]+'-'+(m[1].length===1?'0'+m[1]:m[1]);
+  return v||'';
+}
 function applyCronColFilters(){
   var f=_cronColF;
   var fe=f.emp.toLowerCase(),fm=f.marco.toLowerCase(),fs=f.st.toLowerCase();
-  var fdl=f.dl,fdpI=f.dpInf,fdpS=f.dpSS,fdf=f.diff;
+  var fdl=_normDateFilter(f.dl),fdpI=_normDateFilter(f.dpInf),fdpS=_normDateFilter(f.dpSS),fdf=f.diff;
   var total=0,vis=0;
   document.querySelectorAll('#cron-rpt-body .cron-row').forEach(function(tr){
     total++;
@@ -1639,11 +1646,13 @@ function _renderCronReport(){
       if(m.st==='Realizado')return;
       if(['OBRAS - ESTRUTURA FINALIZADA','OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS','OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO'].indexOf(m.n)>=0)return;
       var dpSS=getSS(m.n);
-      if(!dpSS||!m.dp)return;
-      var d1=new Date(m.dp),d2=new Date(dpSS);
-      if(isNaN(d1.getTime())||isNaN(d2.getTime()))return;
-      var diff=Math.round((d1.getTime()-d2.getTime())/86400000);
-      var fk=diff>=0?'verde':'verm';
+      var ref=m.repac||m.dl;
+      if(!ref||!m.dp)return;
+      var d1=new Date(m.dp),dRef=new Date(ref);
+      if(isNaN(d1.getTime())||isNaN(dRef.getTime()))return;
+      var diff2=Math.round((d1.getTime()-dRef.getTime())/86400000);
+      var fk=diff2<=0?'verde':'verm';
+      var diff=dpSS?(function(){var d2=new Date(dpSS);return isNaN(d2.getTime())?0:Math.round((d1.getTime()-d2.getTime())/86400000);}()):0;
       rows.push({emp:emp.nome,marco:m.n,st:m.st,dl:m.dl,dpInf:m.dp,dpSS:dpSS,diff:diff,fk:fk});
     });
   });
@@ -1690,10 +1699,12 @@ function _renderCronReport(){
     '<th style="text-align:left;min-width:195px">Marco</th>'+
     '<th>Status</th>'+
     '<th class="cron-dt-h">Lançamento</th>'+
-    '<th class="cron-dt-h">Informativo</th>'+
-    '<th class="cron-dt-h">Smartsheet</th>'+
-    '<th class="cron-dt-h">\u0394 dias</th>'+
+    '<th class="cron-dt-h">Repactuação<br><span style="font-weight:400;font-size:9px;opacity:.8">Investidor</span></th>'+
+    '<th class="cron-dt-h">Informativo<br><span style="font-weight:400;font-size:9px;opacity:.8">Tendência</span></th>'+
+    '<th class="cron-dt-h">Δ dias</th>'+
     '<th class="cron-dt-h">Farol</th>'+
+    '<th class="cron-dt-h cron-sep-l">Smartsheet<br><span style="font-weight:400;font-size:9px;opacity:.8">plan/real</span></th>'+
+    '<th class="cron-dt-h">\u0394 dias</th>'+
     '<th style="width:32px"></th>'+
     '</tr>'+
     '<tr class="cron-filter-row">'+
@@ -1701,24 +1712,35 @@ function _renderCronReport(){
       '<th><input id="cflt-marco" class="cron-col-filter" oninput="setCronColF(\'marco\',this.value)" placeholder="\uD83D\uDD0D marco" value="'+(_cronColF.marco||'')+'" title="Filtrar marco"></th>'+
       '<th><select id="cflt-st" class="cron-col-filter" onchange="setCronColF(\'st\',this.value)"><option value="">Todos</option>'+stOpts+'</select></th>'+
       '<th><input class="cron-col-filter" oninput="setCronColF(\'dl\',this.value)" placeholder="🔍" value="'+(_cronColF.dl||'')+'" title="Filtrar Lançamento (ex: 2026)"></th>'+
-      '<th><input class="cron-col-filter" oninput="setCronColF(\'dpInf\',this.value)" placeholder="🔍" value="'+(_cronColF.dpInf||'')+'" title="Filtrar Informativo (ex: 2026-07)"></th>'+
-      '<th><input class="cron-col-filter" oninput="setCronColF(\'dpSS\',this.value)" placeholder="🔍" value="'+(_cronColF.dpSS||'')+'" title="Filtrar Smartsheet"></th>'+
+      '<th></th>'+
+      '<th><input class="cron-col-filter" oninput="setCronColF(\'dpInf\',this.value)" placeholder="🔍" value="'+(_cronColF.dpInf||'')+'" title="Filtrar Informativo Tendência (ex: 07/2026)"></th>'+
+      '<th></th>'+
+      '<th></th>'+
+      '<th class="cron-sep-l"><input class="cron-col-filter" oninput="setCronColF(\'dpSS\',this.value)" placeholder="🔍" value="'+(_cronColF.dpSS||'')+'" title="Filtrar Smartsheet plan/real"></th>'+
       '<th><input class="cron-col-filter" style="width:52px" oninput="setCronColF(\'diff\',this.value)" placeholder="🔍" value="'+(_cronColF.diff||'')+'" title="Filtrar Δ dias (ex: -30 ou 5)"></th>'+
-      '<th></th><th></th>'+
+      '<th></th>'+
     '</tr>'+
     '</thead><tbody>'+
     fil.map(function(r,i){
       var dc=r.fk==='verm'?'#E74C3C':'#27AE60';
       var ds=Math.abs(r.diff)+'d';
+      var ref2=r.repac||r.dl;
+      var diff2Num=(ref2&&r.dpInf)?Math.round((new Date(r.dpInf)-new Date(ref2))/86400000):null;
+      var fk2=diff2Num===null?'none':diff2Num<=0?'g':diff2Num<=30?'y':'r';
+      var dc2=fk2==='r'?'#E74C3C':fk2==='y'?'#F39C12':'#27AE60';
+      var ds2=diff2Num!==null?(diff2Num>=0?'+':'')+diff2Num+'d':'\u2014';
+      var farolTitle2='Inf. vs '+(r.repac?'Repactuação':'Lançamento')+(diff2Num!==null?': '+(diff2Num>=0?'+':'')+diff2Num+'d':'');
       return'<tr class="cron-row" data-emp="'+esc(r.emp)+'" data-marco="'+esc(r.marco)+'" data-st="'+(r.st||'')+'" data-dl="'+(r.dl||'')+'" data-dpinf="'+(r.dpInf||'')+'" data-dpss="'+(r.dpSS||'')+'" data-diff="'+(r.diff>=0?'+':'')+r.diff+'d">'+
         '<td class="cron-nm" style="font-weight:600">'+esc(r.emp)+'</td>'+
         '<td class="cron-nm">'+esc(r.marco)+'</td>'+
         '<td class="cron-st-cell">'+stBadge(r.st)+'</td>'+
         '<td class="cron-dt-cell">'+(fmtDt(r.dl)||'<span class="cron-miss">\u2014</span>')+'</td>'+
+        '<td class="cron-dt-cell"><span class="cron-miss">\u2014</span></td>'+
         '<td class="cron-dt-cell">'+(fmtDt(r.dpInf)||'<span class="cron-miss">\u2014</span>')+'</td>'+
-        '<td class="cron-dt-cell">'+(fmtDt(r.dpSS)||'<span class="cron-miss">\u2014</span>')+'</td>'+
+        '<td class="cron-dt-cell" style="font-weight:700;color:'+dc2+'">'+ds2+'</td>'+
+        '<td class="cron-farol-cell"><span class="farol-dot farol-'+fk2+'" title="'+farolTitle2+'">&#9679;</span></td>'+
+        '<td class="cron-dt-cell cron-sep-l">'+(fmtDt(r.dpSS)||'<span class="cron-miss">\u2014</span>')+'</td>'+
         '<td class="cron-dt-cell" style="font-weight:700;color:'+dc+'">'+ds+'</td>'+
-        farolCell(r)+
         (function(i,r){
           var k=r.emp+'||'+r.marco;
           _cnKeys.push(k);
@@ -2355,20 +2377,29 @@ function renderCronMarcos(marcos,empId,empNome){
     }else{c1=dtCell(m.dl);c2=dtCell(m.dp);}
     var dpSS=m._edit?'':getSS(m.n);
     var ssCell='<td class="cron-dt-cell">'+(fmtDt(dpSS)||'<span class="cron-miss">—</span>')+'</td>';
-    var farolCell='<td class="cron-farol-cell">'+farol(m.dp,dpSS)+'</td>';
+    var ref2m=m.dl;
+    var d2mA=ref2m?new Date(ref2m):null,d2mB=m.dp?new Date(m.dp):null;
+    var diff2mN=(d2mA&&d2mB&&!isNaN(d2mA)&&!isNaN(d2mB))?Math.round((d2mB-d2mA)/86400000):null;
+    var fk2m=diff2mN===null?'none':diff2mN<=0?'g':diff2mN<=30?'y':'r';
+    var dc2m=fk2m==='r'?'#E74C3C':fk2m==='y'?'#F39C12':'#27AE60';
+    var ds2m=diff2mN!==null?(diff2mN>=0?'+':'')+diff2mN+'d':'—';
+    var diff2Cell='<td class="cron-dt-cell" style="font-weight:700;color:'+dc2m+'">'+ds2m+'</td>';
+    var farol2Cell='<td class="cron-farol-cell"><span class="farol-dot farol-'+fk2m+'" title="'+(diff2mN!==null?(diff2mN<=0?'No prazo / adiantado '+Math.abs(diff2mN)+'d':'Atrasado '+Math.abs(diff2mN)+'d vs ref'):'Sem dados')+'">&#9679;</span></td>';
     return'<tr class="cron-row'+(m._edit?' cron-row-decor':'')+'">'+
       '<td class="cron-nm">'+esc(m.n||'—')+(m._edit?'<span style="font-size:10px;color:#888;margin-left:4px">✏️</span>':'')+' </td>'+
       '<td class="cron-st-cell">'+stBadge(m.st)+'</td>'+
-      c1+c2+ssCell+farolCell+
+      c1+'<td class="cron-dt-cell"><span class="cron-miss">—</span></td>'+c2+diff2Cell+farol2Cell+ssCell+
     '</tr>';
   }).join('');
   return'<div class="cron-wrap"><table class="cron-tbl">'+
     '<thead><tr>'+
       '<th>Marco</th><th>Status</th>'+
       '<th class="cron-dt-h">Lançamento<br><span style="font-weight:400;font-size:9px;opacity:.75">(Informativo)</span></th>'+
-      '<th class="cron-dt-h">Prevista<br><span style="font-weight:400;font-size:9px;opacity:.75">(Informativo)</span></th>'+
-      '<th class="cron-dt-h">Prevista<br><span style="font-weight:400;font-size:9px;opacity:.75">(Smartsheet)</span></th>'+
+      '<th class="cron-dt-h">Repactuação<br><span style="font-weight:400;font-size:9px;opacity:.75">Investidor</span></th>'+
+      '<th class="cron-dt-h">Informativo<br><span style="font-weight:400;font-size:9px;opacity:.75">Tendência</span></th>'+
+      '<th class="cron-dt-h">Δ dias</th>'+
       '<th class="cron-dt-h">Farol</th>'+
+      '<th class="cron-dt-h">Smartsheet<br><span style="font-weight:400;font-size:9px;opacity:.75">plan/real</span></th>'+
     '</tr></thead>'+
     '<tbody>'+rows+'</tbody>'+
   '</table></div>';
@@ -2996,23 +3027,69 @@ async function embedAllDrivePhotos(){
 }
 
 const SMARTSHEET_DATA = {
-  "Barra Grande Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-10-09",
-    "CONCLUSÃO DE OBRAS": "2029-11-26",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2027-08-02",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-11-01",
-    "INICIO DE OBRAS": "2027-10-01",
-    "LIGAÇÃO DEFINITIVA": "2027-06-03",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-11-26",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-11-24",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-02-23",
-    "ORÇAMENTO EXECUTIVO": "2030-09-17",
-    "PROJETOS EXECUTIVOS": "2030-10-07",
-    "VISTORIA E ACEITE DAS CHAVES": "2027-06-03"
+  "Lagoa Spot": {
+    "CONCLUSÃO DE OBRAS": "2025-12-10",
+    "DECOR": "2026-03-10",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-06-30",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2026-11-09",
+    "LIGAÇÃO DEFINITIVA": "2025-09-15",
+    "VISTORIA E ACEITE DAS CHAVES": "2025-09-17",
+    "INICIO DE OBRAS": "2023-11-01",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2025-12-10",
+    "OBRAS - ESTRUTURA FINALIZADA": "2024-11-01",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2025-01-10",
+    "PROJETOS EXECUTIVOS": "2023-11-01",
+    "ALVARÁ DE CONSTRUÇÃO": "2023-09-01",
+    "ORÇAMENTO EXECUTIVO": "2023-11-01"
+  },
+  "Rosa Spot": {
+    "CONCLUSÃO DE OBRAS": "2025-12-19",
+    "DECOR": "2025-12-19",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-01-21",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2026-10-20",
+    "LIGAÇÃO DEFINITIVA": "2025-11-17",
+    "VISTORIA E ACEITE DAS CHAVES": "2025-12-03",
+    "INICIO DE OBRAS": "2022-05-01",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2025-12-18",
+    "OBRAS - ESTRUTURA FINALIZADA": "2023-04-28",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2025-01-17",
+    "PROJETOS EXECUTIVOS": "2022-05-01",
+    "ALVARÁ DE CONSTRUÇÃO": "2022-05-01",
+    "ORÇAMENTO EXECUTIVO": "2022-05-01"
+  },
+  "Vistas de Anitá I": {
+    "CONCLUSÃO DE OBRAS": "",
+    "DECOR": "",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "",
+    "LIGAÇÃO DEFINITIVA": "",
+    "VISTORIA E ACEITE DAS CHAVES": "",
+    "INICIO DE OBRAS": "",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "",
+    "OBRAS - ESTRUTURA FINALIZADA": "",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "",
+    "PROJETOS EXECUTIVOS": "",
+    "ALVARÁ DE CONSTRUÇÃO": "",
+    "ORÇAMENTO EXECUTIVO": ""
+  },
+  "Vistas de Anitá II": {
+    "DECOR": "",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "",
+    "LIGAÇÃO DEFINITIVA": "",
+    "VISTORIA E ACEITE DAS CHAVES": "",
+    "CONCLUSÃO DE OBRAS": "2028-05-01",
+    "INICIO DE OBRAS": "2023-05-01",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-04-22",
+    "OBRAS - ESTRUTURA FINALIZADA": "2026-04-06",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2026-05-22",
+    "PROJETOS EXECUTIVOS": "2023-05-01",
+    "ALVARÁ DE CONSTRUÇÃO": "",
+    "ORÇAMENTO EXECUTIVO": "2023-05-01"
   },
   "Barra Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-06-23",
     "CONCLUSÃO DE OBRAS": "2028-07-23",
+    "DECOR": "2028-10-21",
     "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-10-21",
     "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-01-19",
     "INICIO DE OBRAS": "2026-07-23",
@@ -3020,106 +3097,148 @@ const SMARTSHEET_DATA = {
     "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-07-23",
     "OBRAS - ESTRUTURA FINALIZADA": "2027-07-23",
     "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2027-10-23",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-06-23",
     "ORÇAMENTO EXECUTIVO": "2027-07-20",
     "PROJETOS EXECUTIVOS": "2027-04-22",
     "VISTORIA E ACEITE DAS CHAVES": "2028-08-22"
   },
-  "Batel Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2025-08-12",
-    "CONCLUSÃO DE OBRAS": "2028-05-04",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-08-02",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2028-10-31",
-    "INICIO DE OBRAS": "2025-11-17",
-    "LIGAÇÃO DEFINITIVA": "2028-06-03",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-04-26",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-05-04",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-05-04",
-    "ORÇAMENTO EXECUTIVO": "2026-10-14",
-    "PROJETOS EXECUTIVOS": "2026-07-10",
-    "VISTORIA E ACEITE DAS CHAVES": "2028-06-03"
+  "Rosa Sul Spot": {
+    "DECOR": "2027-01-04",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-12-02",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-04-09",
+    "LIGAÇÃO DEFINITIVA": "2026-09-02",
+    "VISTORIA E ACEITE DAS CHAVES": "2026-10-30",
+    "CONCLUSÃO DE OBRAS": "2026-09-18",
+    "INICIO DE OBRAS": "2023-11-01",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-09-18",
+    "OBRAS - ESTRUTURA FINALIZADA": "2026-07-03",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2026-09-01",
+    "ALVARÁ DE CONSTRUÇÃO": "2023-08-01",
+    "ORÇAMENTO EXECUTIVO": "2023-11-01",
+    "PROJETOS EXECUTIVOS": "2023-11-01"
   },
-  "Bonito Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-11-06",
-    "CONCLUSÃO DE OBRAS": "2030-02-14",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2031-05-09",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2031-08-07",
-    "INICIO DE OBRAS": "2028-02-29",
-    "LIGAÇÃO DEFINITIVA": "2031-03-11",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-02-14",
-    "OBRAS - ESTRUTURA FINALIZADA": "2029-02-13",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-05-15",
-    "ORÇAMENTO EXECUTIVO": "2029-12-05",
-    "PROJETOS EXECUTIVOS": "2029-10-19",
-    "VISTORIA E ACEITE DAS CHAVES": "2031-03-11"
+  "Ingleses Spot": {
+    "DECOR": "2026-09-07",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-06-01",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2026-11-11",
+    "LIGAÇÃO DEFINITIVA": "2026-06-01",
+    "VISTORIA E ACEITE DAS CHAVES": "2026-07-13",
+    "CONCLUSÃO DE OBRAS": "2026-06-30",
+    "INICIO DE OBRAS": "2023-08-01",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-06-26",
+    "OBRAS - ESTRUTURA FINALIZADA": "2026-06-16",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2026-06-29",
+    "ALVARÁ DE CONSTRUÇÃO": "2023-08-01",
+    "ORÇAMENTO EXECUTIVO": "2023-08-01",
+    "PROJETOS EXECUTIVOS": "2023-08-01"
   },
-  "Bonito Spot II": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-12-29",
-    "CONCLUSÃO DE OBRAS": "2029-02-08",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-05-09",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-08-08",
-    "INICIO DE OBRAS": "2027-02-10",
-    "LIGAÇÃO DEFINITIVA": "2029-03-12",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-02-08",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-02-09",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-05-10",
-    "ORÇAMENTO EXECUTIVO": "2027-09-28",
-    "PROJETOS EXECUTIVOS": "2029-11-29",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-03-12"
+  "Urubici Spot": {
+    "DECOR": "2026-04-27",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-06-22",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2026-08-24",
+    "LIGAÇÃO DEFINITIVA": "2026-04-20",
+    "CONCLUSÃO DE OBRAS": "2026-01-26",
+    "INICIO DE OBRAS": "2023-08-01",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-01-21",
+    "OBRAS - ESTRUTURA FINALIZADA": "2025-09-26",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2025-12-19",
+    "ALVARÁ DE CONSTRUÇÃO": "2023-07-01",
+    "ORÇAMENTO EXECUTIVO": "2023-08-01",
+    "PROJETOS EXECUTIVOS": "2023-08-01",
+    "VISTORIA E ACEITE DAS CHAVES": "2026-04-16"
   },
-  "Cachoeira Beach Spot": {
-    "CONCLUSÃO DE OBRAS": "2029-01-23",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-04-23",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-07-22",
-    "INICIO DE OBRAS": "2026-07-23",
-    "LIGAÇÃO DEFINITIVA": "2029-02-22",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-01-23",
-    "OBRAS - ESTRUTURA FINALIZADA": "2027-10-23",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-03-23",
-    "ORÇAMENTO EXECUTIVO": "2027-07-01",
-    "PROJETOS EXECUTIVOS": "2027-04-29",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-02-22"
+  "Japaratinga Spot": {
+    "DECOR": "2027-03-31",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2027-03-31",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-06-29",
+    "LIGAÇÃO DEFINITIVA": "2027-01-30",
+    "VISTORIA E ACEITE DAS CHAVES": "2027-01-30",
+    "CONCLUSÃO DE OBRAS": "2026-12-31",
+    "INICIO DE OBRAS": "2024-07-02",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-12-31",
+    "OBRAS - ESTRUTURA FINALIZADA": "2026-10-30",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2026-10-30",
+    "PROJETOS EXECUTIVOS": "2024-07-02",
+    "ALVARÁ DE CONSTRUÇÃO": "2024-07-02",
+    "ORÇAMENTO EXECUTIVO": "2024-07-02"
   },
-  "Cachoeira Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-02-06",
-    "INICIO DE OBRAS": "2025-11-19",
-    "PROJETOS EXECUTIVOS": "2026-08-19",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-06-20",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-09-14",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-10-26",
-    "CONCLUSÃO DE OBRAS": "2028-10-26",
-    "LIGAÇÃO DEFINITIVA": "2028-11-25",
-    "VISTORIA E ACEITE DAS CHAVES": "2028-11-25",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-01-24",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-04-24"
+  "Imbassaí Spot": {
+    "CONCLUSÃO DE OBRAS": "2029-03-10",
+    "DECOR": "2029-06-08",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-06-08",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-09-06",
+    "INICIO DE OBRAS": "2027-03-10",
+    "LIGAÇÃO DEFINITIVA": "2029-04-09",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-03-10",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-03-10",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-06-10",
+    "ALVARÁ DE CONSTRUÇÃO": "2027-01-26",
+    "ORÇAMENTO EXECUTIVO": "2027-07-07",
+    "PROJETOS EXECUTIVOS": "2027-04-09",
+    "VISTORIA E ACEITE DAS CHAVES": "2029-04-09"
+  },
+  "Trancoso Spot": {
+    "ALVARÁ DE CONSTRUÇÃO": "2024-08-01",
+    "CONCLUSÃO DE OBRAS": "2026-08-30",
+    "DECOR": "2026-12-02",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-12-02",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-04-09",
+    "INICIO DE OBRAS": "2024-09-13",
+    "LIGAÇÃO DEFINITIVA": "2026-09-02",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-08-30",
+    "OBRAS - ESTRUTURA FINALIZADA": "2025-09-13",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2025-09-30",
+    "ORÇAMENTO EXECUTIVO": "2024-09-01",
+    "PROJETOS EXECUTIVOS": "2024-09-01",
+    "VISTORIA E ACEITE DAS CHAVES": "2026-09-29"
+  },
+  "Salvador Spot": {
+    "CONCLUSÃO DE OBRAS": "2028-08-18",
+    "DECOR": "2028-11-16",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-11-16",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-02-14",
+    "INICIO DE OBRAS": "2026-08-18",
+    "LIGAÇÃO DEFINITIVA": "2028-09-17",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-08-18",
+    "OBRAS - ESTRUTURA FINALIZADA": "2027-08-18",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2027-11-18",
+    "ORÇAMENTO EXECUTIVO": "2027-04-01",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-07-06",
+    "PROJETOS EXECUTIVOS": "2027-01-14",
+    "VISTORIA E ACEITE DAS CHAVES": "2028-09-17"
   },
   "Campeche Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2025-04-09",
-    "CONCLUSÃO DE OBRAS": "2027-03-16",
+    "DECOR": "2027-06-14",
     "HABITE-SE E INICIO DAS OPERAÇÕES": "2027-06-14",
     "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-09-12",
-    "INICIO DE OBRAS": "2025-04-09",
     "LIGAÇÃO DEFINITIVA": "2027-04-15",
+    "VISTORIA E ACEITE DAS CHAVES": "2027-04-15",
+    "CONCLUSÃO DE OBRAS": "2027-03-16",
+    "INICIO DE OBRAS": "2025-04-09",
     "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2027-02-25",
     "OBRAS - ESTRUTURA FINALIZADA": "2026-09-08",
     "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2027-02-18",
-    "ORÇAMENTO EXECUTIVO": "2025-04-09",
     "PROJETOS EXECUTIVOS": "2025-04-09",
-    "VISTORIA E ACEITE DAS CHAVES": "2027-04-15"
+    "ALVARÁ DE CONSTRUÇÃO": "2025-04-09",
+    "ORÇAMENTO EXECUTIVO": "2025-04-09"
   },
-  "Canas Beach Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-11-27",
-    "CONCLUSÃO DE OBRAS": "2029-03-08",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-06-06",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-09-04",
-    "INICIO DE OBRAS": "2026-09-08",
-    "LIGAÇÃO DEFINITIVA": "2029-04-07",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-03-08",
-    "OBRAS - ESTRUTURA FINALIZADA": "2027-12-08",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-05-08",
-    "PROJETOS EXECUTIVOS": "2027-05-25",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-04-07"
+  "Urubici Spot II": {
+    "DECOR": "2028-02-15",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-02-15",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2028-05-15",
+    "LIGAÇÃO DEFINITIVA": "2027-12-17",
+    "VISTORIA E ACEITE DAS CHAVES": "2027-12-17",
+    "CONCLUSÃO DE OBRAS": "2027-11-17",
+    "INICIO DE OBRAS": "2025-06-16",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2027-11-17",
+    "OBRAS - ESTRUTURA FINALIZADA": "2026-07-31",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2027-08-16",
+    "PROJETOS EXECUTIVOS": "2025-06-16",
+    "ALVARÁ DE CONSTRUÇÃO": "2025-02-13",
+    "ORÇAMENTO EXECUTIVO": "2025-06-16"
   },
   "Canasvieiras Spot": {
+    "DECOR": "2028-05-24",
     "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-05-24",
     "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2028-08-22",
     "LIGAÇÃO DEFINITIVA": "2028-03-25",
@@ -3133,119 +3252,98 @@ const SMARTSHEET_DATA = {
     "PROJETOS EXECUTIVOS": "2025-11-05",
     "ORÇAMENTO EXECUTIVO": "2025-08-26"
   },
-  "Caraguá Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-09-22",
-    "CONCLUSÃO DE OBRAS": "2029-05-04",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-08-02",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-10-31",
-    "LIGAÇÃO DEFINITIVA": "2029-06-03",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-06-03",
-    "INICIO DE OBRAS": "2026-11-04",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-05-04",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-02-04",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-07-04",
-    "ORÇAMENTO EXECUTIVO": "2027-10-22",
-    "PROJETOS EXECUTIVOS": "2027-08-10"
-  },
-  "Foz Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2027-10-26",
-    "CONCLUSÃO DE OBRAS": "2030-06-05",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2030-09-04",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-12-04",
-    "INICIO DE OBRAS": "2027-12-08",
-    "LIGAÇÃO DEFINITIVA": "2030-07-05",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-06-05",
-    "OBRAS - ESTRUTURA FINALIZADA": "2029-03-07",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-08-08",
-    "ORÇAMENTO EXECUTIVO": "2027-06-10",
-    "PROJETOS EXECUTIVOS": "2028-02-11",
-    "VISTORIA E ACEITE DAS CHAVES": "2030-07-05"
-  },
-  "Ilha do Campeche II Spot": {
-    "CONCLUSÃO DE OBRAS": "2028-09-02",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-12-01",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-03-01",
-    "INICIO DE OBRAS": "2026-09-02",
-    "LIGAÇÃO DEFINITIVA": "2028-10-02",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-09-02",
-    "OBRAS - ESTRUTURA FINALIZADA": "2027-09-02",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2027-12-02",
-    "ALVARÁ DE CONSTRUÇÃO": "2026-09-16",
-    "ORÇAMENTO EXECUTIVO": "2027-07-12",
-    "PROJETOS EXECUTIVOS": "2027-04-14",
-    "VISTORIA E ACEITE DAS CHAVES": "2028-10-02"
-  },
   "Ilha do Campeche Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-01-06",
-    "PROJETOS EXECUTIVOS": "2027-03-26",
-    "ORÇAMENTO EXECUTIVO": "2027-06-10",
+    "CONCLUSÃO DE OBRAS": "2030-04-26",
+    "DECOR": "2030-07-25",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2030-07-25",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-10-23",
     "INICIO DE OBRAS": "2027-10-26",
+    "LIGAÇÃO DEFINITIVA": "2030-05-26",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-04-26",
     "OBRAS - ESTRUTURA FINALIZADA": "2029-01-26",
     "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-06-26",
-    "CONCLUSÃO DE OBRAS": "2030-04-26",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-04-26",
-    "LIGAÇÃO DEFINITIVA": "2030-05-26",
-    "VISTORIA E ACEITE DAS CHAVES": "2030-05-26",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2030-07-25",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-10-23"
+    "ALVARÁ DE CONSTRUÇÃO": "2026-10-26",
+    "ORÇAMENTO EXECUTIVO": "2027-06-10",
+    "PROJETOS EXECUTIVOS": "2027-03-26",
+    "VISTORIA E ACEITE DAS CHAVES": "2030-05-26"
   },
-  "Imbassaí Spot": {
-    "CONCLUSÃO DE OBRAS": "2029-03-10",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-06-08",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-09-06",
-    "INICIO DE OBRAS": "2027-03-10",
-    "LIGAÇÃO DEFINITIVA": "2029-04-09",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-03-10",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-03-10",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-06-10",
-    "ALVARÁ DE CONSTRUÇÃO": "2027-01-26",
-    "ORÇAMENTO EXECUTIVO": "2027-07-07",
-    "PROJETOS EXECUTIVOS": "2027-04-09",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-04-09"
+  "Rosa Norte Spot": {
+    "DECOR": "2028-06-18",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-06-18",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2028-09-16",
+    "LIGAÇÃO DEFINITIVA": "2028-04-19",
+    "VISTORIA E ACEITE DAS CHAVES": "2028-04-19",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-03-27",
+    "ORÇAMENTO EXECUTIVO": "2026-10-07",
+    "CONCLUSÃO DE OBRAS": "2028-03-20",
+    "INICIO DE OBRAS": "2026-05-11",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-03-15",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-01-06",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-03-20",
+    "PROJETOS EXECUTIVOS": "2026-09-25"
   },
-  "Ingleses Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2023-08-01",
-    "CONCLUSÃO DE OBRAS": "2026-06-30",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-06-01",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2026-11-11",
-    "INICIO DE OBRAS": "2023-08-01",
-    "LIGAÇÃO DEFINITIVA": "2026-06-01",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-06-26",
-    "OBRAS - ESTRUTURA FINALIZADA": "2026-06-16",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2026-06-29",
-    "ORÇAMENTO EXECUTIVO": "2023-08-01",
-    "PROJETOS EXECUTIVOS": "2023-08-01",
-    "VISTORIA E ACEITE DAS CHAVES": "2026-07-13"
+  "Cachoeira Spot": {
+    "DECOR": "2029-01-24",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-01-24",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-04-24",
+    "LIGAÇÃO DEFINITIVA": "2028-11-25",
+    "VISTORIA E ACEITE DAS CHAVES": "2028-11-25",
+    "CONCLUSÃO DE OBRAS": "2028-10-26",
+    "INICIO DE OBRAS": "2025-11-19",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-10-26",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-06-20",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-09-14",
+    "PROJETOS EXECUTIVOS": "2026-08-19",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-02-06"
   },
-  "Itacaré Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-09-24",
-    "INICIO DE OBRAS": "2026-11-06",
-    "OBRAS - ESTRUTURA FINALIZADA": "2027-11-05",
-    "ORÇAMENTO EXECUTIVO": "2027-10-20",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-02-04",
-    "CONCLUSÃO DE OBRAS": "2028-11-06",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-11-06",
-    "LIGAÇÃO DEFINITIVA": "2028-12-06",
-    "VISTORIA E ACEITE DAS CHAVES": "2028-12-06",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-02-02",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-05-04",
-    "PROJETOS EXECUTIVOS": "2029-05-08"
+  "Sul da Ilha Spot": {
+    "CONCLUSÃO DE OBRAS": "2029-07-20",
+    "DECOR": "2029-10-18",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-10-18",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-01-16",
+    "INICIO DE OBRAS": "2027-01-20",
+    "LIGAÇÃO DEFINITIVA": "2029-08-19",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-07-20",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-04-20",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-09-20",
+    "ALVARÁ DE CONSTRUÇÃO": "2027-02-15",
+    "21. LAI/LAP EMITIDA (MARCO)": "2026-08-04",
+    "ORÇAMENTO EXECUTIVO": "2027-06-02",
+    "PROJETOS EXECUTIVOS": "2027-03-12",
+    "VISTORIA E ACEITE DAS CHAVES": "2029-08-19"
   },
-  "Japaratinga Spot": {
-    "INICIO DE OBRAS": "2024-07-02",
-    "PROJETOS EXECUTIVOS": "2024-07-02",
-    "ALVARÁ DE CONSTRUÇÃO": "2024-07-02",
-    "ORÇAMENTO EXECUTIVO": "2024-07-02",
-    "OBRAS - ESTRUTURA FINALIZADA": "2026-10-30",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2026-10-30",
-    "CONCLUSÃO DE OBRAS": "2026-12-31",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-12-31",
-    "LIGAÇÃO DEFINITIVA": "2027-01-30",
-    "VISTORIA E ACEITE DAS CHAVES": "2027-01-30",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2027-03-31",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-06-29"
+  "Morro das Pedras Spot": {
+    "CONCLUSÃO DE OBRAS": "2029-04-23",
+    "DECOR": "2029-07-22",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-07-22",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-10-20",
+    "INICIO DE OBRAS": "2026-10-23",
+    "LIGAÇÃO DEFINITIVA": "2029-05-23",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-04-23",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-01-23",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-06-23",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-12-10",
+    "ORÇAMENTO EXECUTIVO": "2027-04-30",
+    "PROJETOS EXECUTIVOS": "2027-02-03",
+    "VISTORIA E ACEITE DAS CHAVES": "2029-05-23"
+  },
+  "Batel Spot": {
+    "DECOR": "2028-08-02",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-08-02",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2028-10-31",
+    "LIGAÇÃO DEFINITIVA": "2028-06-03",
+    "VISTORIA E ACEITE DAS CHAVES": "2028-06-03",
+    "CONCLUSÃO DE OBRAS": "2028-05-04",
+    "INICIO DE OBRAS": "2025-11-17",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-04-26",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-05-04",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-05-04",
+    "PROJETOS EXECUTIVOS": "2026-07-10",
+    "ALVARÁ DE CONSTRUÇÃO": "2025-08-12",
+    "ORÇAMENTO EXECUTIVO": "2026-10-14"
   },
   "Jurerê Beach Spot": {
+    "DECOR": "2028-01-11",
     "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-01-11",
     "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2028-04-10",
     "LIGAÇÃO DEFINITIVA": "2027-11-12",
@@ -3259,9 +3357,101 @@ const SMARTSHEET_DATA = {
     "ALVARÁ DE CONSTRUÇÃO": "2026-01-06",
     "ORÇAMENTO EXECUTIVO": "2025-11-17"
   },
+  "Marista 144 Spot": {
+    "ALVARÁ DE CONSTRUÇÃO": "2026-03-24",
+    "CONCLUSÃO DE OBRAS": "2029-06-26",
+    "DECOR": "2029-09-24",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-09-24",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-12-21",
+    "LIGAÇÃO DEFINITIVA": "2029-07-24",
+    "VISTORIA E ACEITE DAS CHAVES": "2029-07-24",
+    "INICIO DE OBRAS": "2026-07-27",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-06-26",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-01-25",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-06-26",
+    "ORÇAMENTO EXECUTIVO": "2026-12-31",
+    "PROJETOS EXECUTIVOS": "2026-11-09"
+  },
+  "Ilha do Campeche II Spot": {
+    "CONCLUSÃO DE OBRAS": "2028-09-02",
+    "DECOR": "2028-12-01",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-12-01",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-03-01",
+    "INICIO DE OBRAS": "2026-09-02",
+    "LIGAÇÃO DEFINITIVA": "2028-10-02",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-09-02",
+    "OBRAS - ESTRUTURA FINALIZADA": "2027-09-02",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2027-12-02",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-09-02",
+    "ORÇAMENTO EXECUTIVO": "2027-07-12",
+    "PROJETOS EXECUTIVOS": "2027-04-14",
+    "VISTORIA E ACEITE DAS CHAVES": "2028-10-02"
+  },
+  "Santo Antônio Spot": {
+    "CONCLUSÃO DE OBRAS": "2030-07-04",
+    "DECOR": "2030-10-03",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2030-10-03",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2031-01-01",
+    "INICIO DE OBRAS": "2028-01-04",
+    "LIGAÇÃO DEFINITIVA": "2030-08-02",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-07-04",
+    "OBRAS - ESTRUTURA FINALIZADA": "2029-04-05",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-09-04",
+    "ALVARÁ DE CONSTRUÇÃO": "2027-11-22",
+    "ORÇAMENTO EXECUTIVO": "2027-03-03",
+    "PROJETOS EXECUTIVOS": "2027-03-16",
+    "VISTORIA E ACEITE DAS CHAVES": "2030-08-02"
+  },
+  "Meireles Spot": {
+    "CONCLUSÃO DE OBRAS": "2029-03-20",
+    "DECOR": "2029-06-15",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-06-15",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-09-13",
+    "LIGAÇÃO DEFINITIVA": "2029-04-18",
+    "VISTORIA E ACEITE DAS CHAVES": "2029-04-18",
+    "INICIO DE OBRAS": "2026-09-18",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-03-20",
+    "OBRAS - ESTRUTURA FINALIZADA": "2027-12-17",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-05-18",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-03-09",
+    "ORÇAMENTO EXECUTIVO": "2027-03-22",
+    "PROJETOS EXECUTIVOS": "2026-12-15"
+  },
+  "Cachoeira Beach Spot": {
+    "CONCLUSÃO DE OBRAS": "2029-01-23",
+    "DECOR": "2029-04-23",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-04-23",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-07-22",
+    "INICIO DE OBRAS": "2026-07-23",
+    "LIGAÇÃO DEFINITIVA": "2029-02-22",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-01-23",
+    "OBRAS - ESTRUTURA FINALIZADA": "2027-10-23",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-03-23",
+    "ORÇAMENTO EXECUTIVO": "2027-07-01",
+    "PROJETOS EXECUTIVOS": "2027-04-29",
+    "VISTORIA E ACEITE DAS CHAVES": "2029-02-22"
+  },
+  "Bonito Spot": {
+    "CONCLUSÃO DE OBRAS": "2030-03-20",
+    "DECOR": "2031-06-12",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2031-06-12",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2031-09-10",
+    "INICIO DE OBRAS": "2028-04-03",
+    "LIGAÇÃO DEFINITIVA": "2031-04-14",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-03-20",
+    "OBRAS - ESTRUTURA FINALIZADA": "2029-03-19",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-06-18",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-11-06",
+    "ORÇAMENTO EXECUTIVO": "2031-07-07",
+    "PROJETOS EXECUTIVOS": "2031-10-03",
+    "VISTORIA E ACEITE DAS CHAVES": "2031-04-14"
+  },
+  "Santinho Spot": {
+    "ALVARÁ DE CONSTRUÇÃO": "2027-03-22"
+  },
   "Jurerê Spot II": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-11-25",
     "CONCLUSÃO DE OBRAS": "2029-01-07",
+    "DECOR": "2029-04-07",
     "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-04-07",
     "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-07-06",
     "INICIO DE OBRAS": "2027-01-07",
@@ -3269,96 +3459,133 @@ const SMARTSHEET_DATA = {
     "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-01-07",
     "OBRAS - ESTRUTURA FINALIZADA": "2028-01-07",
     "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-04-07",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-11-25",
     "ORÇAMENTO EXECUTIVO": "2027-05-25",
     "PROJETOS EXECUTIVOS": "2027-04-05",
     "VISTORIA E ACEITE DAS CHAVES": "2029-02-06"
   },
-  "Jurerê Spot III": {
-    "ALVARÁ DE CONSTRUÇÃO": "2027-01-04",
-    "CONCLUSÃO DE OBRAS": "2029-02-16",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-05-17",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-08-15",
-    "INICIO DE OBRAS": "2027-02-16",
-    "LIGAÇÃO DEFINITIVA": "2029-03-18",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-02-16",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-02-16",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-05-16",
-    "ORÇAMENTO EXECUTIVO": "2027-11-09",
-    "PROJETOS EXECUTIVOS": "2027-08-12",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-03-18"
+  "Caraguá Spot": {
+    "ALVARÁ DE CONSTRUÇÃO": "2026-07-30",
+    "CONCLUSÃO DE OBRAS": "",
+    "DECOR": "",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "",
+    "LIGAÇÃO DEFINITIVA": "",
+    "VISTORIA E ACEITE DAS CHAVES": "",
+    "INICIO DE OBRAS": "2029-04-05",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-02-04",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "",
+    "ORÇAMENTO EXECUTIVO": "2027-06-08",
+    "PROJETOS EXECUTIVOS": "2027-04-02"
   },
-  "Lagoa Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2023-09-01",
-    "CONCLUSÃO DE OBRAS": "2025-12-10",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-06-30",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2026-11-09",
-    "INICIO DE OBRAS": "2023-11-01",
-    "LIGAÇÃO DEFINITIVA": "2025-09-15",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2025-12-10",
-    "OBRAS - ESTRUTURA FINALIZADA": "2024-11-01",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2025-01-10",
-    "ORÇAMENTO EXECUTIVO": "2023-11-01",
-    "PROJETOS EXECUTIVOS": "2023-11-01",
-    "VISTORIA E ACEITE DAS CHAVES": "2025-09-17"
+  "Bonito Spot II": {
+    "CONCLUSÃO DE OBRAS": "2029-02-08",
+    "DECOR": "2029-05-09",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-05-09",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-08-08",
+    "INICIO DE OBRAS": "2027-02-10",
+    "LIGAÇÃO DEFINITIVA": "2029-03-12",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-02-08",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-02-09",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-05-10",
+    "ORÇAMENTO EXECUTIVO": "2027-09-28",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-12-29",
+    "PROJETOS EXECUTIVOS": "2029-11-29",
+    "VISTORIA E ACEITE DAS CHAVES": "2029-03-12"
   },
-  "Marista 144 Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-03-24",
-    "INICIO DE OBRAS": "2026-07-29",
-    "ORÇAMENTO EXECUTIVO": "2026-05-29",
-    "PROJETOS EXECUTIVOS": "2027-04-09",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-01-27",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-06-28",
-    "CONCLUSÃO DE OBRAS": "2029-06-28",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-06-28",
-    "LIGAÇÃO DEFINITIVA": "2029-07-26",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-07-26",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-09-26",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-12-25"
+  "Itacaré Spot": {
+    "CONCLUSÃO DE OBRAS": "2028-11-06",
+    "DECOR": "2029-02-02",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-02-02",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-05-04",
+    "INICIO DE OBRAS": "2026-11-06",
+    "LIGAÇÃO DEFINITIVA": "2028-12-06",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-11-06",
+    "OBRAS - ESTRUTURA FINALIZADA": "2027-11-05",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-02-04",
+    "ORÇAMENTO EXECUTIVO": "2027-10-20",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-09-24",
+    "PROJETOS EXECUTIVOS": "2029-05-08",
+    "VISTORIA E ACEITE DAS CHAVES": "2028-12-06"
   },
-  "Meireles Spot": {
-    "CONCLUSÃO DE OBRAS": "2030-06-17",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2030-09-13",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-12-12",
-    "LIGAÇÃO DEFINITIVA": "2030-07-17",
-    "VISTORIA E ACEITE DAS CHAVES": "2030-07-17",
-    "INICIO DE OBRAS": "2027-12-15",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-06-17",
-    "OBRAS - ESTRUTURA FINALIZADA": "2029-03-15",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-08-15",
-    "ALVARÁ DE CONSTRUÇÃO": "2027-11-02",
-    "ORÇAMENTO EXECUTIVO": "2028-02-15",
-    "PROJETOS EXECUTIVOS": "2028-01-07"
+  "Barra Grande Spot": {
+    "DECOR": "2027-08-02",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2027-08-02",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-11-01",
+    "LIGAÇÃO DEFINITIVA": "2027-06-03",
+    "VISTORIA E ACEITE DAS CHAVES": "2027-06-03",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-10-09",
+    "ORÇAMENTO EXECUTIVO": "2030-09-17",
+    "CONCLUSÃO DE OBRAS": "2029-11-26",
+    "INICIO DE OBRAS": "2027-10-01",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-11-26",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-11-24",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-02-23",
+    "PROJETOS EXECUTIVOS": "2030-10-07"
   },
-  "Morro das Pedras Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-09-11",
-    "CONCLUSÃO DE OBRAS": "2029-04-23",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-07-22",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-10-20",
-    "INICIO DE OBRAS": "2026-10-23",
-    "LIGAÇÃO DEFINITIVA": "2029-05-23",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-04-23",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-01-23",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-06-23",
-    "ORÇAMENTO EXECUTIVO": "2027-04-30",
-    "PROJETOS EXECUTIVOS": "2027-02-03",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-05-23"
+  "Ponta das Canas Spot": {
+    "CONCLUSÃO DE OBRAS": "",
+    "DECOR": "2027-08-06",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2027-08-06",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-11-04",
+    "INICIO DE OBRAS": "2027-03-12",
+    "LIGAÇÃO DEFINITIVA": "2027-06-07",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "",
+    "OBRAS - ESTRUTURA FINALIZADA": "",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "",
+    "ORÇAMENTO EXECUTIVO": "2027-04-29",
+    "ALVARÁ DE CONSTRUÇÃO": "2027-01-28",
+    "PROJETOS EXECUTIVOS": "2028-02-15",
+    "VISTORIA E ACEITE DAS CHAVES": "2027-06-07"
   },
-  "Natal Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2027-08-24",
-    "CONCLUSÃO DE OBRAS": "2030-05-13",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-10-30",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-01-28",
-    "INICIO DE OBRAS": "2027-10-06",
-    "LIGAÇÃO DEFINITIVA": "2026-08-31",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-05-13",
-    "OBRAS - ESTRUTURA FINALIZADA": "2029-02-12",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-07-12",
-    "ORÇAMENTO EXECUTIVO": "2028-04-11",
-    "PROJETOS EXECUTIVOS": "2028-01-25",
-    "VISTORIA E ACEITE DAS CHAVES": "2026-08-31"
+  "Foz Spot": {
+    "CONCLUSÃO DE OBRAS": "2029-12-14",
+    "DECOR": "2030-03-15",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2030-03-15",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-06-14",
+    "INICIO DE OBRAS": "2027-06-18",
+    "LIGAÇÃO DEFINITIVA": "2030-01-15",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-12-14",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-09-15",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-02-16",
+    "ORÇAMENTO EXECUTIVO": "2027-09-14",
+    "ALVARÁ DE CONSTRUÇÃO": "2027-05-06",
+    "PROJETOS EXECUTIVOS": "2027-06-25",
+    "VISTORIA E ACEITE DAS CHAVES": "2030-01-15"
+  },
+  "Canas Beach Spot": {
+    "CONCLUSÃO DE OBRAS": "2029-03-08",
+    "DECOR": "2029-06-06",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-06-06",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-09-04",
+    "INICIO DE OBRAS": "2026-09-08",
+    "LIGAÇÃO DEFINITIVA": "2029-04-07",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-03-08",
+    "OBRAS - ESTRUTURA FINALIZADA": "2027-12-08",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-05-08",
+    "ALVARÁ DE CONSTRUÇÃO": "2026-11-27",
+    "PROJETOS EXECUTIVOS": "2028-01-03",
+    "VISTORIA E ACEITE DAS CHAVES": "2029-04-07"
+  },
+  "Ponta das Canas Spot II": {
+    "CONCLUSÃO DE OBRAS": "2030-04-16",
+    "DECOR": "2030-07-16",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2030-07-16",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-10-15",
+    "INICIO DE OBRAS": "2027-04-16",
+    "LIGAÇÃO DEFINITIVA": "2030-05-16",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-04-16",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-10-17",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-04-17",
+    "ORÇAMENTO EXECUTIVO": "2027-05-18",
+    "ALVARÁ DE CONSTRUÇÃO": "2027-03-04",
+    "PROJETOS EXECUTIVOS": "2028-03-14",
+    "VISTORIA E ACEITE DAS CHAVES": "2030-05-16"
   },
   "Novo Campeche Spot": {
     "CONCLUSÃO DE OBRAS": "2030-01-01",
+    "DECOR": "2030-04-01",
     "HABITE-SE E INICIO DAS OPERAÇÕES": "2030-04-01",
     "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-06-30",
     "INICIO DE OBRAS": "2028-01-01",
@@ -3371,8 +3598,39 @@ const SMARTSHEET_DATA = {
     "PROJETOS EXECUTIVOS": "2027-07-20",
     "VISTORIA E ACEITE DAS CHAVES": "2030-01-31"
   },
+  "Natal Spot": {
+    "CONCLUSÃO DE OBRAS": "2030-05-13",
+    "DECOR": "2026-10-30",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-10-30",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-01-28",
+    "INICIO DE OBRAS": "2027-10-06",
+    "LIGAÇÃO DEFINITIVA": "2026-08-31",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-05-13",
+    "OBRAS - ESTRUTURA FINALIZADA": "2029-02-12",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-07-12",
+    "ORÇAMENTO EXECUTIVO": "2028-04-11",
+    "ALVARÁ DE CONSTRUÇÃO": "2027-08-24",
+    "PROJETOS EXECUTIVOS": "2028-01-25",
+    "VISTORIA E ACEITE DAS CHAVES": "2026-08-31"
+  },
+  "Jurerê Spot III": {
+    "CONCLUSÃO DE OBRAS": "2029-02-16",
+    "DECOR": "2029-05-17",
+    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-05-17",
+    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-08-15",
+    "INICIO DE OBRAS": "2027-02-16",
+    "LIGAÇÃO DEFINITIVA": "2029-03-18",
+    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-02-16",
+    "OBRAS - ESTRUTURA FINALIZADA": "2028-02-16",
+    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-05-16",
+    "ALVARÁ DE CONSTRUÇÃO": "2027-01-04",
+    "ORÇAMENTO EXECUTIVO": "2027-11-09",
+    "PROJETOS EXECUTIVOS": "2027-08-12",
+    "VISTORIA E ACEITE DAS CHAVES": "2029-03-18"
+  },
   "Novo Campeche Spot II": {
     "CONCLUSÃO DE OBRAS": "2029-05-28",
+    "DECOR": "2029-08-26",
     "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-08-26",
     "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-11-24",
     "INICIO DE OBRAS": "2027-05-28",
@@ -3385,204 +3643,20 @@ const SMARTSHEET_DATA = {
     "PROJETOS EXECUTIVOS": "2027-08-02",
     "VISTORIA E ACEITE DAS CHAVES": "2029-06-27"
   },
-  "Ponta das Canas Spot": {
-    "CONCLUSÃO DE OBRAS": "",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2027-08-06",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-11-04",
-    "INICIO DE OBRAS": "2027-04-28",
-    "LIGAÇÃO DEFINITIVA": "2027-06-07",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "",
-    "OBRAS - ESTRUTURA FINALIZADA": "",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "",
-    "ORÇAMENTO EXECUTIVO": "2027-04-29",
-    "ALVARÁ DE CONSTRUÇÃO": "2027-03-16",
-    "PROJETOS EXECUTIVOS": "2027-09-01",
-    "VISTORIA E ACEITE DAS CHAVES": "2027-06-07"
-  },
-  "Ponta das Canas Spot II": {
-    "CONCLUSÃO DE OBRAS": "2030-04-03",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2030-07-03",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-10-02",
-    "INICIO DE OBRAS": "2027-04-05",
-    "LIGAÇÃO DEFINITIVA": "2030-05-03",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2030-04-03",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-10-04",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2029-04-04",
-    "ORÇAMENTO EXECUTIVO": "2027-05-18",
-    "ALVARÁ DE CONSTRUÇÃO": "2027-02-19",
-    "PROJETOS EXECUTIVOS": "2028-03-14",
-    "VISTORIA E ACEITE DAS CHAVES": "2030-05-03"
-  },
-  "Rosa Norte Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-03-27",
-    "INICIO DE OBRAS": "2026-05-11",
-    "PROJETOS EXECUTIVOS": "2026-09-25",
-    "ORÇAMENTO EXECUTIVO": "2026-10-07",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-01-06",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-03-15",
-    "CONCLUSÃO DE OBRAS": "2028-03-20",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-03-20",
-    "LIGAÇÃO DEFINITIVA": "2028-04-19",
-    "VISTORIA E ACEITE DAS CHAVES": "2028-04-19",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-06-18",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2028-09-16"
-  },
-  "Rosa Spot": {
-    "CONCLUSÃO DE OBRAS": "2025-12-19",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-01-21",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2026-10-20",
-    "LIGAÇÃO DEFINITIVA": "2025-11-17",
-    "VISTORIA E ACEITE DAS CHAVES": "2025-12-03",
-    "INICIO DE OBRAS": "2022-05-01",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2025-12-18",
-    "OBRAS - ESTRUTURA FINALIZADA": "2023-04-28",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2025-01-17",
-    "PROJETOS EXECUTIVOS": "2022-05-01",
-    "ALVARÁ DE CONSTRUÇÃO": "2022-05-01",
-    "ORÇAMENTO EXECUTIVO": "2022-05-01"
-  },
-  "Rosa Sul Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2023-08-01",
-    "ORÇAMENTO EXECUTIVO": "2023-11-01",
-    "PROJETOS EXECUTIVOS": "2023-11-01",
-    "INICIO DE OBRAS": "2023-11-01",
-    "OBRAS - ESTRUTURA FINALIZADA": "2026-07-03",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2026-09-01",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-12-02",
-    "LIGAÇÃO DEFINITIVA": "2026-09-02",
-    "CONCLUSÃO DE OBRAS": "2026-09-18",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-09-18",
-    "VISTORIA E ACEITE DAS CHAVES": "2026-10-30",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-04-09"
-  },
-  "Salvador Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2026-07-06",
-    "CONCLUSÃO DE OBRAS": "2028-08-18",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-11-16",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-02-14",
-    "INICIO DE OBRAS": "2026-08-18",
-    "LIGAÇÃO DEFINITIVA": "2028-09-17",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2028-08-18",
-    "OBRAS - ESTRUTURA FINALIZADA": "2027-08-18",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2027-11-18",
-    "ORÇAMENTO EXECUTIVO": "2027-04-01",
-    "PROJETOS EXECUTIVOS": "2027-01-14",
-    "VISTORIA E ACEITE DAS CHAVES": "2028-09-17"
-  },
-  "Santinho Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2027-03-22"
-  },
-  "Santo Antônio Spot": {
-    "CONCLUSÃO DE OBRAS": "2029-04-21",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-07-20",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2029-10-18",
-    "INICIO DE OBRAS": "2026-10-21",
-    "LIGAÇÃO DEFINITIVA": "2029-05-21",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-04-21",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-01-21",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-06-21",
-    "ALVARÁ DE CONSTRUÇÃO": "2026-11-02",
-    "ORÇAMENTO EXECUTIVO": "2027-06-30",
-    "PROJETOS EXECUTIVOS": "2027-04-09",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-05-21"
-  },
-  "Sul da Ilha Spot": {
-    "CONCLUSÃO DE OBRAS": "2029-07-20",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2029-10-18",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2030-01-16",
-    "INICIO DE OBRAS": "2027-01-20",
-    "LIGAÇÃO DEFINITIVA": "2029-08-19",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2029-07-20",
-    "OBRAS - ESTRUTURA FINALIZADA": "2028-04-20",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2028-09-20",
-    "ALVARÁ DE CONSTRUÇÃO": "2026-12-15",
-    "ORÇAMENTO EXECUTIVO": "2027-06-02",
-    "PROJETOS EXECUTIVOS": "2027-03-12",
-    "VISTORIA E ACEITE DAS CHAVES": "2029-08-19"
-  },
-  "Trancoso Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2024-08-01",
-    "CONCLUSÃO DE OBRAS": "2026-08-30",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-12-02",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2027-04-09",
-    "INICIO DE OBRAS": "2024-09-13",
-    "LIGAÇÃO DEFINITIVA": "2026-09-02",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-08-30",
-    "OBRAS - ESTRUTURA FINALIZADA": "2025-09-13",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2025-09-30",
-    "ORÇAMENTO EXECUTIVO": "2024-09-01",
-    "PROJETOS EXECUTIVOS": "2024-09-01",
-    "VISTORIA E ACEITE DAS CHAVES": "2026-09-29"
-  },
-  "Urubici Spot": {
-    "ALVARÁ DE CONSTRUÇÃO": "2023-07-01",
-    "PROJETOS EXECUTIVOS": "2023-08-01",
-    "ORÇAMENTO EXECUTIVO": "2023-08-01",
-    "INICIO DE OBRAS": "2023-08-01",
-    "OBRAS - ESTRUTURA FINALIZADA": "2025-09-26",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2025-12-19",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-01-21",
-    "CONCLUSÃO DE OBRAS": "2026-01-26",
-    "LIGAÇÃO DEFINITIVA": "2026-04-20",
-    "VISTORIA E ACEITE DAS CHAVES": "2026-04-16",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2026-06-22",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2026-08-24"
-  },
-  "Urubici Spot II": {
-    "ALVARÁ DE CONSTRUÇÃO": "2025-02-13",
-    "CONCLUSÃO DE OBRAS": "2027-11-17",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "2028-02-15",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "2028-05-15",
-    "INICIO DE OBRAS": "2025-06-16",
-    "LIGAÇÃO DEFINITIVA": "2027-12-17",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2027-11-17",
-    "OBRAS - ESTRUTURA FINALIZADA": "2026-07-31",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2027-08-16",
-    "ORÇAMENTO EXECUTIVO": "2025-06-16",
-    "PROJETOS EXECUTIVOS": "2025-06-16",
-    "VISTORIA E ACEITE DAS CHAVES": "2027-12-17"
-  },
-  "Vistas de Anitá I": {
-    "ALVARÁ DE CONSTRUÇÃO": "",
-    "CONCLUSÃO DE OBRAS": "",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "",
-    "INICIO DE OBRAS": "",
-    "LIGAÇÃO DEFINITIVA": "",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "",
-    "OBRAS - ESTRUTURA FINALIZADA": "",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "",
-    "ORÇAMENTO EXECUTIVO": "",
-    "PROJETOS EXECUTIVOS": "",
-    "VISTORIA E ACEITE DAS CHAVES": ""
-  },
-  "Vistas de Anitá II": {
-    "ALVARÁ DE CONSTRUÇÃO": "",
-    "CONCLUSÃO DE OBRAS": "2028-05-01",
-    "HABITE-SE E INICIO DAS OPERAÇÕES": "",
-    "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "",
-    "INICIO DE OBRAS": "2023-05-01",
-    "LIGAÇÃO DEFINITIVA": "",
-    "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-04-22",
-    "OBRAS - ESTRUTURA FINALIZADA": "2026-04-06",
-    "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2026-05-22",
-    "ORÇAMENTO EXECUTIVO": "2023-05-01",
-    "PROJETOS EXECUTIVOS": "2023-05-01",
-    "VISTORIA E ACEITE DAS CHAVES": ""
-  },
   "Vistas de Anitá II e III": {
-    "ALVARÁ DE CONSTRUÇÃO": "",
-    "CONCLUSÃO DE OBRAS": "2026-11-09",
+    "DECOR": "",
     "HABITE-SE E INICIO DAS OPERAÇÕES": "",
     "INDIVIDUALIZAÇÃO DAS MATRÍCULAS": "",
-    "INICIO DE OBRAS": "",
     "LIGAÇÃO DEFINITIVA": "",
+    "VISTORIA E ACEITE DAS CHAVES": "",
+    "CONCLUSÃO DE OBRAS": "2026-11-09",
+    "INICIO DE OBRAS": "",
     "OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO": "2026-10-26",
     "OBRAS - ESTRUTURA FINALIZADA": "2026-09-15",
     "OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS": "2026-10-27",
-    "ORÇAMENTO EXECUTIVO": "",
     "PROJETOS EXECUTIVOS": "2026-09-24",
-    "VISTORIA E ACEITE DAS CHAVES": ""
+    "ALVARÁ DE CONSTRUÇÃO": "",
+    "ORÇAMENTO EXECUTIVO": ""
   }
 };
 
@@ -3591,47 +3665,47 @@ const SMARTSHEET_DATA = {
 // =============================================
 
 const CRON_DATA={
-'Barra Grande Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-07-01',dp:'2025-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-09-01',dp:'2027-09-25'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-10-01',dp:'2027-10-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-08-02',dp:'2027-08-02'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-09-01',dp:'2027-09-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-10-01',dp:'2028-10-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-01-01',dp:'2029-01-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-01-01',dp:'2029-02-07'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'',dl:'2030-04-01',dp:'2030-04-01'}],
-'Barra Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Planejado',dl:'2022-06-01',dp:''},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2026-06-01',dp:'2026-06-23'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2026-07-01',dp:'2026-08-05'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'2023-07-01',dp:'2027-01-11'},{n:'ORÇAMENTO EXECUTIVO',st:'',dl:'2023-08-01',dp:'2027-04-09'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2024-09-01',dp:'2027-09-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2024-12-01',dp:'2027-12-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2025-09-01',dp:'2028-09-01'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-07-01',dp:'2028-07-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2025-10-01',dp:'2028-08-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2025-10-01',dp:'2028-08-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-10-01',dp:'2028-11-03'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2026-03-01',dp:'2029-01-01'}],
-'Batel Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-08-01',dp:'2024-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-08-01',dp:'2025-08-12'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-11-01',dp:'2025-11-17'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-09-01',dp:'2026-07-10'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-10-01',dp:'2025-11-17'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2027-02-01',dp:'2028-05-04'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-07-01',dp:'2028-05-04'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-05-01',dp:'2028-05-04'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2028-05-01',dp:'2028-05-04'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2028-06-01',dp:'2028-06-04'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2028-06-01',dp:'2028-06-04'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2028-08-01',dp:'2028-08-02'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2028-11-01',dp:'2028-11-04'}],
-'Bonito Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-03-01',dp:'2025-03-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-06-01',dp:'2026-11-06'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-06-01',dp:'2027-06-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-04-02',dp:'2027-04-02'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-05-02',dp:'2027-05-02'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-06-01',dp:'2028-06-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-09-01',dp:'2028-09-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-06-01',dp:'2029-06-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-06-01',dp:'2029-06-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-09-01',dp:'2029-03-21'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2029-11-28',dp:'2029-11-28'}],
-'Bonito Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-06-01',dp:'2025-06-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-08-01',dp:'2027-08-12'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-09-01',dp:'2027-09-12'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-07-01',dp:'2029-02-16'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-08-01',dp:'2027-01-28'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-09-01',dp:'2028-09-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-12-01',dp:'2028-12-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-09-01',dp:'2029-09-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-09-01',dp:'2029-09-12'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-10-01',dp:'2029-10-12'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-10-01',dp:'2029-10-12'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-12-01',dp:'2029-12-23'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-03-01',dp:'2030-03-12'}],
-'Cachoeira Beach Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Planejado',dl:'2025-01-10',dp:''},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2026-06-01',dp:'2026-06-08'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-04-01',dp:'2026-07-23'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-03-01',dp:'2027-03-10'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-04-01',dp:'2027-04-14'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-08-01',dp:'2028-08-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-01-01',dp:'2029-01-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'',dl:'2029-10-01',dp:'2029-01-23'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-10-01',dp:'2029-01-23'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2029-11-01',dp:'2029-02-23'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2029-11-01',dp:'2029-02-23'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2030-01-01',dp:'2029-04-23'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2030-04-01',dp:'2029-07-23'}],
-'Cachoeira Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-07-01',dp:'2024-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2026-04-01',dp:'2026-02-06'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2026-04-01',dp:'2026-04-01'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-08-01',dp:'2026-07-29'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-09-01',dp:'2026-10-20'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2027-01-01',dp:'2028-06-20'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-06-01',dp:'2028-09-14'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-04-01',dp:'2028-10-26'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-08-01',dp:'2028-10-26'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-05-01',dp:'2028-11-25'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-05-01',dp:'2028-11-25'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-11-01',dp:'2029-01-24'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-09-28',dp:'2029-04-24'}],
-'Campeche Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-11-01',dp:'2023-11-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-04-01',dp:'2025-04-09'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-04-01',dp:'2025-04-09'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'2024-12-03',dp:'2025-04-09'},{n:'ORÇAMENTO EXECUTIVO',st:'',dl:'2025-01-02',dp:'2025-04-09'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-03-01',dp:'2026-05-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2026-06-01',dp:'2026-08-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'',dl:'2027-02-01',dp:'2027-02-25'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2027-05-01',dp:'2027-03-16'},{n:'LIGAÇÃO DEFINITIVA',st:'',dl:'2027-03-03',dp:'2027-04-15'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'',dl:'2027-03-03',dp:'2027-04-15'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2027-08-01',dp:'2027-07-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'',dl:'2027-07-31',dp:'2027-09-12'}],
-'Canas Beach Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-08-01',dp:'2025-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-10-01',dp:'2026-07-27'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-11-01',dp:'2027-11-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-09-02',dp:'2027-09-02'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-10-02',dp:'2027-10-02'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-02-01',dp:'2029-02-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-05-31',dp:'2030-05-31'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-05-31',dp:'2030-05-31'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-08-01',dp:'2029-06-06'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-10-28',dp:'2030-10-28'}],
-'Canasvieiras Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-03-01',dp:'2024-03-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-08-01',dp:'2025-08-11'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-08-01',dp:'2025-08-26'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2025-05-01',dp:'2025-11-05'},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2025-06-01',dp:'2025-08-26'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-10-01',dp:'2027-08-25'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-03-01',dp:'2028-02-09'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'',dl:'2027-12-01',dp:'2028-02-09'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-02-01',dp:'2028-02-24'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-01-01',dp:'2028-03-26'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-01-01',dp:'2028-03-26'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-05-01',dp:'2028-05-26'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-06-01',dp:'2028-08-26'}],
-'Caraguá Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-05-01',dp:'2025-05-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-07-01',dp:'2026-09-22'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-08-01',dp:'2026-11-04'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-06-02',dp:'2027-06-02'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-07-02',dp:'2027-07-02'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-12-01',dp:'2028-12-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-05-01',dp:'2029-05-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-03-01',dp:'2030-03-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-03-01',dp:'2030-03-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-03-31',dp:'2030-03-31'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-03-31',dp:'2030-03-31'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-06-01',dp:'2029-08-02'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-08-28',dp:'2030-08-28'}],
-'Foz Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-08-01',dp:'2025-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-10-01',dp:'2026-12-03'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-11-01',dp:'2027-11-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-09-02',dp:'2027-09-02'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-10-01',dp:'2027-10-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-02-01',dp:'2029-02-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-06-01',dp:'2030-06-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-06-01',dp:'2030-06-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-08-01',dp:'2029-10-13'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-11-01',dp:'2030-11-01'}],
-'Ilha do Campeche II Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-12-01',dp:'2024-12-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-03-01',dp:'2026-07-21'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-03-01',dp:'2026-09-02'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2026-12-31',dp:'2026-12-16'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-01-30',dp:'2027-03-04'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-03-01',dp:'2028-03-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-06-01',dp:'2028-06-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-03-01',dp:'2029-03-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-03-01',dp:'2029-03-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-04-01',dp:'2029-04-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-04-01',dp:'2029-04-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-06-01',dp:'2028-12-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2029-09-01',dp:'2029-09-01'}],
-'Ilha do Campeche Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'',dl:'2024-04-10',dp:''},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2026-07-01',dp:'2026-08-28'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2026-07-01',dp:'2026-09-28'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-05-01',dp:'2026-10-22'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-06-01',dp:'2027-01-08'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-10-01',dp:'2027-12-28'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-03-01',dp:'2028-05-28'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-01-01',dp:'2029-03-28'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2029-01-01',dp:'2030-04-26'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-02-01',dp:'2029-04-28'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-02-01',dp:'2029-04-28'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2029-04-01',dp:'2030-07-25'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-07-01',dp:'2029-09-28'}],
-'Imbassaí Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-06-01',dp:'2023-06-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2026-11-01',dp:'2027-01-26'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2026-11-01',dp:'2027-02-26'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2024-12-01',dp:'2027-06-18'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-01-01',dp:'2027-04-30'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-02-01',dp:'2028-02-26'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2026-05-01',dp:'2028-06-26'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-02-01',dp:'2029-02-26'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-11-01',dp:'2029-03-10'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2027-03-01',dp:'2029-03-26'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2027-03-01',dp:'2029-03-26'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2029-02-01',dp:'2029-05-26'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2027-08-01',dp:'2029-08-26'}],
-'Ingleses Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'',dl:'2023-06-10',dp:''},{n:'ALVARÁ DE CONSTRUÇÃO',st:'',dl:'2023-10-10',dp:'2023-08-01'},{n:'INICIO DE OBRAS',st:'',dl:'2023-10-10',dp:'2023-08-01'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'2023-08-02',dp:'2023-08-01'},{n:'ORÇAMENTO EXECUTIVO',st:'',dl:'2023-09-01',dp:'2023-08-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2024-11-01',dp:'2024-10-11'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Realizado',dl:'2025-02-01',dp:'2026-06-29'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'',dl:'2025-11-01',dp:'2026-07-31'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2026-07-01',dp:'2026-07-31'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2025-12-01',dp:'2026-08-31'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2025-12-01',dp:'2026-08-31'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'',dl:'2026-02-10',dp:'2026-06-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2026-05-01',dp:'2027-01-31'}],
-'Itacaré Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-07-01',dp:'2025-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-09-01',dp:'2026-09-24'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-10-01',dp:'2027-10-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-08-01',dp:'2027-08-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-09-01',dp:'2027-09-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-10-01',dp:'2028-10-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-01-01',dp:'2029-01-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-01-01',dp:'2029-02-04'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'}],
-'Japaratinga Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-03-01',dp:'2023-03-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2024-01-01',dp:'2024-07-02'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2024-07-01',dp:'2024-07-01'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2024-05-01',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2024-06-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2025-07-01',dp:'2026-10-30'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2025-10-01',dp:'2026-10-30'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'',dl:'2026-06-01',dp:'2026-12-31'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2026-06-01',dp:'2026-12-31'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2026-07-01',dp:'2027-01-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2026-07-01',dp:'2027-01-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2027-03-01',dp:'2027-03-31'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2026-12-01',dp:'2026-06-30'}],
-'Jurerê Beach Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-09-01',dp:'2024-09-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-12-01',dp:'2025-12-01'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2026-01-01',dp:'2026-01-01'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2025-09-01',dp:'2025-11-17'},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2025-10-01',dp:'2025-11-17'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-11-01',dp:'2027-04-27'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-02-01',dp:'2027-07-27'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-11-01',dp:'2027-09-29'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2027-12-01',dp:'2027-10-13'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2027-12-01',dp:'2027-11-12'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2027-12-01',dp:'2027-11-12'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-03-01',dp:'2028-01-11'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-05-01',dp:'2028-04-10'}],
-'Jurerê Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-04-01',dp:'2025-04-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-06-01',dp:'2026-11-25'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-06-01',dp:'2027-01-07'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'2027-04-11',dp:'2027-01-08'},{n:'ORÇAMENTO EXECUTIVO',st:'',dl:'2027-05-11',dp:'2027-01-12'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-07-01',dp:'2028-07-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-10-01',dp:'2028-10-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-08-01',dp:'2029-08-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-08-01',dp:'2029-08-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-10-01',dp:'2029-04-07'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-01-01',dp:'2030-01-01'}],
-'Jurerê Spot III':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-12-01',dp:'2025-12-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2028-02-01',dp:'2027-01-04'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2028-03-01',dp:'2028-03-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2028-01-01',dp:'2028-01-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2028-02-01',dp:'2028-02-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-03-01',dp:'2029-03-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-06-01',dp:'2029-06-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-03-01',dp:'2030-03-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-03-01',dp:'2030-03-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-06-01',dp:'2029-05-17'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-09-01',dp:'2030-09-01'}],
-'Lagoa Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'',dp:''},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'',dp:''},{n:'INICIO DE OBRAS',st:'Realizado',dl:'',dp:''},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'',dp:''},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Realizado',dl:'',dp:''},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Realizado',dl:'',dp:''},{n:'CONCLUSÃO DE OBRAS',st:'Realizado',dl:'',dp:''},{n:'LIGAÇÃO DEFINITIVA',st:'Realizado',dl:'',dp:''},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Realizado',dl:'',dp:''},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Realizado',dl:'',dp:''},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'',dp:'2026-08-31'}],
-'Marista 144 Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-10-01',dp:'2024-10-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2026-05-01',dp:'2026-05-01'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2026-07-01',dp:'2026-06-18'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'2025-11-11',dp:'2026-10-22'},{n:'ORÇAMENTO EXECUTIVO',st:'',dl:'2025-12-11',dp:'2026-10-14'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'',dl:'2027-04-11',dp:'2027-12-18'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'',dl:'2027-09-10',dp:'2028-05-18'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'',dl:'2028-07-10',dp:'2029-05-18'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2029-01-01',dp:'2029-05-18'},{n:'LIGAÇÃO DEFINITIVA',st:'',dl:'2028-08-09',dp:'2029-06-17'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'',dl:'2028-08-09',dp:'2029-06-17'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2029-04-01',dp:'2029-08-16'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'',dl:'2029-01-06',dp:'2029-11-14'}],
-'Meireles Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-11-01',dp:'2024-11-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2026-03-01',dp:'2026-03-09'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-02-01',dp:'2027-02-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2026-12-01',dp:'2026-12-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-01-01',dp:'2027-01-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-05-01',dp:'2028-05-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-10-01',dp:'2028-10-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-08-01',dp:'2029-08-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-08-01',dp:'2029-08-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-09-01',dp:'2029-09-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-09-01',dp:'2029-09-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-11-01',dp:'2029-05-28'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-02-01',dp:'2030-02-01'}],
-'Morro das Pedras Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-08-10',dp:''},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2026-08-01',dp:'2026-09-10'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2026-08-01',dp:'2026-10-23'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'2025-09-11',dp:'2026-09-28'},{n:'ORÇAMENTO EXECUTIVO',st:'',dl:'2025-10-11',dp:'2026-12-21'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2027-01-01',dp:'2028-01-10'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-06-01',dp:'2028-06-10'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-04-01',dp:'2029-04-10'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-08-01',dp:'2029-04-10'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-05-01',dp:'2029-05-10'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-05-01',dp:'2029-05-10'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-11-01',dp:'2029-07-22'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-09-01',dp:'2029-10-10'}],
-'Natal Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-10-30',dp:'2025-10-30'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-01-10',dp:'2027-01-10'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2028-02-01',dp:'2028-02-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-12-03',dp:'2028-12-03'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2028-01-02',dp:'2028-01-02'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-05-01',dp:'2029-05-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-08-01',dp:'2030-08-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-08-01',dp:'2030-08-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-08-31',dp:'2030-08-31'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-09-30',dp:'2030-09-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-11-30',dp:'2030-11-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2031-01-28',dp:'2031-02-28'}],
-'Novo Campeche Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-10-01',dp:'2025-10-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-12-01',dp:'2027-12-01'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2028-01-01',dp:'2028-01-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-11-02',dp:'2027-11-02'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-12-02',dp:'2027-12-02'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-01-01',dp:'2029-01-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-04-01',dp:'2029-04-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-01-01',dp:'2030-01-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-01-01',dp:'2030-01-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-01-31',dp:'2030-01-31'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-01-31',dp:'2030-01-31'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-06-30',dp:'2030-06-30'}],
-'Novo Campeche Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-10-11',dp:'2025-10-11'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2028-03-06',dp:'2028-03-06'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2028-04-30',dp:'2028-04-30'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2028-02-28',dp:'2028-02-28'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2028-03-30',dp:'2028-03-30'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-04-01',dp:'2029-04-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-05-30',dp:'2030-05-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-07-30',dp:'2030-07-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-10-10',dp:'2030-10-10'}],
-'Ponta das Canas Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-07-01',dp:'2025-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-09-01',dp:'2027-09-01'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-10-01',dp:'2027-10-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-08-01',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-09-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-01-01',dp:'2028-02-11'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-06-01',dp:'2028-07-11'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-04-01',dp:'2029-05-11'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-07-01',dp:'2030-07-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-10-01',dp:'2030-10-01'}],
-'Ponta das Canas Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-09-01',dp:'2025-09-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-11-01',dp:'2027-11-01'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-12-01',dp:'2027-12-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-10-01',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-11-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-06-01',dp:'2029-06-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-12-01',dp:'2029-12-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-12-01',dp:'2030-12-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-12-01',dp:'2030-12-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2031-01-01',dp:'2031-01-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2031-01-01',dp:'2031-01-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2031-03-01',dp:'2031-03-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2031-06-01',dp:'2031-06-01'}],
-'Rosa Norte Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-06-01',dp:'2024-06-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2026-04-01',dp:'2026-04-01'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2026-04-01',dp:'2026-04-30'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-07-01',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-08-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-09-01',dp:'2028-01-06'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2026-12-01',dp:'2028-03-20'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-09-01',dp:'2028-04-30'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-04-01',dp:'2028-04-30'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2027-10-01',dp:'2028-05-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2027-10-01',dp:'2028-05-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-07-01',dp:'2028-07-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-02-10',dp:'2028-10-30'}],
-'Rosa Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'',dp:''},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'',dp:''},{n:'INICIO DE OBRAS',st:'Realizado',dl:'',dp:''},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'',dp:''},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Realizado',dl:'',dp:''},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Realizado',dl:'',dp:''},{n:'CONCLUSÃO DE OBRAS',st:'Realizado',dl:'',dp:''},{n:'LIGAÇÃO DEFINITIVA',st:'Realizado',dl:'',dp:''},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Realizado',dl:'',dp:''},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Realizado',dl:'',dp:''},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Realizado',dl:'',dp:''}],
-'Rosa Sul Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2022-07-01',dp:'2022-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2023-08-01',dp:'2023-08-01'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2023-11-01',dp:'2023-11-01'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'2023-09-02',dp:'2023-11-01'},{n:'ORÇAMENTO EXECUTIVO',st:'',dl:'2023-10-02',dp:'2023-11-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2024-10-01',dp:'2026-07-03'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2025-01-01',dp:'2026-09-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'',dl:'2025-09-01',dp:'2026-09-18'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2026-09-01',dp:'2026-09-18'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2025-10-01',dp:'2026-10-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2025-10-01',dp:'2026-10-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2026-12-01',dp:'2026-12-02'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2026-03-01',dp:'2027-03-01'}],
-'Salvador Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-08-01',dp:'2023-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2026-06-01',dp:'2026-07-31'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2026-06-01',dp:'2026-08-31'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2024-09-01',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2024-10-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'',dl:'2025-11-01',dp:'2027-08-30'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2026-02-01',dp:'2027-11-30'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2026-11-01',dp:'2028-08-30'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-06-01',dp:'2028-08-30'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2026-12-01',dp:'2028-09-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2026-12-01',dp:'2028-09-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-09-01',dp:'2028-11-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2027-04-10',dp:'2029-02-28'}],
-'Santinho Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-04-01',dp:'2025-04-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Planejado',dl:'2027-06-01',dp:'2027-06-01'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-06-01',dp:'2027-06-30'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-05-01',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-06-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'',dp:''},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'',dp:''},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'',dp:''},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-01-01',dp:'2030-01-31'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-02-28',dp:'2030-02-28'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-02-28',dp:'2030-02-28'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-04-01',dp:'2030-04-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-07-30',dp:'2030-07-30'}],
-'Santo Antônio Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-11-01',dp:'2024-11-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2026-08-01',dp:'2026-08-01'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2026-08-31',dp:'2026-08-31'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2026-12-01',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2026-01-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'',dp:''},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-10-01',dp:''},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'',dp:''},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2029-01-31',dp:'2029-01-31'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-09-01',dp:'2029-02-28'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-09-01',dp:'2029-02-28'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2029-04-01',dp:'2029-04-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2029-02-01',dp:'2029-07-31'}],
-'Sul da Ilha Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-07-01',dp:'2024-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2026-07-01',dp:'2026-07-01'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2026-07-01',dp:'2026-07-31'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-08-01',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-09-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'',dp:''},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'',dp:''},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'',dp:''},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2029-01-01',dp:'2029-01-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-05-01',dp:'2029-02-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-05-01',dp:'2029-02-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2029-04-01',dp:'2029-04-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-10-01',dp:'2029-07-01'}],
-'Trancoso Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-08-01',dp:'2023-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2024-11-01',dp:'2024-08-01'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2024-11-01',dp:'2024-09-13'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2024-09-01',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2024-10-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2025-11-01',dp:'2025-09-13'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Realizado',dl:'2026-02-01',dp:'2025-09-30'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2026-11-01',dp:'2026-08-30'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2026-11-01',dp:'2026-08-30'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2026-12-01',dp:'2026-09-02'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2026-12-01',dp:'2026-09-29'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2027-02-01',dp:'2026-12-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2027-05-01',dp:'2027-02-26'}],
-'Urubici Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2022-12-01',dp:'2022-12-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2023-12-01',dp:'2023-07-01'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2023-12-01',dp:'2023-08-01'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2023-10-02',dp:'2023-08-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2023-11-01',dp:'2023-08-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2025-09-01',dp:'2025-09-26'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Realizado',dl:'2025-11-19',dp:'2025-12-19'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Realizado',dl:'2025-12-01',dp:'2026-01-26'},{n:'CONCLUSÃO DE OBRAS',st:'Realizado',dl:'2025-12-01',dp:'2026-01-26'},{n:'LIGAÇÃO DEFINITIVA',st:'Realizado',dl:'2025-12-31',dp:'2026-04-09'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Realizado',dl:'2025-12-31',dp:'2026-04-16'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Realizado',dl:'2026-06-01',dp:'2026-06-22'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2026-06-01',dp:'2026-08-17'}],
-'Urubici Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-02-01',dp:'2024-02-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-02-28',dp:'2025-02-13'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-06-01',dp:'2025-06-01'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'2025-03-03',dp:'2025-06-16'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-04-01',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'',dl:'2026-08-01',dp:'2026-07-31'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'',dl:'2027-01-01',dp:'2027-08-16'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-11-01',dp:'2027-11-17'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2027-12-01',dp:'2027-11-17'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2027-12-01',dp:'2027-12-17'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2027-12-01',dp:'2027-12-17'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-03-01',dp:'2028-02-15'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'',dl:'2028-05-01',dp:'2028-05-15'}],
-'Vistas de Anitá II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-01-01',dp:'2023-01-01'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2023-07-01',dp:'2023-05-01'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'',dl:'',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'',dl:'',dp:''},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'',dl:'',dp:''},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'',dl:'',dp:''},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2027-02-01',dp:'2027-02-01'}],
+'Barra Grande Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-07-01',dp:'2025-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-09-01',dp:'2026-09-25'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-10-01',dp:'2027-10-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-08-01',dp:'2027-08-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-09-01',dp:'2027-09-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-10-01',dp:'2028-10-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-01-01',dp:'2029-01-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-01-01',dp:'2030-01-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'}],
+'Barra Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2022-06-01',dp:'2025-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2023-09-01',dp:'2026-09-25'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2023-09-01',dp:'2027-10-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2023-07-01',dp:'2027-08-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2023-08-01',dp:'2027-09-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2024-09-01',dp:'2028-10-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2024-12-01',dp:'2029-01-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2025-09-01',dp:'2029-10-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2025-09-01',dp:'2029-10-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2025-10-01',dp:'2029-11-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2025-10-01',dp:'2029-11-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2025-12-01',dp:'2030-01-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2026-03-01',dp:'2030-04-01'}],
+'Batel Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-08-01',dp:'2024-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-08-01',dp:'2025-08-12'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-11-01',dp:'2025-11-17'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-09-01',dp:'2026-08-21'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-10-01',dp:'2026-10-21'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2027-02-01',dp:'2027-04-05'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-07-01',dp:'2028-02-18'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-05-01',dp:'2028-05-04'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-05-01',dp:'2028-05-04'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-06-01',dp:'2028-06-04'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-06-01',dp:'2028-06-04'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-08-01',dp:'2028-08-04'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-11-01',dp:'2028-11-04'}],
+'Bonito Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-03-01',dp:'2025-03-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-06-01',dp:'2026-11-06'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-06-01',dp:'2027-06-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-04-01',dp:'2027-04-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-05-01',dp:'2027-05-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-06-01',dp:'2028-06-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-09-01',dp:'2028-09-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-06-01',dp:'2029-06-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-06-01',dp:'2029-06-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-09-01',dp:'2029-09-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2029-12-01',dp:'2029-12-01'}],
+'Bonito Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-06-01',dp:'2025-03-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-08-01',dp:'2026-12-25'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-09-01',dp:'2027-06-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-07-01',dp:'2027-04-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-08-01',dp:'2027-05-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-09-01',dp:'2028-06-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-12-01',dp:'2028-09-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-09-01',dp:'2029-06-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-09-01',dp:'2029-06-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-10-01',dp:'2029-07-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-10-01',dp:'2029-07-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-12-01',dp:'2029-09-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-03-01',dp:'2029-12-01'}],
+'Cachoeira Beach Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-01-01',dp:'2025-01-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2027-04-01',dp:'2026-06-08'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-05-01',dp:'2027-05-01'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2027-03-01',dp:'2026-10-08'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2027-04-01',dp:'2026-12-08'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-08-01',dp:'2028-08-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-01-01',dp:'2029-01-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-12-01',dp:'2029-12-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-12-01',dp:'2029-12-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-02-01',dp:'2030-02-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'}],
+'Cachoeira Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-07-01',dp:'2024-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-10-01',dp:'2026-03-25'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-10-01',dp:'2026-04-23'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-08-01',dp:'2026-08-31'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-09-01',dp:'2026-10-31'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2027-01-01',dp:'2027-06-14'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-06-01',dp:'2028-08-30'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-04-01',dp:'2028-10-26'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-04-01',dp:'2028-10-26'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-05-01',dp:'2028-11-26'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-05-01',dp:'2028-11-26'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-07-01',dp:'2029-01-26'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-10-01',dp:'2029-04-26'}],
+'Campeche Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-11-01',dp:'2023-11-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-02-01',dp:'2025-04-09'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-02-01',dp:'2025-05-14'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2024-12-01',dp:'2026-08-21'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-01-01',dp:'2026-10-21'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2026-03-01',dp:'2026-04-22'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2026-06-01',dp:'2026-10-13'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-02-01',dp:'2027-05-14'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2027-02-01',dp:'2027-05-14'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2027-03-01',dp:'2027-06-14'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2027-03-01',dp:'2027-06-14'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2027-05-01',dp:'2027-08-14'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2027-08-01',dp:'2027-11-14'}],
+'Canas Beach Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-08-01',dp:'2025-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-10-01',dp:'2026-11-27'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-11-01',dp:'2027-11-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-09-01',dp:'2027-09-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-10-01',dp:'2027-10-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-02-01',dp:'2029-02-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-06-01',dp:'2030-06-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-06-01',dp:'2030-06-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-08-01',dp:'2030-08-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-11-01',dp:'2030-11-01'}],
+'Canasvieiras Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-03-01',dp:'2024-03-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-06-01',dp:'2025-08-11'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-06-01',dp:'2025-08-26'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2025-04-02',dp:'2026-08-10'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-05-02',dp:'2026-10-10'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-10-01',dp:'2027-08-25'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-03-01',dp:'2028-02-09'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-12-01',dp:'2028-02-24'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2027-12-01',dp:'2028-02-24'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-01-01',dp:'2028-03-24'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-01-01',dp:'2028-03-24'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-03-01',dp:'2028-05-24'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-06-01',dp:'2028-08-24'}],
+'Caraguá Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-05-01',dp:'2025-05-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2027-07-01',dp:'2026-08-12'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-08-01',dp:'2027-08-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-06-01',dp:'2027-06-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-07-01',dp:'2027-07-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-12-01',dp:'2028-12-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-05-01',dp:'2029-05-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-03-01',dp:'2030-03-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-03-01',dp:'2030-03-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-06-01',dp:'2030-06-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-09-01',dp:'2030-09-01'}],
+'Foz Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-08-01',dp:'2025-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-10-01',dp:'2026-12-03'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-11-01',dp:'2027-11-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-09-01',dp:'2027-09-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-10-01',dp:'2027-10-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-02-01',dp:'2029-02-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-07-01',dp:'2029-07-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-05-01',dp:'2030-05-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-06-01',dp:'2030-06-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-06-01',dp:'2030-06-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-08-01',dp:'2030-08-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-11-01',dp:'2030-11-01'}],
+'Ilha do Campeche II Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-12-01',dp:'2024-12-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-03-01',dp:'2026-10-07'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-03-01',dp:'2027-03-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-01-01',dp:'2027-01-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-02-01',dp:'2027-02-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-03-01',dp:'2028-03-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-06-01',dp:'2028-06-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-03-01',dp:'2029-03-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-03-01',dp:'2029-03-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-04-01',dp:'2029-04-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-04-01',dp:'2029-04-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-06-01',dp:'2029-06-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2029-09-01',dp:'2029-09-01'}],
+'Ilha do Campeche Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-04-01',dp:'2024-04-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2025-06-01',dp:'2026-10-07'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2025-07-01',dp:'2026-11-07'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-05-01',dp:'2026-10-22'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-06-01',dp:'2026-12-22'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-10-01',dp:'2028-02-07'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-03-01',dp:'2028-07-07'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-01-01',dp:'2029-05-07'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-01-01',dp:'2029-05-07'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-02-01',dp:'2029-06-07'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-02-01',dp:'2029-06-07'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-04-01',dp:'2029-08-07'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-07-01',dp:'2029-11-07'}],
+'Imbassaí Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-06-01',dp:'2023-06-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2025-01-01',dp:'2027-01-26'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2025-02-01',dp:'2027-02-26'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2024-12-01',dp:'2027-02-26'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-01-01',dp:'2027-04-26'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-02-01',dp:'2028-02-26'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2026-05-01',dp:'2028-05-26'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-02-01',dp:'2029-02-26'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2027-02-01',dp:'2029-02-26'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2027-03-01',dp:'2029-03-26'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2027-03-01',dp:'2029-03-26'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2027-05-01',dp:'2029-05-26'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2027-08-01',dp:'2029-08-26'}],
+'Ingleses Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-06-01',dp:'2023-06-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2023-10-01',dp:'2023-07-13'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2023-10-01',dp:'2023-09-01'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2023-08-01',dp:'2025-09-25'},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2023-09-01',dp:'2025-12-15'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2024-11-01',dp:'2024-10-11'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Realizado',dl:'2025-02-01',dp:'2026-06-29'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2025-11-01',dp:'2026-08-31'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2025-11-01',dp:'2026-08-31'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2025-12-01',dp:'2026-09-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2025-12-01',dp:'2026-09-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2026-02-01',dp:'2026-11-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2026-05-01',dp:'2027-02-28'}],
+'Itacaré Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-07-01',dp:'2025-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-09-01',dp:'2026-09-24'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-10-01',dp:'2027-10-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-08-01',dp:'2027-08-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-09-01',dp:'2027-09-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-10-01',dp:'2028-10-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-01-01',dp:'2029-01-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-01-01',dp:'2030-01-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'}],
+'Japaratinga Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-03-01',dp:'2023-03-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2024-01-01',dp:'2024-01-12'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2024-07-01',dp:'2024-09-16'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2024-05-01',dp:'2025-05-30'},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2024-06-01',dp:'2026-05-26'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2025-07-01',dp:'2026-10-30'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2025-10-01',dp:'2026-10-30'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2026-06-01',dp:'2026-12-31'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2026-06-01',dp:'2026-12-31'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2026-07-01',dp:'2027-01-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2026-07-01',dp:'2027-01-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2026-09-01',dp:'2027-03-31'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2026-12-01',dp:'2027-06-30'}],
+'Jurerê Beach Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-09-01',dp:'2024-09-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-11-01',dp:'2025-12-05'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-11-01',dp:'2026-01-06'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-09-01',dp:'2026-08-10'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-10-01',dp:'2026-10-10'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-11-01',dp:'2027-04-27'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-02-01',dp:'2027-07-27'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-11-01',dp:'2027-12-06'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2027-11-01',dp:'2027-12-06'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2027-12-01',dp:'2028-01-06'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2027-12-01',dp:'2028-01-06'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-02-01',dp:'2028-03-06'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-05-01',dp:'2028-06-06'}],
+'Jurerê Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-04-01',dp:'2025-12-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-06-01',dp:'2027-07-30'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-06-01',dp:'2028-03-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-04-01',dp:'2028-01-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-05-01',dp:'2028-02-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-07-01',dp:'2029-03-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-10-01',dp:'2029-06-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-07-01',dp:'2030-03-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-07-01',dp:'2030-03-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-08-01',dp:'2030-04-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-08-01',dp:'2030-04-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-10-01',dp:'2030-06-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-01-01',dp:'2030-09-01'}],
+'Jurerê Spot III':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-12-01',dp:'2025-12-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2028-02-01',dp:'2027-07-30'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2028-03-01',dp:'2028-03-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2028-01-01',dp:'2028-01-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2028-02-01',dp:'2028-02-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-03-01',dp:'2029-03-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-06-01',dp:'2029-06-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-03-01',dp:'2030-03-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-03-01',dp:'2030-03-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-06-01',dp:'2030-06-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-09-01',dp:'2030-09-01'}],
+'Lagoa Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'',dp:''},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'',dp:''},{n:'INICIO DE OBRAS',st:'Realizado',dl:'',dp:''},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'',dp:''},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Realizado',dl:'',dp:''},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Realizado',dl:'',dp:''},{n:'CONCLUSÃO DE OBRAS',st:'Realizado',dl:'',dp:''},{n:'LIGAÇÃO DEFINITIVA',st:'Realizado',dl:'',dp:''},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Realizado',dl:'',dp:''},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Realizado',dl:'',dp:''},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'',dp:'2026-09-30'}],
+'Marista 144 Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-10-01',dp:'2024-10-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2026-01-01',dp:'2026-04-30'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2026-01-01',dp:'2026-07-06'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-11-01',dp:'2026-10-30'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-12-01',dp:'2026-12-30'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2027-04-01',dp:'2027-12-06'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-09-01',dp:'2028-06-06'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-07-01',dp:'2028-12-06'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-07-01',dp:'2028-12-06'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-08-01',dp:'2029-01-06'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-08-01',dp:'2029-01-06'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-10-01',dp:'2029-03-06'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2029-01-01',dp:'2029-06-06'}],
+'Meireles Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-11-01',dp:'2024-11-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2027-01-01',dp:'2026-08-03'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-02-01',dp:'2027-02-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2026-12-01',dp:'2026-12-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-01-01',dp:'2027-01-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-05-01',dp:'2028-05-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2028-10-01',dp:'2028-10-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2029-08-01',dp:'2029-08-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2029-08-01',dp:'2029-08-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2029-09-01',dp:'2029-09-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2029-09-01',dp:'2029-09-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2029-11-01',dp:'2029-11-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-02-01',dp:'2030-02-01'}],
+'Morro das Pedras Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-08-01',dp:'2024-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2025-09-01',dp:'2026-09-10'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2025-10-01',dp:'2026-10-10'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-08-01',dp:'2026-10-02'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-09-01',dp:'2026-12-02'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2027-01-01',dp:'2028-01-10'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-06-01',dp:'2028-06-10'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-04-01',dp:'2029-04-10'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-04-01',dp:'2029-04-10'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-05-01',dp:'2029-05-10'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-05-01',dp:'2029-05-10'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-04-01',dp:'2029-07-10'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-09-01',dp:'2029-10-10'}],
+'Natal Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-10-01',dp:'2025-10-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2028-01-01',dp:'2027-04-26'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2028-02-01',dp:'2028-02-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-12-01',dp:'2027-12-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2028-01-01',dp:'2028-01-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-05-01',dp:'2029-05-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-10-01',dp:'2029-10-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-08-01',dp:'2030-08-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-08-01',dp:'2030-08-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-09-01',dp:'2030-09-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-09-01',dp:'2030-09-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-11-01',dp:'2030-11-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2031-02-01',dp:'2031-02-01'}],
+'Novo Campeche Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-10-01',dp:'2023-11-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2027-12-01',dp:'2025-04-09'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2028-01-01',dp:'2025-05-14'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2027-11-01',dp:'2026-08-21'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2027-12-01',dp:'2026-10-21'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2029-01-01',dp:'2026-04-22'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2029-04-01',dp:'2026-10-13'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2030-01-01',dp:'2027-05-14'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2030-01-01',dp:'2027-05-14'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2030-02-01',dp:'2027-06-14'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2030-02-01',dp:'2027-06-14'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2030-04-01',dp:'2027-08-14'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2030-07-01',dp:'2027-11-14'}],
+'Novo Campeche Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-10-01',dp:'2023-11-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2028-03-01',dp:'2025-04-09'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2028-04-01',dp:'2025-05-14'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2028-02-01',dp:'2026-08-21'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2028-03-01',dp:'2026-10-21'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2029-04-01',dp:'2026-04-22'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2029-07-01',dp:'2026-10-13'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2030-04-01',dp:'2027-05-14'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2030-04-01',dp:'2027-05-14'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2030-05-01',dp:'2027-06-14'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2030-05-01',dp:'2027-06-14'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2030-07-01',dp:'2027-08-14'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2030-10-01',dp:'2027-11-14'}],
+'Ponta das Canas Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-07-01',dp:'2025-09-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-09-01',dp:'2027-04-30'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-10-01',dp:'2027-12-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-08-01',dp:'2027-10-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-09-01',dp:'2027-11-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-01-01',dp:'2029-06-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-06-01',dp:'2029-12-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-04-01',dp:'2030-12-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-04-01',dp:'2030-12-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-05-01',dp:'2031-01-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-05-01',dp:'2031-01-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-07-01',dp:'2031-03-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-10-01',dp:'2031-06-01'}],
+'Ponta das Canas Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-09-01',dp:'2025-09-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-11-01',dp:'2027-04-30'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-12-01',dp:'2027-12-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-10-01',dp:'2027-10-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-11-01',dp:'2027-11-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2029-06-01',dp:'2029-06-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-12-01',dp:'2029-12-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-12-01',dp:'2030-12-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-12-01',dp:'2030-12-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2031-01-01',dp:'2031-01-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2031-01-01',dp:'2031-01-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2031-03-01',dp:'2031-03-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2031-06-01',dp:'2031-06-01'}],
+'Rosa Norte Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-06-01',dp:'2024-06-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-09-01',dp:'2026-03-27'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-09-01',dp:'2026-04-22'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-07-01',dp:'2026-08-28'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-08-01',dp:'2026-10-28'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-09-01',dp:'2027-03-04'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2026-12-01',dp:'2028-03-20'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-09-01',dp:'2028-04-30'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2027-09-01',dp:'2028-04-30'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2027-10-01',dp:'2028-05-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2027-10-01',dp:'2028-05-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2027-12-01',dp:'2028-07-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-02-28',dp:'2028-10-30'}],
+'Rosa Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'',dp:'2024-06-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'',dp:'2026-03-27'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'',dp:'2026-04-22'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'',dp:'2026-08-28'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'',dp:'2026-10-28'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'',dp:'2027-03-04'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'',dp:'2028-03-20'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'',dp:'2028-04-30'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'',dp:'2028-04-30'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'',dp:'2028-05-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'',dp:'2028-05-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'',dp:'2028-07-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'',dp:'2028-10-30'}],
+'Rosa Sul Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2022-07-01',dp:'2022-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2023-08-01',dp:'2023-08-21'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2023-11-01',dp:'2023-11-30'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2023-09-01',dp:'2023-09-07'},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2023-10-01',dp:'2025-11-25'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2024-10-01',dp:'2026-07-03'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2025-01-01',dp:'2026-09-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2025-09-01',dp:'2026-09-30'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2025-09-01',dp:'2026-09-30'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2025-10-01',dp:'2026-10-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2025-10-01',dp:'2026-10-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2025-12-01',dp:'2026-12-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2026-03-01',dp:'2027-03-01'}],
+'Salvador Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-08-01',dp:'2023-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2024-10-01',dp:'2026-07-23'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2024-11-01',dp:'2026-08-31'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2024-09-01',dp:'2026-08-30'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2024-10-01',dp:'2026-10-30'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2025-11-01',dp:'2027-08-31'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2026-02-01',dp:'2027-11-30'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2026-11-01',dp:'2028-08-31'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2026-11-01',dp:'2028-08-31'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2026-12-01',dp:'2028-09-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2026-12-01',dp:'2028-09-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2027-02-01',dp:'2028-11-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2027-05-01',dp:'2029-02-28'}],
+'Santinho Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2025-04-01',dp:'2025-04-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2027-05-01',dp:'2026-12-18'},{n:'INICIO DE OBRAS',st:'Planejado',dl:'2027-06-01',dp:'2027-06-01'},{n:'PROJETOS EXECUTIVOS',st:'Planejado',dl:'2027-04-01',dp:'2027-04-01'},{n:'ORÇAMENTO EXECUTIVO',st:'Planejado',dl:'2027-05-01',dp:'2027-05-01'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Planejado',dl:'2028-09-01',dp:'2028-09-01'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Planejado',dl:'2029-02-01',dp:'2029-02-01'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Planejado',dl:'2030-01-01',dp:'2030-01-01'},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2030-01-01',dp:'2030-01-01'},{n:'LIGAÇÃO DEFINITIVA',st:'Planejado',dl:'2030-02-01',dp:'2030-02-01'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Planejado',dl:'2030-02-01',dp:'2030-02-01'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Planejado',dl:'2030-04-01',dp:'2030-04-01'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Planejado',dl:'2030-07-01',dp:'2030-07-01'}],
+'Santo Antônio Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-11-01',dp:'2024-11-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2026-01-01',dp:'2026-11-27'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2026-02-01',dp:'2026-12-27'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-12-01',dp:'2026-12-18'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2026-01-01',dp:'2027-02-18'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2027-05-01',dp:'2028-03-27'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-10-01',dp:'2028-08-27'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-08-01',dp:'2029-06-27'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-08-01',dp:'2029-06-27'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-09-01',dp:'2029-07-27'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-09-01',dp:'2029-07-27'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-11-01',dp:'2029-09-27'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2029-02-01',dp:'2029-12-27'}],
+'Sul da Ilha Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-07-01',dp:'2024-07-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Replanejado',dl:'2025-09-01',dp:'2026-12-08'},{n:'INICIO DE OBRAS',st:'Replanejado',dl:'2025-10-01',dp:'2027-01-08'},{n:'PROJETOS EXECUTIVOS',st:'Replanejado',dl:'2025-08-01',dp:'2027-01-15'},{n:'ORÇAMENTO EXECUTIVO',st:'Replanejado',dl:'2025-09-01',dp:'2027-03-15'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2027-01-01',dp:'2028-04-08'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-06-01',dp:'2028-09-08'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2028-04-01',dp:'2029-07-08'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2028-04-01',dp:'2029-07-08'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2028-05-01',dp:'2029-08-08'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2028-05-01',dp:'2029-08-08'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-07-01',dp:'2029-10-08'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-10-01',dp:'2030-01-08'}],
+'Trancoso Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-08-01',dp:'2023-08-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2024-11-01',dp:'2024-08-01'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2024-11-01',dp:'2024-09-05'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2024-09-01',dp:'2024-09-05'},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2024-10-01',dp:'2026-03-04'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2025-11-01',dp:'2025-09-13'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Realizado',dl:'2026-02-01',dp:'2026-05-30'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2026-11-01',dp:'2026-08-30'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2026-11-01',dp:'2026-08-30'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2026-12-01',dp:'2026-09-30'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2026-12-01',dp:'2026-09-30'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2027-02-01',dp:'2026-10-30'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2027-05-01',dp:'2027-01-30'}],
+'Urubici Spot':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2022-12-01',dp:'2022-12-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2023-12-01',dp:'2023-07-04'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2023-12-01',dp:'2023-08-14'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2023-10-01',dp:'2023-06-26'},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2023-11-01',dp:'2023-08-26'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Realizado',dl:'2024-12-01',dp:'2025-09-26'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Realizado',dl:'2025-03-01',dp:'2025-12-19'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Realizado',dl:'2025-12-01',dp:'2026-02-02'},{n:'CONCLUSÃO DE OBRAS',st:'Realizado',dl:'2025-12-01',dp:'2026-02-02'},{n:'LIGAÇÃO DEFINITIVA',st:'Realizado',dl:'2026-01-01',dp:'2026-04-09'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Realizado',dl:'2026-01-01',dp:'2026-04-16'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Realizado',dl:'2026-03-01',dp:'2026-06-22'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2026-06-01',dp:'2026-09-11'}],
+'Urubici Spot II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2024-02-01',dp:'2024-02-01'},{n:'ALVARÁ DE CONSTRUÇÃO',st:'Realizado',dl:'2025-06-01',dp:'2025-02-13'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2025-05-01',dp:'2025-06-16'},{n:'PROJETOS EXECUTIVOS',st:'Realizado',dl:'2025-03-01',dp:'2026-07-31'},{n:'ORÇAMENTO EXECUTIVO',st:'Realizado',dl:'2025-04-01',dp:'2026-07-31'},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'Replanejado',dl:'2026-08-01',dp:'2026-10-07'},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'Replanejado',dl:'2027-01-01',dp:'2027-08-16'},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'Replanejado',dl:'2027-11-01',dp:'2027-12-17'},{n:'CONCLUSÃO DE OBRAS',st:'Replanejado',dl:'2027-11-01',dp:'2027-12-17'},{n:'LIGAÇÃO DEFINITIVA',st:'Replanejado',dl:'2027-12-01',dp:'2028-01-17'},{n:'VISTORIA E ACEITE DAS CHAVES',st:'Replanejado',dl:'2027-12-01',dp:'2028-01-17'},{n:'HABITE-SE E INICIO DAS OPERAÇÕES',st:'Replanejado',dl:'2028-02-01',dp:'2028-03-17'},{n:'INDIVIDUALIZAÇÃO DAS MATRÍCULAS',st:'Replanejado',dl:'2028-05-01',dp:'2028-06-17'}],
+'Vistas de Anitá II':[{n:'LANÇAMENTO DO EMPREENDIMENTO',st:'Realizado',dl:'2023-01-01',dp:'2023-01-01'},{n:'INICIO DE OBRAS',st:'Realizado',dl:'2023-07-01',dp:'2023-05-01'},{n:'PROJETOS EXECUTIVOS',st:'',dl:'',dp:''},{n:'ORÇAMENTO EXECUTIVO',st:'',dl:'',dp:''},{n:'OBRAS - ESTRUTURA FINALIZADA',st:'',dl:'',dp:''},{n:'OBRAS - INSTALAÇÕES E ELEVADOR FINALIZADOS',st:'',dl:'',dp:''},{n:'OBRAS - ACABAMENTOS E MOBILIÁRIO SOLTO',st:'',dl:'',dp:''},{n:'CONCLUSÃO DE OBRAS',st:'Planejado',dl:'2026-06-01',dp:'2027-02-01'}],
 };
 const COMERCIAL_DATA={
 'Barra Grande':{mk:2,go:0,dc:1},
