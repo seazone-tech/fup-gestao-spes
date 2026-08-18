@@ -1595,7 +1595,7 @@ const FUP_SEED=[];
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const SK='pmo-fup-spes-v2';
 const SK_SEED='pmo-fup-seeded-v4';
-let S={fup:[],coment:{}};
+let S={fup:[],coment:{},capitalStatus:{}};
 let farolSort={col:null,dir:1};
 let cronSort={col:null,dir:1};
 let cronFilter='todas';
@@ -1896,6 +1896,28 @@ function renderDetail(emp){
           :`<div style="font-size:12px;color:var(--muted-fg);padding:4px 0">Nenhuma atualização registrada nesta semana.</div>`}
         </div>
       </div>
+      <!-- Chamada de Capital -->
+      ${(function(){
+        const capVal=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
+        const capColor=capVal==='nok'?'var(--danger)':capVal==='analise'?'var(--warn)':'var(--success)';
+        const opts=[
+          {v:'ok',l:'Sem previsão'},
+          {v:'analise',l:'Em análise'},
+          {v:'nok',l:'Em chamada de capital'}
+        ];
+        return`<div class="caixinha" style="flex:none">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,${capColor} 15%,transparent);color:${capColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Chamada de Capital</div>
+            <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${capColor};flex-shrink:0"></div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px">
+            <select onchange="setCapital('${emp.id}',this.value)" style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer">
+              ${opts.map(o=>`<option value="${o.v}"${capVal===o.v?' selected':''}>${o.l}</option>`).join('')}
+            </select>
+          </div>
+        </div>`;
+      })()}
     </div><!-- /detail-col-right -->
     </div><!-- /detail-cols -->
 
@@ -2043,16 +2065,26 @@ function calcFarolIA(emp){
   return'g';
 }
 function calcFarolCapital(emp){
-  const cap=emp.capital||'ok';
+  const cap=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
   if(cap==='nok')return'r';
   if(cap==='analise')return'a';
   return'g';
 }
 function capitalLabel(emp){
-  const cap=emp.capital||'ok';
+  const cap=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
   if(cap==='nok')return'NOK';
   if(cap==='analise')return'Em análise';
   return'OK';
+}
+function setCapital(empId,val){
+  if(!S.capitalStatus)S.capitalStatus={};
+  S.capitalStatus[empId]=val;
+  saveData();
+  const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+  if(emp){
+    const det=document.getElementById('painel-detail');
+    if(det)det.innerHTML=renderDetail(emp);
+  }
 }
 function farolPri(f){return f==='r'?2:f==='a'?1:0;}
 function tglSubs(gid,tr){
