@@ -2126,11 +2126,9 @@ function renderFarol(){
         const dt=mcd.dt||null;
         const ref=mcd.dr||mcd.dl||null;
         const delta=dt&&ref?Math.round((new Date(dt)-new Date(ref))/86400000):null;
-        const isVencida=ma.st!=='concluido'&&dt&&new Date(dt)<TODAY;
         const difLabel=delta===null?'—':delta>0?'+'+delta+'d':delta===0?'0d':delta+'d';
-        const difColor=isVencida?'var(--danger)':delta>0?'var(--warn)':delta<0?'var(--success)':'var(--muted-fg)';
-        const rowBg=isVencida?'background:color-mix(in srgb,var(--danger) 6%,transparent)':'';
-        const marcoHtml=`<span style="font-size:12px;font-weight:400;color:${isVencida?'var(--danger)':'var(--card-fg)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${esc(ma.nome)}</span>`;
+        const difColor=delta>0?'var(--warn)':delta<0?'var(--success)':'var(--muted-fg)';
+        const marcoHtml=`<span style="font-size:12px;font-weight:400;color:var(--card-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${esc(ma.nome)}</span>`;
         const empCell=mi===0
           ?`<td style="font-size:11px;font-weight:400;color:var(--card-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top" rowspan="${mAtivos.length}">${esc(e.nome)}</td>`
           :'';
@@ -2142,7 +2140,7 @@ function renderFarol(){
           :'';
         const balloonCell=mi===0?`<td style="text-align:center;vertical-align:top" rowspan="${mAtivos.length}">${balloon}</td>`:'';
         const rowId=mi===0?`id="fr-${e.id}"`:'';
-        return`<tr ${rowId} style="${rowBg}">
+        return`<tr ${rowId}>
           ${empCell}
           ${faseCell}
           <td style="overflow:hidden">${marcoHtml}</td>
@@ -2386,15 +2384,13 @@ function renderCronograma(){
       const deltaC=r.delta===null?'—':(r.delta>0?`<span style="color:var(--warn);font-weight:600">+${r.delta}d</span>`:(r.delta<0?`<span style="color:var(--success);font-weight:600">${r.delta}d</span>`:`<span style="color:var(--muted-fg)">0d</span>`));
       const smData=SMARTSHEET_MARCOS[r.emp.id]||{};
       const smDt=smData[r.i]?fmtD(smData[r.i].dt)||'—':'—';
-      const isVencidaCron=r.st!=='concluido'&&r.dt&&new Date(r.dt)<TODAY;
-      const rowBg=isVencidaCron?'background:color-mix(in srgb,var(--danger) 5%,transparent)':'';
       const rowBorder=newGroup&&ri>0?'border-top:2px solid var(--border)':'';
-      return`<tr style="${rowBorder};${rowBg}">
+      return`<tr style="${rowBorder}">
         ${empCell}
-        <td style="font-size:12px"><div style="display:flex;align-items:center">${stDot(r.st)}<span style="color:${isVencidaCron?'var(--danger)':r.st==='concluido'?'var(--muted-fg)':'var(--fg)'}">${esc(r.marco)}</span></div></td>
+        <td style="font-size:12px"><div style="display:flex;align-items:center">${stDot(r.st)}<span style="color:${r.st==='concluido'?'var(--muted-fg)':'var(--fg)'}">${esc(r.marco)}</span></div></td>
         <td class="date-cell">${fmtD(r.dl)||'—'}</td>
         <td class="date-cell">—</td>
-        <td class="date-cell" style="${isVencidaCron?'color:var(--danger);font-weight:600':''}">${fmtD(r.dt)||'—'}</td>
+        <td class="date-cell">${fmtD(r.dt)||'—'}</td>
         <td class="date-cell" style="text-align:center">${smDt}</td>
         <td style="text-align:center;font-size:12px">${deltaC}</td>
         <td></td>
