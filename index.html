@@ -144,7 +144,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .cron-table tbody td{padding:6px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:11px;font-weight:400}
 .cron-table tbody tr:last-child td,.cron-table tbody .sub-last td{border-bottom:1px solid var(--border)}
 .cron-table tbody tr:last-child td{border-bottom:none}
-.date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:10px;white-space:nowrap;color:var(--muted-fg)}
+.date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap;color:var(--muted-fg)}
 .cron-row-andamento .date-cell{color:var(--muted-fg)}
 .cron-name-cell{display:flex;align-items:center;gap:8px}
 .cron-dot-s{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
@@ -2020,13 +2020,15 @@ function salvarFup(empId){
 const WORDS_RED=['paralis','embargo','irregular','inadimpl','bloqueio','notificaç','autuaç','infraç','embargo','judicial','liminar'];
 const WORDS_AMB=['atraso','pendên','revisão','negociaç','impasse','demora','indefin','suspens'];
 function calcFarolAtraso(emp){
-  // Vermelho apenas quando algum marco tem dt < hoje e não está concluído
-  const marcos=genMarcosSeq(emp);
-  const dates=genMarcosDates(emp);
-  const temVencida=marcos.some(function(m,i){
-    return m.st!=='concluido'&&dates[i]&&dates[i].dt&&new Date(dates[i].dt)<TODAY;
-  });
-  return temVencida?'r':'g';
+  // Vermelho quando qualquer marco ativo tem delta (dt - referência) positivo — igual à coluna Δ Marco
+  const mAtivos=marcosAtivos(emp);
+  return mAtivos.some(function(ma){
+    const mcd=ma.dates;
+    const dt=mcd.dt||null;
+    const ref=mcd.dr||mcd.dl||null;
+    if(!dt||!ref)return false;
+    return Math.round((new Date(dt)-new Date(ref))/86400000)>0;
+  })?'r':'g';
 }
 function calcFarolIA(emp){
   const ias=IA_UPD[emp.id]||[];
