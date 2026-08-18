@@ -1629,6 +1629,63 @@ function loadData(){
     });
     if(migrated)saveData();
   }
+  // Seed histórico FUP Entrega 13/08/2026
+  const SK_FUP_ENTREGA='pmo-fup-seed-entrega-2026-08-13';
+  if(!localStorage.getItem(SK_FUP_ENTREGA)){
+    const FUP_ENTREGA=[
+      {empId:'009',enc:[
+        'Nova data de entrega de obra: 11/09; início das vistorias privativas: 14/09',
+        'Comunicado aos investidores: nova data alinhada com conselho e RV',
+        'Ligação definitiva de água (CASAN): pendente instalação de grade no medidor — previsão final de semana',
+        'Ligação definitiva de energia (Celesc): melhorias pela Massai em andamento; previsão quarta da semana seguinte',
+        'Esquadrias (STK/BRZ): BRZ ainda em produção, meta 31/08 — atrasos pontuais recuperáveis',
+        'ABIT e PPCI: protocolo previsto para 31/08; questão do bombeiro (guarda corpo, corrimão) parcial',
+        'Licença ambiental: a verificar (Sabrina iria validar; Trancoso não tem ETE)',
+        'Vistoria privativa: Sizone como secretariado — agendar, acompanhar e formalizar checklist; template via Caroline',
+        'Manual do empreendimento: síndica não revisou; Alice vai solicitar upload à construtora',
+        'MOG (decor): 49 unidades, 6 vistorias/dia; Pat contratando pessoa para acompanhar',
+        'Vistoria de área comum: sem comitê de investidores definido — tentar delegação ao síndico/conselho fiscal',
+      ]},
+      {empId:'008',enc:[
+        'Data de entrega de obra: 30/09',
+        'Vistorias decor (MOG): ~10 unidades com Caroline; ajustes em andamento (piso, esquadrilhas, silicone, pintura, portas, registros)',
+        'Ligações de água e energia: protocolos previstos para agosto; meta da 1ª quinzena pode atrasar por chuva, sem impacto na data final',
+        'Atividades externas: muro frontal e portão — ataque previsto nas próximas 2 semanas',
+        'ABIT e bombeiro: previsão setembro',
+        'Relatório fotográfico MOG: a ser elaborado (antes e depois das correções), para formalização via BD',
+        'Quadros de arte: pendente confirmação de data com Mario Marquet; decisão de instalar na vistoria de área comum',
+        'Início do decor: 10/08 (já iniciado com ressalvas)',
+        'Vistoria de área comum: síndico Renê participará; contratação de engenheiro pelos investidores a ser conversada',
+      ]},
+      {empId:'011',enc:[
+        'Custos de obra: estouro de ~R$ 500k identificado; 3 análises necessárias (histograma MO, salários equipe, % NF vertical × SPE)',
+        'AGE: prevista para deliberar locação de terreno ao lado e pagamento ao Ramiro / redivisão de chamada de capital',
+        'Estratégia de comunicação: alinhamento com jurídico antes de levar custos aos investidores; sessão de tira-dúvidas com conselho separada ou logo após AGE',
+        'Ligação definitiva de água: rede atual de instituto agrícola que não fornecerá água; possível necessidade de poço (custo elevado); aguardando reunião com Igor e diretoria da vertical',
+        'Ligação definitiva de energia: rede não comporta a carga; concessionária com prazo de 15 meses; carta de viabilidade nunca entregue/renovada; Igor elaborará apresentação',
+        'Notificação à construtora: abrir notificação formal sobre inconsistência na carta de viabilidade; Tati quer revisar antes do envio',
+      ]},
+      {empId:'013',enc:[
+        'Data de entrega: setembro (BRZ instalados por fora, não bloqueia decor)',
+        'MOG: 9 procurações assinadas; Pat vai pessoalmente nas primeiras 2 semanas, Amanda acompanha',
+        'Data de vistoria MOG: tentando antecipar para dia 8, 9 ou 10; comunicar investidor com pré-agendamento para dia 14',
+        'Vistoria de área comum: terça às 9h — Manuel (Terra Vista), Camila (Sizone), síndico Renê, 1 investidor',
+        'Ligação definitiva de água: rede não comporta 76 unidades; poço em análise; aguardando reunião com construtora',
+        'Ligação definitiva de energia: rede insuficiente; concessionária com prazo de 15 meses',
+        'BRZ (esquadrias): em produção/testes; Terra Vista deve priorizar vistorias nas unidades não-decor primeiro',
+        'Manual do empreendimento: Terra Vista atrasando; Sizone revisará, construtora corrige até dia 24, entrega em 31/08',
+        'Ligação definitiva (update positivo): Cláudo confirmou ligação de água e energia realizadas — a confirmar com Lucas',
+      ]},
+      {empId:'002',enc:[
+        'Quadro de áreas (NBR): divergência entre área da matrícula e quadro de áreas; jurídico (Sabrina) tentando justificar para cartório; versão atual já igual ao projeto legal',
+      ]},
+    ];
+    FUP_ENTREGA.forEach(function(e){
+      S.fup.push({id:Date.now()+Math.random(),empId:e.empId,data:'2026-08-13',tipo:'entrega',resp:'PMO',enc:e.enc.join('\n')});
+    });
+    saveData();
+    localStorage.setItem(SK_FUP_ENTREGA,'1');
+  }
 }
 function saveData(){localStorage.setItem(SK,JSON.stringify(S));}
 
