@@ -2020,9 +2020,7 @@ function salvarFup(empId){
 const WORDS_RED=['paralis','embargo','irregular','inadimpl','bloqueio','notificaç','autuaç','infraç','embargo','judicial','liminar'];
 const WORDS_AMB=['atraso','pendên','revisão','negociaç','impasse','demora','indefin','suspens'];
 function calcFarolAtraso(emp){
-  // Verifica atraso global do emp (dt > ref) OU qualquer marco com dt vencida e não concluído
-  const at=atraso(emp);
-  if(at>0)return'r';
+  // Vermelho apenas quando algum marco tem dt < hoje e não está concluído
   const marcos=genMarcosSeq(emp);
   const dates=genMarcosDates(emp);
   const temVencida=marcos.some(function(m,i){
