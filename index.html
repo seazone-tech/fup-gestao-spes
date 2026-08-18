@@ -1664,8 +1664,16 @@ function loadData(){
     });
     if(migrated)saveData();
   }
+  // Migração: enc → hist para registros salvos com campo errado
+  if(S.fup){let migEnc=false;S.fup.forEach(function(f){if(f.enc&&!f.hist){f.hist=f.enc;delete f.enc;migEnc=true;}});if(migEnc)saveData();}
   // Seed histórico FUP Entrega 13/08/2026
-  const SK_FUP_ENTREGA='pmo-fup-seed-entrega-2026-08-13';
+  const SK_FUP_ENTREGA='pmo-fup-seed-entrega-2026-08-13-v2';
+  // Remove seed v1 (campo enc errado)
+  const OLD_EMP_IDS=['009','008','011','013','002'];
+  if(localStorage.getItem('pmo-fup-seed-entrega-2026-08-13')&&!localStorage.getItem(SK_FUP_ENTREGA)){
+    S.fup=S.fup.filter(function(f){return!(f.tipo==='entrega'&&f.data==='2026-08-13'&&OLD_EMP_IDS.indexOf(f.empId)>=0);});
+    saveData();
+  }
   if(!localStorage.getItem(SK_FUP_ENTREGA)){
     const FUP_ENTREGA=[
       {empId:'009',enc:[
@@ -1716,7 +1724,7 @@ function loadData(){
       ]},
     ];
     FUP_ENTREGA.forEach(function(e){
-      S.fup.push({id:Date.now()+Math.random(),empId:e.empId,data:'2026-08-13',tipo:'entrega',resp:'PMO',enc:e.enc.join('\n')});
+      S.fup.push({id:Date.now()+Math.random(),empId:e.empId,data:'2026-08-13',tipo:'entrega',resp:'PMO',hist:e.enc.join('\n')});
     });
     saveData();
     localStorage.setItem(SK_FUP_ENTREGA,'1');
