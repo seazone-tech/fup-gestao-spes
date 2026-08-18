@@ -581,6 +581,7 @@ const SMARTSHEET_MARCOS = {
     10: {dl:'2026-11-28',dt:'2027-06-29',st:'ainicial'},
   },
   '012': {
+    0: {dl:'2023-04-05',dt:'2023-04-05',st:'concluido'},
     1: {dl:'2025-02-01',dt:'2027-01-26',st:'andamento'},
     2: {dl:'2025-02-01',dt:'2027-03-10',st:'ainicial'},
     3: {dl:'2024-12-03',dt:'2027-04-09',st:'ainicial'},
@@ -653,6 +654,7 @@ const SMARTSHEET_MARCOS = {
     10: {dl:'2028-06-29',dt:'2028-08-22',st:'ainicial'},
   },
   '018': {
+    0: {dl:'2024-02-02',dt:'2024-02-02',st:'concluido'},
     1: {dl:'2025-07-15',dt:'2026-10-26',st:'andamento'},
     2: {dl:'2025-07-01',dt:'2027-10-26',st:'ainicial'},
     3: {dl:'2025-05-02',dt:'2027-03-26',st:'andamento'},
@@ -1615,6 +1617,18 @@ function loadData(){
     if(d) S=JSON.parse(d);
     else{S.fup=FUP_SEED.map(r=>({...r}));saveData();}
   }
+  // Migra datas antigas DD/MM/YYYY → YYYY-MM-DD em fup entries
+  if(S.fup){
+    let migrated=false;
+    S.fup.forEach(function(f){
+      if(f.data&&/^\d{2}\/\d{2}\/\d{4}$/.test(f.data)){
+        const p=f.data.split('/');
+        f.data=p[2]+'-'+p[1]+'-'+p[0];
+        migrated=true;
+      }
+    });
+    if(migrated)saveData();
+  }
 }
 function saveData(){localStorage.setItem(SK,JSON.stringify(S));}
 
@@ -1675,7 +1689,15 @@ function calcScore(emp){
 }
 function urgClass(s){return s>=70?'critico':s>=40?'atencao':'ok';}
 function urgLabel(s){return s>=70?'🔴 Crítico':s>=40?'🟡 Atenção':'🟢 Ok';}
-function fmtD(d){if(!d)return'—';const[y,m,dy]=d.split('-');return`${dy}/${m}/${y}`;}
+function fmtD(d){
+  if(!d)return'—';
+  // DD/MM/YYYY já no formato de exibição (armazenado antes da migração)
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(d))return d;
+  // YYYY-MM-DD → DD/MM/YYYY
+  const[y,m,dy]=d.split('-');
+  if(!dy||!m||!y||y==='undefined')return'—';
+  return`${dy}/${m}/${y}`;
+}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
@@ -2066,8 +2088,7 @@ function calcFarolIA(emp){
 }
 function calcFarolCapital(emp){
   const cap=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
-  if(cap==='nok')return'r';
-  if(cap==='analise')return'a';
+  if(cap==='nok'||cap==='analise')return'r';
   return'g';
 }
 function capitalLabel(emp){
@@ -2084,6 +2105,14 @@ function setCapital(empId,val){
   if(emp){
     const det=document.getElementById('painel-detail');
     if(det)det.innerHTML=renderDetail(emp);
+    // Atualiza dot de capital na sidebar
+    const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+    const fc=calcFarolCapital(emp);
+    const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
+    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[2])dots[2].style.background=dotC(fc);}
+    // Re-renderiza aba Farol se estiver visível
+    const fv=document.getElementById('view-farol');
+    if(fv&&fv.style.display!=='none')renderFarol();
   }
 }
 function farolPri(f){return f==='r'?2:f==='a'?1:0;}
