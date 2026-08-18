@@ -2173,19 +2173,23 @@ function renderHistCards(){
 
   const fupCards=fupsF.map(function(f){
     const emp=EMPS_RAW.find(function(e){return e.id===f.empId;});
-    const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':(f.tipo||'—');
-    const tipoColor=f.tipo==='entrega'?'var(--success)':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
-    const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,${tipoColor} 12%,transparent);color:${tipoColor}">${esc(tipoTxt)}</span>`;
+    const isPainelPmo=f.tipo==='painel-pmo';
+    const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':(f.tipo||'—');
+    const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
+    const tipoBg=isPainelPmo?'#FEF3C7':'';
+    const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:${tipoBg||`color-mix(in srgb,${tipoColor} 12%,transparent)`};color:${tipoColor}">${esc(tipoTxt)}</span>`;
     const histTxt=f.hist||f.disc||'';
     const bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){
       return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^\d+\.\s*/,''))}</span></div>`;
     }).join('');
-    const empLabel=!histSelId&&emp?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg);margin-left:auto">${esc(emp.nome)}</span>`:'';
-    return`<div class="fup-card">
+    const empLabel=!histSelId&&emp?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg)">${esc(emp.nome)}</span>`:'';
+    const delBtn=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
+    return`<div class="fup-card" style="${isPainelPmo?'border-left:3px solid #D97706':''}">
       <div class="fup-card-top">
         <span class="fup-card-date">${fmtD(f.data)}</span>
         ${tipoBadge}
         ${empLabel}
+        ${delBtn}
       </div>
       ${bullets?`<div class="fup-card-enc">${bullets}</div>`:''}
     </div>`;
@@ -2241,7 +2245,11 @@ function renderHistorico(){
     </div>`;
   }).join('');
   c.innerHTML=`
-    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px">
+      <button class="btn" onclick="importFromPainelPMO()" style="gap:6px;background:var(--accent);border:1px solid var(--border);color:var(--fg)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Importar Painel PMO
+      </button>
       <button class="btn btn-primary" onclick="openModalHist()" style="gap:6px">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Novo Registro
@@ -2435,6 +2443,47 @@ function salvarComent(empId){
   const ex=document.getElementById('cmt-'+empId);
   if(ex)ex.remove();
   renderFarol();
+}
+function deleteFup(id){
+  if(!confirm('Excluir este registro?'))return;
+  S.fup=S.fup.filter(function(f){return f.id!==id;});
+  saveData();renderHistorico();
+}
+function importFromPainelPMO(){
+  let raw;
+  try{raw=JSON.parse(localStorage.getItem('pmo_sz_v4')||'null');}catch(e){raw=null;}
+  if(!raw||!Array.isArray(raw.emps)){alert('Painel PMO não encontrado no localStorage.\nAbra https://seazone-tech.github.io/painel-pmo-spots/ primeiro.');return;}
+  const byName={};
+  EMPS_RAW.forEach(function(e){byName[e.nome.toLowerCase().trim()]=e.id;});
+  let count=0;
+  const existingSrcs=new Set(S.fup.filter(function(f){return f._src==='painel-pmo';}).map(function(f){return f._srcKey;}));
+  raw.emps.forEach(function(emp){
+    const empNome=(emp.nome||'').toLowerCase().trim();
+    const empId=byName[empNome];
+    if(!empId)return;
+    const cmts=(emp.governanca&&emp.governanca.historico&&emp.governanca.historico.comentarios)||[];
+    cmts.forEach(function(c,ci){
+      const key=empId+'_'+ci+'_'+(c.data||'')+'_'+(c.texto||'').slice(0,20);
+      if(existingSrcs.has(key))return;
+      const txt=(c.texto||'').trim();
+      if(!txt)return;
+      S.fup.push({
+        id:Date.now()+Math.random(),
+        empId:empId,
+        data:c.data||TODAY.toISOString().split('T')[0],
+        tipo:'painel-pmo',
+        hist:txt,
+        disc:txt,
+        enc:'',
+        _src:'painel-pmo',
+        _srcKey:key
+      });
+      count++;
+    });
+  });
+  saveData();
+  renderHistorico();
+  alert('Importados '+count+' registros do Painel PMO.');
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
