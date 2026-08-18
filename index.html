@@ -2008,18 +2008,17 @@ function renderDetail(emp){
                   const sdot=`<div style="width:7px;height:7px;border-radius:50%;background:${s.st==='concluido'?'var(--success)':s.st==='andamento'?'var(--primary)':'var(--border)'};flex-shrink:0"></div>`;
                   const scolor=s.st==='andamento'?'var(--primary)':s.st==='concluido'?'var(--muted-fg)':'var(--muted-fg)';
                   const sopacity=s.st==='ainicial'||s.st==='nao_iniciado'?.5:1;
-                  const subDl=s.dl?fmtD(s.dl):'—';
-                  const subDt=s.dt?fmtD(s.dt):'—';
+                  const subSmDate=s.st==='concluido'?(s.dt?fmtD(s.dt):'—'):(s.dl?fmtD(s.dl):'—');
                   const subStLabel=s.st==='concluido'?'✓ ':s.st==='andamento'?'● ':'○ ';
                   return`<tr class="cron-sub-row sub-of-${uid+i}" style="display:none">
                     <td><div class="cron-sub-cell" style="padding-left:32px">
                       ${sdot}
                       <span style="color:${scolor};opacity:${sopacity};font-size:11px">${esc(s.nome)}</span>
                     </div></td>
-                    <td class="date-cell" style="font-size:11px;opacity:${sopacity}">${subDl}</td>
-                    <td class="date-cell" style="text-align:center">—</td>
-                    <td class="date-cell" style="font-size:11px;opacity:${sopacity};border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)">${subDt}</td>
                     <td class="date-cell" style="font-size:11px">—</td>
+                    <td class="date-cell" style="text-align:center">—</td>
+                    <td class="date-cell" style="font-size:11px;border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)">—</td>
+                    <td class="date-cell" style="font-size:11px;opacity:${sopacity}">${subSmDate}</td>
                   </tr>`;
                 }).join('');
                 return parentRow+subRows;
