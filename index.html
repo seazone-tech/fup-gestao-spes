@@ -189,10 +189,12 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .ia-item-new{border-left:3px solid;padding:8px 10px;border-radius:0 var(--r-lg) var(--r-lg) 0;background:var(--accent);display:flex;flex-direction:column;gap:4px}
 .ia-item-new.reuniao{border-color:var(--primary)}
 .ia-item-new.wpp{border-color:var(--success)}
+.ia-item-new.licenc{border-color:#EA580C}
 .ia-item-tag{display:flex;align-items:center;gap:6px;margin-bottom:2px}
 .ia-fonte{font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;display:inline-block}
 .ia-fonte.reuniao{background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary)}
 .ia-fonte.wpp{background:color-mix(in srgb,var(--success) 15%,transparent);color:var(--success)}
+.ia-fonte.licenc{background:color-mix(in srgb,#EA580C 15%,transparent);color:#EA580C}
 .ia-text{font-size:12px;color:var(--card-fg);line-height:1.5}
 /* Assembleias rows */
 .ass-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
@@ -1624,7 +1626,22 @@ const ACS={};
 
 const COMS={};
 
-const IA_UPD={};
+const IA_UPD={
+  '042':[{fonte:'licenc',txt:'Alvará de Demolição (260255770) — Data inclusão: 12/08/2026\nSituação: Para Providência — SEMURB / Setor de Licenciamento de Obras Privadas\nÚltima movimentação: 12/08/2026 (6 dias) — NOVO'}],
+  '030':[{fonte:'licenc',txt:'Bombeiros / Segurança — aberto há 265 dias, sem tramitação publicada\nÚltima movimentação: 26/11/2025 — PARADO HÁ MAIS DE 30 DIAS'}],
+  '035':[{fonte:'licenc',txt:'Alvará de Construção + Arquitetônico — última movimentação há 146 dias (25/03/2026) — PARADO HÁ MAIS DE 30 DIAS\nCorte de Árvores + Licenciamento Ambiental — Parecer Técnico Nº 01/2026 – SEDUR (21/07/2026)\nÚltima movimentação: 21/07/2026 (28 dias)'}],
+  '039':[{fonte:'licenc',txt:'Alvará de Construção — pendente de retorno da Seazone/projetista há 99 dias (última mov. 11/05/2026) — PARADO HÁ MAIS DE 30 DIAS\nArte Pública — Comunique-se em 20/05/2026 (90 dias sem retorno) — PARADO\nMelhorias Urbanas — aberto em 15/04/2026, sem tramitação há 125 dias — PARADO'}],
+  '018':[{fonte:'licenc',txt:'Licenciamento Ambiental — 71 dias sem tramitação (última mov. 08/06/2026) — PARADO HÁ MAIS DE 30 DIAS\nAlvará de Construção — pendente de retorno Seazone/projetista há 33 dias (última mov. 16/07/2026) — PARADO HÁ MAIS DE 30 DIAS\nArquitetônico — Assinatura de documentos em 03/08/2026 (15 dias)\nArte Pública — Comunique-se em 10/08/2026 (8 dias)\nMelhorias Urbanas — aberto em 07/08/2026, sem tramitação há 11 dias'}],
+  '038':[{fonte:'licenc',txt:'Alvará de Construção + Arquitetônico — pendente de retorno da Seazone/projetista há 67 dias\nÚltima movimentação: 12/06/2026 — PARADO HÁ MAIS DE 30 DIAS'}],
+  '040':[{fonte:'licenc',txt:'Arquitetônico — pendente de retorno da Seazone/projetista há 50 dias\nÚltima movimentação: 29/06/2026 — PARADO HÁ MAIS DE 30 DIAS'}],
+  '037':[{fonte:'licenc',txt:'Arquitetônico — pendente de retorno da Seazone/projetista há 46 dias\nÚltima movimentação: 03/07/2026 — PARADO HÁ MAIS DE 30 DIAS'}],
+  '021':[{fonte:'licenc',txt:'Arquitetônico — em análise há 32 dias\nÚltima movimentação: 17/07/2026 — PARADO HÁ MAIS DE 30 DIAS'}],
+  '041':[{fonte:'licenc',txt:'Arquitetônico — pendente de retorno da Seazone/projetista há 32 dias (última mov. 17/07/2026) — PARADO HÁ MAIS DE 30 DIAS\nConsulta de Resíduos Sólidos — Comunique-se em 10/08/2026 (8 dias)'}],
+  '012':[{fonte:'licenc',txt:'Alvará de Construção + Arquitetônico — Notificação Ambiental Nº 056/2026 em 30/07/2026\nPendente de retorno da Seazone/projetista há 19 dias'}],
+  '043':[{fonte:'licenc',txt:'Arquitetônico — Analisar processo (SMPHDU/SDU/DILU/SAP) em 31/07/2026\nEm análise há 18 dias'}],
+  '031':[{fonte:'licenc',txt:'Arquitetônico — Comunique-se em 28/07/2026\nPendente de retorno da Seazone/projetista há 21 dias'}],
+  '044':[{fonte:'licenc',txt:'Consulta de Resíduos Sólidos — Comunique-se em 10/08/2026 (8 dias)'}],
+};
 
 // FUP seed data
 const FUP_SEED=[];
@@ -2039,11 +2056,13 @@ function renderDetail(emp){
           ${ias.length?`<div class="cx-badge-count">${ias.length}</div>`:''}
         </div>
         <div class="cx-body">
-          ${ias.length?ias.map(ia=>`
-            <div class="ia-item-new ${ia.fonte}">
-              <div class="ia-item-tag"><span class="ia-fonte ${ia.fonte}">${ia.fonte==='reuniao'?'Reunião FUP':'WhatsApp'}</span></div>
-              <div class="ia-text">${esc(ia.txt)}</div>
-            </div>`).join('')
+          ${ias.length?ias.map(ia=>{
+            const iaFonteLabel=ia.fonte==='reuniao'?'Reunião FUP':ia.fonte==='licenc'?'Licenciamento':'WhatsApp';
+            const iaBullets=ia.txt.split('\n').filter(function(l){return l.trim();}).map(function(l){return`<div class="fup-bullet"><div class="fup-bullet-dot" style="background:${ia.fonte==='licenc'?'#EA580C':'var(--primary)'}"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;}).join('');
+            return`<div class="ia-item-new ${ia.fonte}">
+              <div class="ia-item-tag"><span class="ia-fonte ${ia.fonte}">${iaFonteLabel}</span></div>
+              <div class="ia-text">${iaBullets||esc(ia.txt)}</div>
+            </div>`;}).join('')
           :`<div style="font-size:12px;color:var(--muted-fg);padding:4px 0">Nenhuma atualização registrada nesta semana.</div>`}
         </div>
       </div>
@@ -2399,11 +2418,11 @@ function renderHistCards(){
 
   const iaCards=iaEntries.length?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);display:flex;flex-direction:column;gap:10px">${iaEntries.map(function(ia){
     const empLabel=!histSelId?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg);margin-left:auto">${esc(ia.empNome)}</span>`:'';
-    const fonteLabel=ia.fonte==='reuniao'?'Reunião FUP':'WhatsApp';
+    const fonteLabel=ia.fonte==='reuniao'?'Reunião FUP':ia.fonte==='licenc'?'Licenciamento':'WhatsApp';
     const fonteBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,#7C3AED 12%,transparent);color:#7C3AED">${esc(fonteLabel)}</span>`;
     const iaBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,#7C3AED 18%,transparent);color:#7C3AED">IA</span>`;
-    const bullets=ia.txt.split(/[.\n]/).filter(function(l){return l.trim().length>10;}).map(function(l){
-      return`<div class="fup-bullet"><div class="fup-bullet-dot" style="background:#7C3AED"></div><span>${esc(l.trim())}</span></div>`;
+    const bullets=ia.txt.split('\n').filter(function(l){return l.trim();}).map(function(l){
+      return`<div class="fup-bullet"><div class="fup-bullet-dot" style="background:#7C3AED"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;
     }).join('');
     return`<div class="fup-card" style="border-left:3px solid #7C3AED22">
       <div class="fup-card-top">
