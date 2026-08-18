@@ -1729,6 +1729,30 @@ function loadData(){
     saveData();
     localStorage.setItem(SK_FUP_ENTREGA,'1');
   }
+  // Seed Prévia FUP 18/08/2026
+  const SK_FUP_PREVIA='pmo-fup-seed-previa-2026-08-18-v1';
+  if(!localStorage.getItem(SK_FUP_PREVIA)){
+    const FUP_PREVIA=[
+      {empId:'014',hist:'• Projeto executivo com nova data para 30/09, e orçamento executivo 30/11.\n• STD em 20/08 com repactuação de datas.\n• Placa de obra pendente de licença e instalação.'},
+      {empId:'012',hist:'• Licença Ambiental - O Plano A previa licença para supressão da área sem compensação (2.400m²). Por conta da morosidade da aprovação junto ao INEMA, optou-se pelo Plano B. O Plano B é compra de terreno com área semelhante e custo de 50mil. A proposta foi apresentada ao INEMA, e o analista aprovando será formalizada a aquisição. O retorno do analista está previsto para 21/08, ou 28/08 caso necessidade de visita presencial do INEMA.\n• Licença Ambiental e Projeto Arq - recebido dois comunique-se com retorno até 19/08, previsto retornar em 18/08. No caso da Licença Ambiental são documentos apresentados ao INEMA. No caso do Projeto Arq ajustes em áreas comuns, sem impacto em unidades.'},
+      {empId:'042',hist:'• O alvará de demolição está em emissão, em pagamento de taxa em 17/08.'},
+      {empId:'039',hist:'• Autorização de corte em emissão.'},
+      {empId:'031',hist:'• Comunicado sobre o impacto nas varandas no comunique-se da prefeitura, e na alteração atual. Protocolo previsto para 21/08.\n• Licença Ambiental - seguirá o processo simplificado, com data a confirmar. Projeto de ETE e valor considerado, avaliar a construção no inicio ou final da obra.'},
+      {empId:'036',hist:'• Novo protocolo da prefeitura previsto para 28/08, impacto nas vagas de veículos de algumas unidades.\n• Confirmar sobre o fechamento da área pós-habite-se.'},
+      {empId:'027',hist:'• Licença Ambiental seguirá o processo simplificado, com data a confirmar. Projeto de ETE e valor considerado, avaliar a construção no inicio ou final da obra.'},
+      {empId:'030',hist:'• Cartório com previsão de retorno 28/08, já protocolado.'},
+      {empId:'034',hist:'• Avançou na prefeitura a regularização do terreno, o próximo passo é no cartório.'},
+      {empId:'035',hist:'• Haverá reuniões para destravar o Alvará. Previsto até 28/08 o Alvará de Construção e até 11/09 a versão assinada.'},
+      {empId:'018',hist:'• O Licenciamento Ambiental está com divergência de entendimento dentro da Floram, pela área técnica e jurídica. O setor jurídico emitiu um parecer tomado como inconclusivo pelo setor técnico, pois a área está dentro da faixa de 300 metros de restinga, mesmo estabelecendo que só há restrição efetiva quando existe restinga fixadora de dunas comprovada, não pela simples proximidade da faixa de 300 metros.\n• Temos um parecer favorável já obtido para outro terreno na mesma região como precedente direto, que serve de argumento de apoio, mas cada empreendimento precisa de uma análise individual.\n• Próximo passo: contato presencial com a presidência do órgão ambiental para cobrar diretriz clara e destravar o processo, reforçando laudo técnico de ausência de restinga e precedente favorável em empreendimento vizinho. Na sexta-feira 21/08, reunião marcada com a analista jurídica que emitiu o primeiro parecer.\n• Além disso, está em processo de retificação de terreno pelo Dr. Marcelo.'},
+      {empId:'022',hist:'• O Licenciamento Ambiental está com divergência de entendimento dentro da Floram, pela área técnica e jurídica. O setor jurídico emitiu um parecer tomado como inconclusivo pelo setor técnico, pois a área está dentro da faixa de 300 metros de restinga, mesmo estabelecendo que só há restrição efetiva quando existe restinga fixadora de dunas comprovada, não pela simples proximidade da faixa de 300 metros.\n• Temos um parecer favorável já obtido para outro terreno na mesma região como precedente direto, que serve de argumento de apoio, mas cada empreendimento precisa de uma análise individual.\n• Próximo passo: contato presencial com a presidência do órgão ambiental para cobrar diretriz clara e destravar o processo, reforçando laudo técnico de ausência de restinga e precedente favorável em empreendimento vizinho. Na sexta-feira 21/08, reunião marcada com a analista jurídica que emitiu o primeiro parecer.\n• Além disso, está em processo de retificação de terreno pelo Dr. Marcelo.'},
+      {empId:'026',hist:'• O Licenciamento Ambiental está com divergência de entendimento dentro da Floram, pela área técnica e jurídica. O setor jurídico emitiu um parecer tomado como inconclusivo pelo setor técnico, pois a área está dentro da faixa de 300 metros de restinga, mesmo estabelecendo que só há restrição efetiva quando existe restinga fixadora de dunas comprovada, não pela simples proximidade da faixa de 300 metros.\n• Temos um parecer favorável já obtido para outro terreno na mesma região como precedente direto, que serve de argumento de apoio, mas cada empreendimento precisa de uma análise individual.\n• Próximo passo: contato presencial com a presidência do órgão ambiental para cobrar diretriz clara e destravar o processo, reforçando laudo técnico de ausência de restinga e precedente favorável em empreendimento vizinho. Na sexta-feira 21/08, reunião marcada com a analista jurídica que emitiu o primeiro parecer.\n• Além disso, está em processo de retificação de terreno pelo Dr. Marcelo.'},
+    ];
+    FUP_PREVIA.forEach(function(e){
+      S.fup.push({id:Date.now()+Math.random(),empId:e.empId,data:'2026-08-18',tipo:'previa',resp:'PMO',hist:e.hist});
+    });
+    saveData();
+    localStorage.setItem(SK_FUP_PREVIA,'1');
+  }
 }
 function saveData(){localStorage.setItem(SK,JSON.stringify(S));}
 
@@ -2127,8 +2151,9 @@ function renderDetail(emp){
       <div class="fup-body">
         ${fupsEmp.length?fupsEmp.map(f=>{
           const isPainelPmo=f.tipo==='painel-pmo';
-          const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':(f.tipo||'—');
-          const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
+          const isPrevia=f.tipo==='previa';
+          const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':isPrevia?'Prévia FUP':(f.tipo||'—');
+          const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':isPrevia?'#B45309':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
           const tipoBg=isPainelPmo?'#FEF3C7':'';
           const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:${tipoBg||`color-mix(in srgb,${tipoColor} 12%,transparent)`};color:${tipoColor}">${esc(tipoTxt)}</span>`;
           const delBtnP=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
@@ -2351,8 +2376,9 @@ function renderHistCards(){
   const fupCards=fupsF.map(function(f){
     const emp=EMPS_RAW.find(function(e){return e.id===f.empId;});
     const isPainelPmo=f.tipo==='painel-pmo';
-    const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':(f.tipo||'—');
-    const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
+    const isPrevia=f.tipo==='previa';
+    const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':isPrevia?'Prévia FUP':(f.tipo||'—');
+    const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':isPrevia?'#B45309':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
     const tipoBg=isPainelPmo?'#FEF3C7':'';
     const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:${tipoBg||`color-mix(in srgb,${tipoColor} 12%,transparent)`};color:${tipoColor}">${esc(tipoTxt)}</span>`;
     const histTxt=f.hist||f.disc||'';
