@@ -1949,6 +1949,14 @@ function renderDetail(emp){
   const atrasoDias=atraso(emp);
   const fa=calcFarolAtraso(emp),fi=calcFarolIA(emp),fc=calcFarolCapital(emp);
   function fdot(f,name){const c=f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';return`<div class="farol-dot-item"><div class="farol-dot-circle" style="background:${c};box-shadow:0 0 7px ${c}55"></div><div class="farol-dot-name">${name}</div></div>`;};
+  function renderIAItem(ia){
+    var lbl=ia.fonte==='reuniao'?'Reunião FUP':ia.fonte==='licenc'?'Licenciamento':'WhatsApp';
+    var dotColor=ia.fonte==='licenc'?'#EA580C':'var(--primary)';
+    var bullets=ia.txt.split('\n').filter(function(l){return l.trim();}).map(function(l){
+      return '<div class="fup-bullet"><div class="fup-bullet-dot" style="background:'+dotColor+'"></div><span>'+esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))+'</span></div>';
+    }).join('');
+    return '<div class="ia-item-new '+ia.fonte+'"><div class="ia-item-tag"><span class="ia-fonte '+ia.fonte+'">'+lbl+'</span></div><div class="ia-text">'+(bullets||esc(ia.txt))+'</div></div>';
+  }
 
   return`
   <div class="detail-page">
@@ -2056,13 +2064,7 @@ function renderDetail(emp){
           ${ias.length?`<div class="cx-badge-count">${ias.length}</div>`:''}
         </div>
         <div class="cx-body">
-          ${ias.length?ias.map(ia=>{
-            const iaFonteLabel=ia.fonte==='reuniao'?'Reunião FUP':ia.fonte==='licenc'?'Licenciamento':'WhatsApp';
-            const iaBullets=ia.txt.split('\n').filter(function(l){return l.trim();}).map(function(l){return`<div class="fup-bullet"><div class="fup-bullet-dot" style="background:${ia.fonte==='licenc'?'#EA580C':'var(--primary)'}"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;}).join('');
-            return`<div class="ia-item-new ${ia.fonte}">
-              <div class="ia-item-tag"><span class="ia-fonte ${ia.fonte}">${iaFonteLabel}</span></div>
-              <div class="ia-text">${iaBullets||esc(ia.txt)}</div>
-            </div>`;}).join('')
+          ${ias.length?ias.map(renderIAItem).join('')
           :`<div style="font-size:12px;color:var(--muted-fg);padding:4px 0">Nenhuma atualização registrada nesta semana.</div>`}
         </div>
       </div>
