@@ -2231,11 +2231,7 @@ function calcFarolAtraso(emp){
 }
 function calcFarolIA(emp){
   const ias=IA_UPD[emp.id]||[];
-  const txt=ias.map(function(ia){return ia.txt.toLowerCase();}).join(' ');
-  if(!txt)return'g';
-  if(WORDS_RED.some(function(k){return txt.includes(k);}))return'r';
-  if(WORDS_AMB.some(function(k){return txt.includes(k);}))return'a';
-  return'g';
+  return ias.length?'r':'g';
 }
 function calcFarolCapital(emp){
   const cap=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
