@@ -2247,7 +2247,8 @@ function renderFarol(){
       score:calcScore(e),
       _fa:fa,_fi:fi,_fc:fc,
       _sortKey:farolPri(fa)*16+farolPri(fi)*4+farolPri(fc),
-      _marcoAt:(marcoAtual(e)||{atraso:0}).atraso
+      _marcoAt:(marcoAtual(e)||{atraso:0}).atraso,
+      _deltaFarol:function(){var mas=marcosAtivos(e);if(!mas.length)return null;var mx=null;mas.forEach(function(ma){var dt=ma.dates.dt||null;var rf=ma.dates.dr||ma.dates.dl||null;if(dt&&rf){var d2=Math.round((new Date(dt)-new Date(rf))/86400000);if(mx===null||d2>mx)mx=d2;}});return mx;}()
     });
   }).sort(function(a,b){return b._sortKey-a._sortKey||b._marcoAt-a._marcoAt;});
   if(farolSort.col){
@@ -2259,7 +2260,7 @@ function renderFarol(){
       if(farolSort.col==='dt'){const da=marcoAtualDates(a).dt||'',db=marcoAtualDates(b).dt||'';return d*(da<db?-1:da>db?1:0);}
       if(farolSort.col==='dl'){const da=marcoAtualDates(a).dl||'',db=marcoAtualDates(b).dl||'';return d*(da<db?-1:da>db?1:0);}
       if(farolSort.col==='dr'){const da=marcoAtualDates(a).dr||'',db=marcoAtualDates(b).dr||'';return d*(da<db?-1:da>db?1:0);}
-      if(farolSort.col==='delta')return d*(a._marcoAt-b._marcoAt);
+      if(farolSort.col==='delta'){var nv=d===1?9999:-9999;var da2=a._deltaFarol===null?nv:a._deltaFarol,db2=b._deltaFarol===null?nv:b._deltaFarol;return d*(da2-db2);}
       return 0;
     });
   }
