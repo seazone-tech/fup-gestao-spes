@@ -494,7 +494,39 @@ const MARCOS_SEQ=[
 ];
 
 // ─── Datas reais do Smartsheet (geradas automaticamente) ──────────────────────
-﻿// ─── SMARTSHEET MARCOS (gerado automaticamente) ─────────────────────────────
+﻿// ─── PRÉ-OBRA: SUBMARCOS (Regularização Terreno / Lic. Ambiental / Proj. Arq.) ──
+const PREOBRA_MARCOS={
+  '007':{licAmbiental:{dl:'2024-12-16',dt:null,st:'concluido'},aprovProjArq:{dl:'2025-09-12',dt:'2025-09-12',st:'concluido'}},
+  '012':{aprovProjArq:{dl:'2026-08-31',dt:null,st:'andamento'}},
+  '014':{licAmbiental:{dl:'2024-10-01',dt:'2024-10-01',st:'concluido'},aprovProjArq:{dl:'2025-04-10',dt:'2025-04-10',st:'concluido'},regulTerreno:{dl:'2026-02-05',dt:'2026-02-05',st:'concluido'}},
+  '018':{licAmbiental:{dl:'2026-09-16',dt:null,st:'andamento'},aprovProjArq:{dl:'2025-04-14',dt:'2026-03-12',st:'concluido'},regulTerreno:{dl:'2027-02-22',dt:null,st:'andamento'}},
+  '019':{aprovProjArq:{dl:'2026-06-12',dt:null,st:'andamento'},regulTerreno:{dl:'2025-03-07',dt:'2025-03-07',st:'concluido'},licAmbiental:{dl:'2026-02-13',dt:'2026-02-13',st:'concluido'}},
+  '020':{aprovProjArq:{dl:'2026-04-20',dt:null,st:'andamento'},regulTerreno:{dl:'2025-10-13',dt:'2025-10-13',st:'concluido'}},
+  '021':{licAmbiental:{dl:'2025-08-21',dt:'2026-08-04',st:'concluido'},regulTerreno:{dl:'2026-11-13',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-09-21',dt:null,st:'andamento'}},
+  '022':{licAmbiental:{dl:'2026-11-27',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-06-10',dt:null,st:'concluido'},regulTerreno:{dl:'2026-12-09',dt:null,st:'andamento'}},
+  '025':{aprovProjArq:{dl:'2026-05-01',dt:null,st:'concluido'},licAmbiental:{dl:'2026-12-29',dt:null,st:'concluido'},regulTerreno:{dl:'2025-10-28',dt:'2026-05-12',st:'concluido'}},
+  '026':{licAmbiental:{dl:'2027-02-05',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-05-06',dt:null,st:'concluido'},regulTerreno:{dl:'2025-08-13',dt:null,st:'andamento'}},
+  '027':{licAmbiental:{dl:'2027-11-19',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-07-29',dt:'2026-07-30',st:'concluido'},regulTerreno:{dl:'2025-06-13',dt:null,st:'concluido'}},
+  '028':{licAmbiental:{dl:'2026-07-23',dt:'2026-07-23',st:'concluido'},aprovProjArq:{dl:'2026-07-24',dt:'2025-11-10',st:'concluido'},regulTerreno:{dl:'2025-11-11',dt:null,st:'concluido'}},
+  '029':{licAmbiental:{dl:'2026-05-20',dt:'2026-04-27',st:'concluido'},aprovProjArq:{dl:'2026-02-11',dt:'2026-02-11',st:'concluido'},regulTerreno:{dl:'2025-10-14',dt:'2025-10-14',st:'concluido'}},
+  '030':{aprovProjArq:{dl:'2026-10-30',dt:null,st:'andamento'},regulTerreno:{dl:'2026-08-25',dt:null,st:'andamento'},licAmbiental:{dl:'2026-07-14',dt:'2026-04-29',st:'concluido'}},
+  '031':{licAmbiental:{dl:'2027-10-22',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-07-27',dt:null,st:'andamento'},regulTerreno:{dl:'2026-08-27',dt:null,st:'andamento'}},
+  '032':{licAmbiental:{dl:'2026-03-16',dt:'2026-04-22',st:'concluido'},aprovProjArq:{dl:'2025-12-12',dt:'2025-12-12',st:'concluido'},regulTerreno:{dl:'2026-11-20',dt:null,st:'andamento'}},
+  '033':{licAmbiental:{dl:'2025-09-02',dt:'2025-09-02',st:'concluido'},aprovProjArq:{dl:'2026-06-12',dt:null,st:'concluido'}},
+  '034':{aprovProjArq:{dl:'2026-12-24',dt:null,st:'andamento'},licAmbiental:{dl:'2026-03-09',dt:'2026-03-09',st:'concluido'},regulTerreno:{dl:'2026-10-07',dt:null,st:'andamento'}},
+  '035':{aprovProjArq:{dl:'2026-05-05',dt:'2026-05-05',st:'concluido'},licAmbiental:{dl:'2026-08-14',dt:null,st:'andamento'},regulTerreno:{dl:'2026-09-17',dt:null,st:'nao_iniciado'}},
+  '036':{aprovProjArq:{dl:'2026-09-24',dt:null,st:'andamento'},licAmbiental:{dl:'2027-11-15',dt:null,st:'nao_iniciado'},regulTerreno:{dl:'2026-05-19',dt:null,st:'nao_iniciado'}},
+  '037':{regulTerreno:{dl:'2027-01-01',dt:null,st:'andamento'},licAmbiental:{dl:'2026-09-30',dt:null,st:'nao_iniciado'},aprovProjArq:{dl:'2026-08-27',dt:null,st:'andamento'}},
+  '038':{aprovProjArq:{dl:'2026-12-03',dt:null,st:'andamento'},licAmbiental:{dl:'2026-08-19',dt:null,st:'nao_iniciado'}},
+  '039':{regulTerreno:{dl:'2026-10-27',dt:null,st:'andamento'},licAmbiental:{dl:'2026-04-28',dt:'2026-04-27',st:'concluido'},aprovProjArq:{dl:'2026-01-26',dt:'2026-01-26',st:'concluido'}},
+  '040':{licAmbiental:{dl:'2026-10-29',dt:null,st:'nao_iniciado'},aprovProjArq:{dl:'2026-09-17',dt:null,st:'andamento'},regulTerreno:{dl:'2027-02-17',dt:null,st:'andamento'}},
+  '041':{aprovProjArq:{dl:'2026-11-16',dt:null,st:'nao_iniciado'},licAmbiental:{dl:'2027-04-22',dt:null,st:'andamento'},regulTerreno:{dl:'2026-12-10',dt:null,st:'nao_iniciado'}},
+  '042':{aprovProjArq:{dl:'2025-11-05',dt:'2025-11-05',st:'concluido'},regulTerreno:{dl:'2027-06-22',dt:null,st:'andamento'}},
+  '043':{licAmbiental:{dl:'2026-08-07',dt:null,st:'nao_iniciado'},aprovProjArq:{dl:'2026-11-24',dt:null,st:'andamento'},regulTerreno:{dl:'2026-07-06',dt:null,st:'nao_iniciado'}},
+  '044':{aprovProjArq:{dl:'2026-12-22',dt:null,st:'nao_iniciado'},licAmbiental:{dl:'2027-02-18',dt:null,st:'andamento'}},
+};
+
+// ─── SMARTSHEET MARCOS (gerado automaticamente) ─────────────────────────────
 const SMARTSHEET_MARCOS = {
   '002': {
     1: {dl:'2023-11-01',dt:'2023-09-01',st:'concluido'},
@@ -1573,11 +1605,14 @@ function genMarcosSeq(emp){
   const nkSeq=NEKT_TIMELINES[emp.id]||{};
   return MARCOS_SEQ.map(function(m,i){
     const st=nkSeq[i]?nkSeq[i].st:(sm[i]?sm[i].st:sts[i]);
-    // Sub-marcos: herdam status proporcional ao do pai
+    // Sub-marcos: usa PREOBRA_MARCOS para Alvará (i===1), senão herda do pai
+    const PM_KEYS=['regulTerreno','licAmbiental','aprovProjArq'];
+    const pmEmp=(i===1&&typeof PREOBRA_MARCOS!=='undefined')?PREOBRA_MARCOS[emp.id]||{}:{};
     const subsArr=(m.subs||[]).map(function(s,si){
-      if(st==='concluido')return{nome:s,st:'concluido'};
-      if(st==='andamento')return{nome:s,st:si===0?'andamento':'ainicial'};
-      return{nome:s,st:'ainicial'};
+      if(i===1){const pmSub=pmEmp[PM_KEYS[si]];if(pmSub)return{nome:s,st:pmSub.st||'ainicial',dl:pmSub.dl||null,dt:pmSub.dt||null};}
+      if(st==='concluido')return{nome:s,st:'concluido',dl:null,dt:null};
+      if(st==='andamento')return{nome:s,st:si===0?'andamento':'ainicial',dl:null,dt:null};
+      return{nome:s,st:'ainicial',dl:null,dt:null};
     });
     return{nome:m.nome,st:st,subs:subsArr};
   });
@@ -1939,14 +1974,20 @@ function renderDetail(emp){
                 const spanCount=2;
                 const subRows=(m.subs||[]).map(function(s,si){
                   const sdot=`<div style="width:7px;height:7px;border-radius:50%;background:${s.st==='concluido'?'var(--success)':s.st==='andamento'?'var(--primary)':'var(--border)'};flex-shrink:0"></div>`;
-                  const scolor=s.st==='andamento'?'var(--primary)':s.st==='ainicial'?'var(--muted-fg)':'var(--muted-fg)';
-                  const sopacity=s.st==='ainicial'?.55:1;
+                  const scolor=s.st==='andamento'?'var(--primary)':s.st==='concluido'?'var(--muted-fg)':'var(--muted-fg)';
+                  const sopacity=s.st==='ainicial'||s.st==='nao_iniciado'?.5:1;
+                  const subDl=s.dl?fmtD(s.dl):'—';
+                  const subDt=s.dt?fmtD(s.dt):'—';
+                  const subStLabel=s.st==='concluido'?'✓ ':s.st==='andamento'?'● ':'○ ';
                   return`<tr class="cron-sub-row sub-of-${uid+i}" style="display:none">
-                    <td colspan="${2+spanCount}" style="border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)"><div class="cron-sub-cell" style="padding-left:32px">
+                    <td><div class="cron-sub-cell" style="padding-left:32px">
                       ${sdot}
                       <span style="color:${scolor};opacity:${sopacity};font-size:11px">${esc(s.nome)}</span>
                     </div></td>
-                    ${smCol}
+                    <td class="date-cell" style="font-size:11px;opacity:${sopacity}">${subDl}</td>
+                    <td class="date-cell" style="text-align:center">—</td>
+                    <td class="date-cell" style="font-size:11px;opacity:${sopacity};border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)">${subDt}</td>
+                    <td class="date-cell" style="font-size:11px">—</td>
                   </tr>`;
                 }).join('');
                 return parentRow+subRows;
@@ -2430,7 +2471,7 @@ function renderCronograma(){
       if(cronSort.col==='dl'){return d*((a.dl||'').localeCompare(b.dl||''));}
       if(cronSort.col==='dr'){return d*((a.dr||'').localeCompare(b.dr||''));}
       if(cronSort.col==='dt'){return d*((a.dt||'').localeCompare(b.dt||''));}
-      if(cronSort.col==='delta'){const da=a.delta===null?9999:a.delta,db=b.delta===null?9999:b.delta;return d*(da-db);}
+      if(cronSort.col==='delta'){const nv=d===1?9999:-9999;const da=a.delta===null?nv:a.delta,db=b.delta===null?nv:b.delta;return d*(da-db);}
       return 0;
     });
   } else {
