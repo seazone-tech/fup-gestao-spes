@@ -351,7 +351,7 @@ svg{display:inline-block;vertical-align:middle}
 <div class="overlay" id="modalFup">
   <div class="ov-card">
     <div class="ov-head">
-      <div class="ov-title">Novo Registro FUP</div>
+      <div class="ov-title">Novo Registro Histórico</div>
       <button class="ov-close" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -1687,7 +1687,7 @@ const FUP_SEED=[];
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const SK='pmo-fup-spes-v2';
 const SK_SEED='pmo-fup-seeded-v4';
-let S={fup:[],coment:{},capitalStatus:{}};
+let S={fup:[],coment:{},capitalStatus:{},urgente:{}};
 let farolSort={col:null,dir:1};
 let cronSort={col:null,dir:1};
 let cronFilter='todas';
@@ -1722,6 +1722,8 @@ function loadData(){
   }
   // Migração: enc → hist para registros salvos com campo errado
   if(S.fup){let migEnc=false;S.fup.forEach(function(f){if(f.enc&&!f.hist){f.hist=f.enc;delete f.enc;migEnc=true;}});if(migEnc)saveData();}
+  // Migração: garante campo urgente
+  if(!S.urgente)S.urgente={};
   // Seed histórico FUP Entrega 13/08/2026
   const SK_FUP_ENTREGA='pmo-fup-seed-entrega-2026-08-13-v2';
   // Remove seed v1 (campo enc errado)
@@ -1961,26 +1963,37 @@ function renderCurrentView(){
 function renderPainel(){
   const c=document.getElementById('view-painel');
   const allSorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
-  const filtered=curFaseFiltro==='todos'?allSorted:allSorted.filter(function(e){return e.fase===curFaseFiltro;});
+  const filtered=curFaseFiltro==='todos'?allSorted:curFaseFiltro==='urgente'?allSorted.filter(function(e){return S.urgente&&S.urgente[e.id];}):allSorted.filter(function(e){return e.fase===curFaseFiltro;});
   if(!curEmpId&&filtered.length)curEmpId=filtered[0].id;
   // If current emp not in filtered set, switch to first of filtered
   if(!filtered.find(function(e){return e.id===curEmpId;})&&filtered.length)curEmpId=filtered[0].id;
   const emp=filtered.find(function(e){return e.id===curEmpId;})||filtered[0];
   const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+  const nUrgente=allSorted.filter(e=>S.urgente&&S.urgente[e.id]).length;
   const fasePills=[
-    {v:'todos',l:'Todos',n:allSorted.length},
-    {v:'preobra',l:'Pré-obra',n:allSorted.filter(e=>e.fase==='preobra').length},
-    {v:'obra',l:'Obra',n:allSorted.filter(e=>e.fase==='obra').length},
-    {v:'entrega',l:'Entrega',n:allSorted.filter(e=>e.fase==='entrega').length},
+    {v:'todos',l:'Todos',n:allSorted.length,color:null},
+    {v:'urgente',l:'Urgente',n:nUrgente,color:'#EF4444'},
+    {v:'preobra',l:'Pré-obra',n:allSorted.filter(e=>e.fase==='preobra').length,color:null},
+    {v:'obra',l:'Obra',n:allSorted.filter(e=>e.fase==='obra').length,color:null},
+    {v:'entrega',l:'Entrega',n:allSorted.filter(e=>e.fase==='entrega').length,color:null},
   ].filter(p=>p.v==='todos'||p.n>0);
   const pillsHtml=fasePills.map(p=>{
     const act=p.v===curFaseFiltro;
-    return`<button onclick="setFaseFiltro('${p.v}')" style="padding:3px 10px;border-radius:99px;border:1px solid ${act?'var(--primary)':'var(--border)'};background:${act?'var(--primary)':'transparent'};color:${act?'white':'var(--muted-fg)'};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">${p.l}<span style="margin-left:4px;opacity:0.7">${p.n}</span></button>`;
+    const bg=act?(p.color||'var(--primary)'):'transparent';
+    const border=act?(p.color||'var(--primary)'):'var(--border)';
+    const color=act?'white':(p.color||'var(--muted-fg)');
+    const alertIcon=p.v==='urgente'?`<svg width="9" height="9" viewBox="0 0 24 24" fill="${act?'white':'#EF4444'}" stroke="${act?'white':'#EF4444'}" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13" stroke="white" stroke-width="2.5"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="white" stroke-width="2.5"/></svg> `:'';
+    return`<button onclick="setFaseFiltro('${p.v}')" style="display:flex;align-items:center;gap:3px;padding:3px 10px;border-radius:99px;border:1px solid ${border};background:${bg};color:${color};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">${alertIcon}${p.l}<span style="margin-left:4px;opacity:0.7">${p.n}</span></button>`;
   }).join('');
   const listHtml=filtered.map(function(e){
     const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
     const act=e.id===curEmpId?'pli-active':'';
+    const isUrg=!!(S.urgente&&S.urgente[e.id]);
+    const urgBtn=`<button id="urg-btn-${e.id}" onclick="toggleUrgente('${e.id}');event.stopPropagation()" title="${isUrg?'Remover urgência':'Marcar como urgente'}" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:1px 3px;border-radius:4px;color:${isUrg?'#EF4444':'var(--muted-fg)'};opacity:${isUrg?'1':'0.35'};transition:opacity 120ms,color 120ms" onmouseover="this.style.opacity='1';this.style.color='#EF4444'" onmouseout="this.style.opacity='${isUrg?'1':'0.35'}';this.style.color='${isUrg?'#EF4444':'var(--muted-fg)'}'">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="${isUrg?'#EF4444':'none'}" stroke="${isUrg?'#EF4444':'currentColor'}" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </button>`;
     return`<div class="painel-list-item ${act}" data-id="${e.id}" onclick="goToEmp('${e.id}')">
+      ${urgBtn}
       <span class="pli-nome">${esc(e.nome)}</span>
       <span class="pli-dots">
         <span class="pli-dot" style="background:${dotC(fa)}"></span>
@@ -1989,10 +2002,10 @@ function renderPainel(){
       </span>
     </div>`;
   }).join('');
-  const emptyMsg=filtered.length===0?`<div style="padding:16px;font-size:12px;color:var(--muted-fg);text-align:center">Nenhum empreendimento nesta fase.</div>`:'';
+  const emptyMsg=filtered.length===0?`<div style="padding:16px;font-size:12px;color:var(--muted-fg);text-align:center">Nenhum empreendimento${curFaseFiltro==='urgente'?' marcado como urgente':' nesta fase'}.</div>`:'';
   c.innerHTML=`<div class="painel-split">
     <div style="display:flex;flex-direction:column;gap:0">
-      <div style="padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border)">${pillsHtml}</div>
+      <div id="fase-pills-wrap" style="padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border)">${pillsHtml}</div>
       <div class="painel-list" id="painelList" style="max-height:calc(100vh - 200px)">${listHtml}${emptyMsg}</div>
     </div>
     <div class="painel-detail-wrap" id="painel-detail">${emp?renderDetail(emp):''}</div>
@@ -2002,6 +2015,49 @@ function renderPainel(){
 function setFaseFiltro(fase){
   curFaseFiltro=fase;
   renderPainel();
+}
+
+function toggleUrgente(empId){
+  if(!S.urgente)S.urgente={};
+  if(S.urgente[empId])delete S.urgente[empId];
+  else S.urgente[empId]=true;
+  saveData();
+  // Atualiza ícone em place sem re-render completo
+  const btn=document.getElementById('urg-btn-'+empId);
+  if(btn){
+    const isUrg=!!S.urgente[empId];
+    btn.title=isUrg?'Remover urgência':'Marcar como urgente';
+    btn.style.color=isUrg?'#EF4444':'var(--muted-fg)';
+    btn.style.opacity=isUrg?'1':'0.35';
+    const svg=btn.querySelector('svg');
+    if(svg){
+      svg.setAttribute('fill',isUrg?'#EF4444':'none');
+      svg.setAttribute('stroke',isUrg?'#EF4444':'currentColor');
+    }
+  }
+  // Atualiza pills
+  const pillsWrap=document.getElementById('fase-pills-wrap');
+  if(pillsWrap){
+    const allSorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
+    const nUrg=allSorted.filter(e=>S.urgente&&S.urgente[e.id]).length;
+    const fasePills=[
+      {v:'todos',l:'Todos',n:allSorted.length,color:null},
+      {v:'urgente',l:'Urgente',n:nUrg,color:'#EF4444'},
+      {v:'preobra',l:'Pré-obra',n:allSorted.filter(e=>e.fase==='preobra').length,color:null},
+      {v:'obra',l:'Obra',n:allSorted.filter(e=>e.fase==='obra').length,color:null},
+      {v:'entrega',l:'Entrega',n:allSorted.filter(e=>e.fase==='entrega').length,color:null},
+    ].filter(p=>p.v==='todos'||p.n>0);
+    pillsWrap.innerHTML=fasePills.map(p=>{
+      const act=p.v===curFaseFiltro;
+      const bg=act?(p.color||'var(--primary)'):'transparent';
+      const border=act?(p.color||'var(--primary)'):'var(--border)';
+      const color=act?'white':(p.color||'var(--muted-fg)');
+      const alertIcon=p.v==='urgente'?`<svg width="9" height="9" viewBox="0 0 24 24" fill="${act?'white':'#EF4444'}" stroke="${act?'white':'#EF4444'}" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13" stroke="white" stroke-width="2.5"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="white" stroke-width="2.5"/></svg> `:'';
+      return`<button onclick="setFaseFiltro('${p.v}')" style="display:flex;align-items:center;gap:3px;padding:3px 10px;border-radius:99px;border:1px solid ${border};background:${bg};color:${color};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">${alertIcon}${p.l}<span style="margin-left:4px;opacity:0.7">${p.n}</span></button>`;
+    }).join('');
+  }
+  // Se filtro urgente ativo e acabou de desmarcar, re-renderiza lista
+  if(curFaseFiltro==='urgente')renderPainel();
 }
 
 function goToEmp(id){
@@ -2838,107 +2894,78 @@ function importFromPainelPMO(){
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
-// ─── IA FORMATTER ────────────────────────────────────────────────────────────
-const IA_API_KEY_STORE='pmo-claude-apikey';
-
-function showApiKeyModal(onSave){
-  const existing=document.getElementById('ia-key-modal');
-  if(existing)existing.remove();
-  const m=document.createElement('div');
-  m.id='ia-key-modal';
-  m.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:99999;background:rgba(0,0,0,0.45)';
-  m.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;width:380px;max-width:92vw;box-shadow:0 12px 40px rgba(0,0,0,0.25)">
-    <div style="font-size:14px;font-weight:700;color:var(--card-fg);margin-bottom:6px;display:flex;align-items:center;gap:7px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      Chave de API Anthropic
-    </div>
-    <div style="font-size:11px;color:var(--muted-fg);margin-bottom:14px;line-height:1.5">Acesse <strong>console.anthropic.com → API Keys</strong> para gerar. A chave é salva apenas neste navegador (localStorage).</div>
-    <input id="ia-key-input" type="password" placeholder="sk-ant-api03-…" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--card-fg);font-size:12px;margin-bottom:14px;outline:none">
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button onclick="document.getElementById('ia-key-modal').remove()" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted-fg);font-size:12px;cursor:pointer">Cancelar</button>
-      <button id="ia-key-save-btn" style="padding:7px 16px;border-radius:8px;border:none;background:#6366F1;color:white;font-size:12px;font-weight:700;cursor:pointer">Salvar e formatar</button>
-    </div>
-  </div>`;
-  document.body.appendChild(m);
-  m.addEventListener('click',function(e){if(e.target===m)m.remove();});
-  const inp=document.getElementById('ia-key-input');
-  const existing2=localStorage.getItem(IA_API_KEY_STORE);
-  if(existing2)inp.value=existing2;
-  setTimeout(function(){inp.focus();},60);
-  document.getElementById('ia-key-save-btn').onclick=function(){
-    const key=(inp.value||'').trim();
-    if(!key){inp.style.borderColor='var(--danger)';inp.placeholder='Cole a chave aqui';return;}
-    localStorage.setItem(IA_API_KEY_STORE,key);
-    m.remove();
-    onSave(key);
-  };
-}
-
-async function _runFormatIA(textareaId,apiKey){
-  const ta=document.getElementById(textareaId);
-  const txt=(ta.value||'').trim();
-  const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
-  const btn=document.getElementById(btnId);
-  const origHtml=btn?btn.innerHTML:'';
-  if(btn){btn.disabled=true;btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>&nbsp;Formatando…';}
-  try{
-    const userPrompt=`Você é um assistente de PMO (gestão de projetos imobiliários). Transforme as notas brutas abaixo em um histórico formal, estruturado em bullet points, em português brasileiro.
-
-Regras obrigatórias:
-• Use "• " no início de cada ponto
-• Tom: objetivo, formal e polido — sem gírias
-• Problemas/atrasos: descreva de forma construtiva, focando em próximas ações
-• Máximo 10 bullet points; agrupe informações relacionadas
-• Retorne APENAS os bullet points, sem introdução nem conclusão
-
-Notas:
-${txt}`;
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-allow-browser':'true','content-type':'application/json'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:900,messages:[{role:'user',content:userPrompt}]})
-    });
-    if(!resp.ok){
-      const err=await resp.json().catch(()=>({}));
-      if(resp.status===401){
-        localStorage.removeItem(IA_API_KEY_STORE);
-        showApiKeyModal(function(k){_runFormatIA(textareaId,k);});
-        return;
-      }
-      throw new Error(err.error?.message||'Erro '+resp.status);
-    }
-    const data=await resp.json();
-    const out=(data.content||[])[0]?.text||'';
-    if(out)ta.value=out.trim();
-    else throw new Error('Resposta vazia.');
-  }catch(e){
-    const msg=e.message||'';
-    if(msg.toLowerCase().includes('fetch')||msg.includes('network')||msg.includes('load')){
-      const d=document.createElement('div');
-      d.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e1b4b;color:white;padding:10px 18px;border-radius:10px;font-size:12px;z-index:99999;max-width:360px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.3)';
-      d.textContent='⚠ Não foi possível conectar à API Anthropic. Abra o arquivo .html localmente (não via Artifact).';
-      document.body.appendChild(d);setTimeout(function(){d.remove();},5000);
-    }else{
-      alert('Erro ao formatar: '+msg);
-    }
-  }finally{
-    if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
-  }
-}
-
+// ─── FORMATADOR LOCAL ────────────────────────────────────────────────────────
+// Transforma notas brutas em histórico estruturado em tópicos, sem API externa.
 function formatarComIA(textareaId){
   const ta=document.getElementById(textareaId);
-  const txt=(ta.value||'').trim();
-  if(!txt){
+  const raw=(ta.value||'').trim();
+  if(!raw){
     const d=document.createElement('div');
-    d.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--card-fg);padding:10px 18px;border-radius:10px;font-size:12px;z-index:99999';
+    d.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--card-fg);padding:10px 18px;border-radius:10px;font-size:12px;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.15)';
     d.textContent='Escreva algo no histórico antes de formatar.';
     document.body.appendChild(d);setTimeout(function(){d.remove();},3000);
     return;
   }
-  const apiKey=(localStorage.getItem(IA_API_KEY_STORE)||'').trim();
-  if(!apiKey){showApiKeyModal(function(k){_runFormatIA(textareaId,k);});return;}
-  _runFormatIA(textareaId,apiKey);
+  // Normalização de abreviações/gírias comuns PT-BR PMO
+  const abbr=[
+    [/\bvc\b/gi,'você'],[/\bpq\b/gi,'pois'],[/\bms\b/gi,'mas'],
+    [/\btd\b/gi,'tudo'],[/\bsgr\b/gi,'seguir'],[/\bqdo\b/gi,'quando'],
+    [/\bqto\b/gi,'quanto'],[/\bblz\b/gi,''],[/\bokk\b/gi,''],
+    [/\bok\b/gi,'confirmado'],[/\btbm\b/gi,'também'],
+    [/\bprev\b/gi,'previsto'],[/\bprevisao\b/gi,'previsão'],
+    [/\bprob\b/gi,'problema'],[/\bproblema\b/gi,'pendência a resolver'],
+    [/\batraso\b/gi,'realinhamento de prazo necessário'],
+    [/\bnao\b/gi,'não'],[/\bq\b/gi,'que'],
+  ];
+  let txt=raw;
+  abbr.forEach(function(p){txt=txt.replace(p[0],p[1]);});
+
+  // Divide em linhas (por \n ou por . seguido de maiúscula)
+  const rawLines=txt.split(/\n+/);
+  const lines=[];
+  rawLines.forEach(function(line){
+    line=line.trim();
+    if(!line)return;
+    // Remove marcadores existentes
+    line=line.replace(/^[•\-\*]\s+/,'').replace(/^\d+[\.\)]\s*/,'');
+    // Divide linhas longas em pontos separados por "; " ou " — "
+    if(line.length>180){
+      line.split(/;\s+|—\s+/).forEach(function(part){
+        part=part.trim();
+        if(part.length>5)lines.push(part);
+      });
+    } else {
+      if(line.length>5)lines.push(line);
+    }
+  });
+
+  // Formata cada linha
+  const bullets=lines.slice(0,10).map(function(l){
+    // Capitaliza primeira letra
+    l=l.charAt(0).toUpperCase()+l.slice(1);
+    // Reframing construtivo de linguagem negativa
+    l=l.replace(/não (?:foi|fomos|conseguimos|conseguiu)\s*/gi,'está pendente: ');
+    l=l.replace(/falhou|quebrou|parou de/gi,'requer atenção');
+    l=l.replace(/problema com/gi,'ponto de atenção em');
+    l=l.replace(/atrasado/gi,'com realinhamento de prazo');
+    // Remove duplos espaços
+    l=l.replace(/\s{2,}/g,' ').trim();
+    // Garante ponto final
+    if(l&&!/[.;:!?]$/.test(l))l+='.';
+    return'• '+l;
+  });
+
+  ta.value=bullets.join('\n');
+
+  // Feedback visual
+  const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
+  const btn=document.getElementById(btnId);
+  if(btn){
+    const orig=btn.innerHTML;
+    btn.innerHTML='✓ Formatado';
+    btn.style.background='var(--success)';btn.style.color='white';btn.style.border='none';
+    setTimeout(function(){btn.innerHTML=orig;btn.style.background='';btn.style.color='';btn.style.border='';},1800);
+  }
 }
 
 loadData();
