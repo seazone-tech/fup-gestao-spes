@@ -1771,7 +1771,7 @@ function loadData(){
     saveData();
     localStorage.setItem(SK_FUP_PREVIA,'1');
   }
-  const SK_FUP_PREVIA2='pmo-fup-seed-previa-2026-08-24-v1';
+  const SK_FUP_PREVIA2='pmo-fup-seed-previa-2026-08-24-v2';
   if(!localStorage.getItem(SK_FUP_PREVIA2)){
     const FUP_PREVIA2=[
       {empId:'011',hist:'Reunião de Conselho Fiscal agendada em 27/08 — todos os pontos serão levados\nAGE em 31/08: deliberação para redistribuição do valor do terrenista e locação do terreno ao lado\nAssuntos introduzidos conforme alinhamento prévio com conselho: água, energia e chamada de R$ 500k\nPrévia interna: 25/08'},
@@ -1783,8 +1783,9 @@ function loadData(){
       {empId:'012',hist:'Avanço na compensação pelo INEMA — custo do terreno: R$ 50k\nAlinhar comunicação com investidores'},
       {empId:'020',hist:'Questionamento de investidor (Evandro) sobre repactuação de valores quanto à alteração de área — direcionado ao CSI em 21/08'},
       {empId:'018',hist:'Questionamento dos investidores sobre repactuação de valores quanto à alteração de área e realocação de unidades, após orçamento executivo'},
-      {empId:'014',hist:'Confirmar envio dos relatórios após STD\nPendência: licenciamento da placa de início de obra'},
+      {empId:'014',hist:'Confirmar envio dos relatórios após STD\nPendência: licenciamento da placa de início de obra\nInício de obra confirmado para 31/08\nEntrega dos projetos executivos: 30/08'},
       {empId:'031',hist:'Acompanhar alteração das áreas de varanda para convocação de STD/AGE após aprovação do projeto\nProtocolo arquitetônico previsto: 21/08'},
+      {empId:'023',hist:'Entrega dos projetos executivos prevista para 21/08 — confirmar se ocorreu ou houve realinhamentos'},
     ];
     FUP_PREVIA2.forEach(function(e){
       S.fup.push({id:Date.now()+Math.random(),empId:e.empId,data:'2026-08-24',tipo:'previa',resp:'PMO',hist:e.hist});
