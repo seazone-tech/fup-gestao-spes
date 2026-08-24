@@ -2840,65 +2840,105 @@ function importFromPainelPMO(){
 // ─── INIT ────────────────────────────────────────────────────────────────────
 // ─── IA FORMATTER ────────────────────────────────────────────────────────────
 const IA_API_KEY_STORE='pmo-claude-apikey';
-async function formatarComIA(textareaId){
+
+function showApiKeyModal(onSave){
+  const existing=document.getElementById('ia-key-modal');
+  if(existing)existing.remove();
+  const m=document.createElement('div');
+  m.id='ia-key-modal';
+  m.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:99999;background:rgba(0,0,0,0.45)';
+  m.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;width:380px;max-width:92vw;box-shadow:0 12px 40px rgba(0,0,0,0.25)">
+    <div style="font-size:14px;font-weight:700;color:var(--card-fg);margin-bottom:6px;display:flex;align-items:center;gap:7px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Chave de API Anthropic
+    </div>
+    <div style="font-size:11px;color:var(--muted-fg);margin-bottom:14px;line-height:1.5">Acesse <strong>console.anthropic.com → API Keys</strong> para gerar. A chave é salva apenas neste navegador (localStorage).</div>
+    <input id="ia-key-input" type="password" placeholder="sk-ant-api03-…" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--card-fg);font-size:12px;margin-bottom:14px;outline:none">
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="document.getElementById('ia-key-modal').remove()" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted-fg);font-size:12px;cursor:pointer">Cancelar</button>
+      <button id="ia-key-save-btn" style="padding:7px 16px;border-radius:8px;border:none;background:#6366F1;color:white;font-size:12px;font-weight:700;cursor:pointer">Salvar e formatar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click',function(e){if(e.target===m)m.remove();});
+  const inp=document.getElementById('ia-key-input');
+  const existing2=localStorage.getItem(IA_API_KEY_STORE);
+  if(existing2)inp.value=existing2;
+  setTimeout(function(){inp.focus();},60);
+  document.getElementById('ia-key-save-btn').onclick=function(){
+    const key=(inp.value||'').trim();
+    if(!key){inp.style.borderColor='var(--danger)';inp.placeholder='Cole a chave aqui';return;}
+    localStorage.setItem(IA_API_KEY_STORE,key);
+    m.remove();
+    onSave(key);
+  };
+}
+
+async function _runFormatIA(textareaId,apiKey){
   const ta=document.getElementById(textareaId);
   const txt=(ta.value||'').trim();
-  if(!txt){alert('Escreva algo no histórico antes de formatar.');return;}
-  let apiKey=localStorage.getItem(IA_API_KEY_STORE)||'';
-  if(!apiKey){
-    apiKey=window.prompt('Cole sua chave de API Anthropic (claude.ai/settings → API).\nSerá salva localmente apenas neste navegador:');
-    if(!apiKey)return;
-    localStorage.setItem(IA_API_KEY_STORE,apiKey.trim());
-    apiKey=apiKey.trim();
-  }
-  const btn=document.getElementById(textareaId==='mHist'?'btnIaNovo':'btnIaEdit');
-  const orig=btn?btn.innerHTML:'';
-  if(btn){btn.disabled=true;btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><polyline points="23 4 23 11 16 11"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 11"/></svg> Formatando…';}
+  const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
+  const btn=document.getElementById(btnId);
+  const origHtml=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>&nbsp;Formatando…';}
   try{
-    const prompt=`Você é um assistente de PMO (gestão de projetos imobiliários). Receba as notas brutas de acompanhamento abaixo e transforme em um histórico formal e estruturado em tópicos, em português brasileiro.
+    const userPrompt=`Você é um assistente de PMO (gestão de projetos imobiliários). Transforme as notas brutas abaixo em um histórico formal, estruturado em bullet points, em português brasileiro.
 
-Regras:
-- Formato: lista de bullet points (use "• " no início de cada ponto)
-- Tom: objetivo, formal e polido — sem gírias ou informalidades
-- Problemas ou atrasos: descreva de forma construtiva, focando em próximas ações e encaminhamentos, sem linguagem negativa ou de culpa
-- Máximo: 10 bullet points. Agrupe informações relacionadas no mesmo bullet quando possível.
-- NÃO adicione introdução, conclusão ou comentários fora dos bullets
-- Retorne APENAS os bullet points formatados
+Regras obrigatórias:
+• Use "• " no início de cada ponto
+• Tom: objetivo, formal e polido — sem gírias
+• Problemas/atrasos: descreva de forma construtiva, focando em próximas ações
+• Máximo 10 bullet points; agrupe informações relacionadas
+• Retorne APENAS os bullet points, sem introdução nem conclusão
 
-Notas brutas:
+Notas:
 ${txt}`;
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-allow-browser':'true',
-        'content-type':'application/json'
-      },
-      body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:800,
-        messages:[{role:'user',content:prompt}]
-      })
+      headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-allow-browser':'true','content-type':'application/json'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:900,messages:[{role:'user',content:userPrompt}]})
     });
     if(!resp.ok){
       const err=await resp.json().catch(()=>({}));
-      if(resp.status===401){localStorage.removeItem(IA_API_KEY_STORE);throw new Error('Chave de API inválida. Por favor, tente novamente.');}
-      throw new Error(err.error?.message||`Erro HTTP ${resp.status}`);
+      if(resp.status===401){
+        localStorage.removeItem(IA_API_KEY_STORE);
+        showApiKeyModal(function(k){_runFormatIA(textareaId,k);});
+        return;
+      }
+      throw new Error(err.error?.message||'Erro '+resp.status);
     }
     const data=await resp.json();
-    const formatted=(data.content||[])[0]?.text||'';
-    if(formatted)ta.value=formatted.trim();
-    else throw new Error('Resposta vazia da IA.');
+    const out=(data.content||[])[0]?.text||'';
+    if(out)ta.value=out.trim();
+    else throw new Error('Resposta vazia.');
   }catch(e){
-    if(e.name==='TypeError'&&e.message.includes('fetch')){
-      alert('Não foi possível conectar à API. Se estiver usando o Artifact, abra o arquivo HTML localmente.');
+    const msg=e.message||'';
+    if(msg.toLowerCase().includes('fetch')||msg.includes('network')||msg.includes('load')){
+      const d=document.createElement('div');
+      d.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e1b4b;color:white;padding:10px 18px;border-radius:10px;font-size:12px;z-index:99999;max-width:360px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.3)';
+      d.textContent='⚠ Não foi possível conectar à API Anthropic. Abra o arquivo .html localmente (não via Artifact).';
+      document.body.appendChild(d);setTimeout(function(){d.remove();},5000);
     }else{
-      alert('Erro ao formatar: '+e.message);
+      alert('Erro ao formatar: '+msg);
     }
   }finally{
-    if(btn){btn.disabled=false;btn.innerHTML=orig;}
+    if(btn){btn.disabled=false;btn.innerHTML=origHtml;}
   }
+}
+
+function formatarComIA(textareaId){
+  const ta=document.getElementById(textareaId);
+  const txt=(ta.value||'').trim();
+  if(!txt){
+    const d=document.createElement('div');
+    d.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--card-fg);padding:10px 18px;border-radius:10px;font-size:12px;z-index:99999';
+    d.textContent='Escreva algo no histórico antes de formatar.';
+    document.body.appendChild(d);setTimeout(function(){d.remove();},3000);
+    return;
+  }
+  const apiKey=(localStorage.getItem(IA_API_KEY_STORE)||'').trim();
+  if(!apiKey){showApiKeyModal(function(k){_runFormatIA(textareaId,k);});return;}
+  _runFormatIA(textareaId,apiKey);
 }
 
 loadData();
