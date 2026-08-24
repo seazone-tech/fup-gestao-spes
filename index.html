@@ -340,7 +340,6 @@ svg{display:inline-block;vertical-align:middle}
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             Formatar com IA
           </button>
-          <button onclick="_showKeyModal(function(k){localStorage.setItem(PMO_KEY_STORE,k);})" title="Configurar chave de API" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px;opacity:.5" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         </div>
       </div>
       <textarea id="eHist" class="mi mta" style="min-height:180px" placeholder="Uma linha por ponto…"></textarea>
@@ -370,7 +369,6 @@ svg{display:inline-block;vertical-align:middle}
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             Formatar com IA
           </button>
-          <button onclick="_showKeyModal(function(k){localStorage.setItem(PMO_KEY_STORE,k);})" title="Configurar chave de API" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px;opacity:.5" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         </div>
       </div>
       <textarea id="mHist" class="mi mta" placeholder="Registre o que foi discutido, decisões e encaminhamentos..."></textarea>
@@ -2900,128 +2898,7 @@ function importFromPainelPMO(){
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
-// ─── FORMATADOR IA (Claude API + fallback local) ──────────────────────────────
-const PMO_KEY_STORE='pmo-claude-apikey';
-const PMO_IA_PROMPT=`Você é um redator técnico de PMO imobiliário. Receba as notas brutas abaixo e reescreva como um histórico formal de acompanhamento de SPE (Sociedade de Propósito Específico).
-
-REGRAS OBRIGATÓRIAS:
-1. Formato: lista de bullet points iniciados por "• "
-2. Tom: objetivo, formal e polido — sem gírias, abreviações ou linguagem informal
-3. Corrija todos os erros de ortografia e gramática em português brasileiro
-4. Problemas, atrasos ou pendências: descreva de forma construtiva e propositiva — foco em encaminhamentos, próximas ações e responsáveis, nunca em culpa ou linguagem negativa
-5. Agrupe informações relacionadas no mesmo bullet quando fizer sentido
-6. Máximo 10 bullet points; mínimo o necessário para cobrir todos os pontos
-7. Retorne APENAS os bullet points, sem título, introdução, conclusão ou qualquer texto fora dos bullets`;
-
-function _showKeyModal(onSave){
-  const ex=document.getElementById('pmo-ia-key-modal');
-  if(ex)ex.remove();
-  const m=document.createElement('div');
-  m.id='pmo-ia-key-modal';
-  m.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5)';
-  m.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 26px;width:400px;max-width:94vw;box-shadow:0 16px 48px rgba(0,0,0,.3)">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      <span style="font-size:14px;font-weight:700;color:var(--card-fg)">Configurar Formatação com IA</span>
-    </div>
-    <p style="font-size:11px;color:var(--muted-fg);margin:0 0 14px;line-height:1.6">Cole sua chave de API Anthropic abaixo.<br>Obtenha em <strong>console.anthropic.com → API Keys</strong>.<br>Salva localmente neste navegador — não é enviada a lugar nenhum além da API.</p>
-    <input id="pmo-ia-key-inp" type="password" placeholder="sk-ant-api03-…" autocomplete="off"
-      style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--card-fg);font-size:12px;font-family:monospace;outline:none;margin-bottom:14px">
-    <div style="display:flex;justify-content:flex-end;gap:8px">
-      <button onclick="document.getElementById('pmo-ia-key-modal').remove()" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted-fg);font-size:12px;cursor:pointer">Cancelar</button>
-      <button id="pmo-ia-key-save" style="padding:7px 18px;border-radius:8px;border:none;background:#6366F1;color:#fff;font-size:12px;font-weight:700;cursor:pointer">Salvar e formatar</button>
-    </div>
-  </div>`;
-  document.body.appendChild(m);
-  m.addEventListener('click',function(e){if(e.target===m)m.remove();});
-  const inp=document.getElementById('pmo-ia-key-inp');
-  const saved=localStorage.getItem(PMO_KEY_STORE);
-  if(saved)inp.value=saved;
-  setTimeout(function(){inp.focus();inp.select();},60);
-  document.getElementById('pmo-ia-key-save').onclick=function(){
-    const k=(inp.value||'').trim();
-    if(!k){inp.style.borderColor='var(--danger)';return;}
-    localStorage.setItem(PMO_KEY_STORE,k);
-    m.remove();
-    onSave(k);
-  };
-}
-
-function _setBtnState(textareaId,loading){
-  const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
-  const btn=document.getElementById(btnId);
-  if(!btn)return null;
-  if(loading){
-    btn._orig=btn.innerHTML;
-    btn.disabled=true;
-    btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>&nbsp;Formatando…';
-  }else if(btn._orig){
-    btn.disabled=false;
-    btn.innerHTML=btn._orig;
-  }
-  return btn;
-}
-
-function _showBtnOk(textareaId){
-  const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
-  const btn=document.getElementById(btnId);
-  if(!btn)return;
-  const orig=btn._orig||btn.innerHTML;
-  btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>&nbsp;Formatado';
-  btn.style.background='var(--success)';btn.style.color='white';btn.style.border='none';
-  setTimeout(function(){btn.innerHTML=orig;btn.style.background='';btn.style.color='';btn.style.border='';btn._orig=null;},2000);
-}
-
-async function _callClaudeAPI(textareaId,apiKey){
-  const ta=document.getElementById(textareaId);
-  const raw=(ta.value||'').trim();
-  _setBtnState(textareaId,true);
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-allow-browser':'true',
-        'content-type':'application/json'
-      },
-      body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:1024,
-        messages:[{role:'user',content:PMO_IA_PROMPT+'\n\nNotas:\n'+raw}]
-      })
-    });
-    if(resp.status===401){
-      localStorage.removeItem(PMO_KEY_STORE);
-      _setBtnState(textareaId,false);
-      _showKeyModal(function(k){_callClaudeAPI(textareaId,k);});
-      return;
-    }
-    if(!resp.ok){
-      const err=await resp.json().catch(()=>({}));
-      throw new Error(err.error?.message||'Erro HTTP '+resp.status);
-    }
-    const data=await resp.json();
-    const out=((data.content||[])[0]?.text||'').trim();
-    if(!out)throw new Error('Resposta vazia da API.');
-    ta.value=out;
-    _setBtnState(textareaId,false);
-    _showBtnOk(textareaId);
-  }catch(e){
-    _setBtnState(textareaId,false);
-    const msg=e.message||'';
-    if(msg.includes('fetch')||msg.includes('network')||msg.includes('Failed')||msg.includes('CORS')){
-      // CSP block (Artifact) ou sem rede — usa fallback local
-      _formatarLocal(textareaId);
-      const t=document.createElement('div');
-      t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e1b4b;color:#fff;padding:9px 16px;border-radius:10px;font-size:11px;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.3);max-width:340px;text-align:center';
-      t.textContent='IA indisponível neste contexto — aplicada formatação local. Para IA completa, abra o arquivo .html localmente.';
-      document.body.appendChild(t);setTimeout(function(){t.remove();},5000);
-    }else{
-      alert('Erro ao chamar a IA: '+msg);
-    }
-  }
-}
+// ─── FORMATADOR INTELIGENTE (100% local, sem API) ────────────────────────────
 
 function formatarComIA(textareaId){
   const ta=document.getElementById(textareaId);
@@ -3033,135 +2910,149 @@ function formatarComIA(textareaId){
     document.body.appendChild(t);setTimeout(function(){t.remove();},3000);
     return;
   }
-  const key=(localStorage.getItem(PMO_KEY_STORE)||'').trim();
-  if(!key){_showKeyModal(function(k){_callClaudeAPI(textareaId,k);});return;}
-  _callClaudeAPI(textareaId,key);
-}
 
-// Fallback local — sem API
-function _formatarLocal(textareaId){
-  const ta=document.getElementById(textareaId);
-  const raw=(ta.value||'').trim();
-  if(!raw){
-    const d=document.createElement('div');
-    d.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--card-fg);padding:10px 18px;border-radius:10px;font-size:12px;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.15)';
-    d.textContent='Escreva algo no histórico antes de formatar.';
-    document.body.appendChild(d);setTimeout(function(){d.remove();},3000);
-    return;
-  }
-
-  // ── 1. Abreviações / gírias ──────────────────────────────────────────────
-  const abbr=[
-    [/\bvc\b/gi,'você'],[/\bvcs\b/gi,'vocês'],
-    [/\bpq\b/gi,'pois'],[/\bporq\b/gi,'porque'],[/\bxq\b/gi,'porque'],
-    [/\bms\b/gi,'mas'],[/\bmas sim\b/gi,'porém'],
-    [/\btd\b/gi,'tudo'],[/\btds\b/gi,'todos'],
-    [/\bsgr\b/gi,'seguir'],[/\bsgt\b/gi,'seguinte'],
-    [/\bqdo\b/gi,'quando'],[/\bqndo\b/gi,'quando'],
-    [/\bqto\b/gi,'quanto'],[/\bqts\b/gi,'quantos'],
-    [/\bblz\b/gi,''],[/\bokk\b/gi,'ok'],[/\boks\b/gi,'ok'],
-    [/\btbm\b/gi,'também'],[/\btb\b/gi,'também'],
-    [/\bprev\b/gi,'previsto'],[/\bprevisto\b/gi,'previsto'],
-    [/\bprevisao\b/gi,'previsão'],[/\bprazo\b/gi,'prazo'],
-    [/\bprob\b/gi,'problema'],[/\bprobs\b/gi,'problemas'],
-    [/\bnao\b/gi,'não'],[/\bnão\b/gi,'não'],
-    [/\bq\b/gi,'que'],[/\beh\b/gi,'é'],
+  // ── DICIONÁRIO DE NORMALIZAÇÃO ────────────────────────────────────────────
+  const NORM=[
+    // Abreviações informais
+    [/\bvc\b/gi,'você'],[/\bvcs\b/gi,'vocês'],[/\bpq\b/gi,'pois que'],
+    [/\bporq\b/gi,'porque'],[/\bms\b/gi,'mas'],[/\btd\b/gi,'tudo'],
+    [/\btds\b/gi,'todos'],[/\bsgr\b/gi,'seguir'],[/\bsgt\b/gi,'seguinte'],
+    [/\bqdo\b/gi,'quando'],[/\bqndo\b/gi,'quando'],[/\bqto\b/gi,'quanto'],
+    [/\bblz\b/gi,''],[/\bokk?\b/gi,'confirmado'],[/\btbm\b/gi,'também'],
+    [/\btb\b/gi,'também'],[/\bnao\b/gi,'não'],[/\beh\b/gi,'é'],
     [/\btá\b/gi,'está'],[/\bta\b(?=\s)/gi,'está'],
     [/\bpra\b/gi,'para'],[/\bpras\b/gi,'para as'],
-    [/\bnum\b/gi,'em um'],[/\bnuma\b/gi,'em uma'],
-    [/\baqui\b/gi,'neste ponto'],[/\blá\b/gi,'no empreendimento'],
+    [/\bnum\b(?=\s[^a-z])/gi,'em um'],[/\bnuma\b/gi,'em uma'],
+    [/\bprev\b/gi,'previsto'],[/\bprob\b/gi,'problema'],[/\bprobs\b/gi,'problemas'],
+    // Palavras sem acento (PMO)
+    [/\bgestao\b/gi,'gestão'],[/\borcamento\b/gi,'orçamento'],
+    [/\borcamentaria\b/gi,'orçamentária'],[/\borcamentario\b/gi,'orçamentário'],
     [/\breuniao\b/gi,'reunião'],[/\bconvocacao\b/gi,'convocação'],
     [/\bdeliberacao\b/gi,'deliberação'],[/\baprovacao\b/gi,'aprovação'],
     [/\bexecucao\b/gi,'execução'],[/\bsolucao\b/gi,'solução'],
-    [/\bgestion\b/gi,'gestão'],[/\bgestao\b/gi,'gestão'],
-    [/\bcomissao\b/gi,'comissão'],[/\bprestacao\b/gi,'prestação'],
-    [/\bcomunicacao\b/gi,'comunicação'],[/\bnegociacao\b/gi,'negociação'],
-    [/\bordanamento\b/gi,'orçamento'],[/\borcamento\b/gi,'orçamento'],
-    [/\borcamentaria\b/gi,'orçamentária'],[/\bprovision\b/gi,'provisão'],
-    [/\bindividualizacao\b/gi,'individualização'],[/\bhabite-se\b/gi,'Habite-se'],
-    [/\bvistoria\b/gi,'vistoria'],[/\blicenca\b/gi,'licença'],
-    [/\blicenciamento\b/gi,'licenciamento'],[/\balvara\b/gi,'alvará'],
-    [/\bprojeto\b/gi,'projeto'],[/\bprojects\b/gi,'projetos'],
-    [/\bempreendimento\b/gi,'empreendimento'],[/\binvestidore\b/gi,'investidores'],
-  ];
-  let txt=raw;
-  abbr.forEach(function(p){txt=txt.replace(p[0],p[1]);});
-
-  // ── 2. Erros de ortografia comuns ────────────────────────────────────────
-  const ort=[
-    [/\bnescessário\b/gi,'necessário'],[/\bnecessario\b/gi,'necessário'],
-    [/\bfisico\b/gi,'físico'],[/\bfinanceiro\b/gi,'financeiro'],
-    [/\bconcluido\b/gi,'concluído'],[/\binicio\b/gi,'início'],
-    [/\bprevisão\b/gi,'previsão'],[/\bprazo\b/gi,'prazo'],
-    [/\bcontrato\b/gi,'contrato'],[/\bcontratos\b/gi,'contratos'],
-    [/\bpagamento\b/gi,'pagamento'],[/\bpagamentos\b/gi,'pagamentos'],
-    [/\bavanco\b/gi,'avanço'],[/\bavancos\b/gi,'avanços'],
-    [/\bpendencia\b/gi,'pendência'],[/\bpendencias\b/gi,'pendências'],
-    [/\bencaminhamento\b/gi,'encaminhamento'],[/\bresponsabilidade\b/gi,'responsabilidade'],
-    [/\boporcunidade\b/gi,'oportunidade'],[/\badequacao\b/gi,'adequação'],
+    [/\bnegociacao\b/gi,'negociação'],[/\bcomunicacao\b/gi,'comunicação'],
+    [/\bprestacao\b/gi,'prestação'],[/\bcomissao\b/gi,'comissão'],
     [/\bimplantacao\b/gi,'implantação'],[/\bconstrucao\b/gi,'construção'],
-    [/\bvistoria\b/gi,'vistoria'],[/\bvistoriia\b/gi,'vistoria'],
-    [/\bassembleia\b/gi,'assembleia'],[/\bassamblea\b/gi,'assembleia'],
-    [/\bconvocatória\b/gi,'convocatória'],[/\bdeliberar\b/gi,'deliberar'],
-    [/\borcamentario\b/gi,'orçamentário'],[/\bcontratacao\b/gi,'contratação'],
-    [/\bopartunidade\b/gi,'oportunidade'],[/\bopurtunidade\b/gi,'oportunidade'],
+    [/\bcontratacao\b/gi,'contratação'],[/\bformalizacao\b/gi,'formalização'],
+    [/\bindividualizacao\b/gi,'individualização'],[/\bregularizacao\b/gi,'regularização'],
+    [/\blicenciamento\b/gi,'licenciamento'],[/\blicenca\b/gi,'licença'],
+    [/\balvara\b/gi,'alvará'],[/\bhabite-se\b/gi,'Habite-se'],
+    [/\bvistoria\b/gi,'vistoria'],[/\bassamblea\b/gi,'assembleia'],
+    [/\brepactuacao\b/gi,'repactuação'],[/\binauguracão\b/gi,'inauguração'],
+    [/\bpendencia\b/gi,'pendência'],[/\bpendencias\b/gi,'pendências'],
+    [/\bavanco\b/gi,'avanço'],[/\bavancos\b/gi,'avanços'],
+    [/\bencaminhamento\b/gi,'encaminhamento'],[/\balinhamento\b/gi,'alinhamento'],
+    [/\bconferencia\b/gi,'conferência'],[/\badequacao\b/gi,'adequação'],
+    [/\bnescessario\b/gi,'necessário'],[/\bnecessario\b/gi,'necessário'],
+    [/\bconcluido\b/gi,'concluído'],[/\binicio\b/gi,'início'],
     [/\bentraga\b/gi,'entrega'],[/\bintrega\b/gi,'entrega'],
-    [/\bprojeto\b/gi,'projeto'],[/\bproceder\b/gi,'proceder'],
-    [/\bfinalizado\b/gi,'finalizado'],[/\bfinalizar\b/gi,'finalizar'],
-    [/\bancaminhamento\b/gi,'encaminhamento'],[/\balinhamento\b/gi,'alinhamento'],
-    [/\bconferencia\b/gi,'conferência'],[/\bconferências\b/gi,'conferências'],
-    [/\bdevido\b/gi,'devido'],[/\bdivido\b/gi,'dividido'],
-    [/\bcontratante\b/gi,'contratante'],[/\badministrador\b/gi,'administrador'],
-    [/\bserá\b/gi,'será'],[/\bsera\b/gi,'será'],
-    [/\bpoderá\b/gi,'poderá'],[/\bpodera\b/gi,'poderá'],
-    [/\bdeverá\b/gi,'deverá'],[/\bdevera\b/gi,'deverá'],
-    [/\bterá\b/gi,'terá'],[/\btera\b/gi,'terá'],
-    [/\bestá\b/gi,'está'],[/\besta\b(?=\s[a-z])/gi,'está'],
-    [/\bcronograma\b/gi,'cronograma'],[/\bcronogramas\b/gi,'cronogramas'],
-    [/\brepactuação\b/gi,'repactuação'],[/\brepactuacao\b/gi,'repactuação'],
-    [/\binauguracão\b/gi,'inauguração'],[/\binauguração\b/gi,'inauguração'],
+    [/\bsera\b/gi,'será'],[/\bpodera\b/gi,'poderá'],
+    [/\bdevera\b/gi,'deverá'],[/\btera\b/gi,'terá'],
+    [/\besta\b(?=\s[a-záéíóúãõâêôç])/gi,'está'],
+    [/\bcronograma\b/gi,'cronograma'],[/\boporcunidade\b/gi,'oportunidade'],
+    [/\bopartunidade\b/gi,'oportunidade'],[/\bopurtunidade\b/gi,'oportunidade'],
+    [/\bfisico\b/gi,'físico'],
   ];
-  ort.forEach(function(p){txt=txt.replace(p[0],p[1]);});
 
-  // ── 3. Divide em linhas ──────────────────────────────────────────────────
-  const rawLines=txt.split(/\n+/);
-  const lines=[];
-  rawLines.forEach(function(line){
-    line=line.trim();
+  // ── PADRÕES DE REESCRITA CONTEXTUAL ──────────────────────────────────────
+  // (aplicados após normalização, sobre sentenças individuais)
+  const REWRITE=[
+    // Atraso / prazo
+    [/(?:está?|tá|ficou)\s+atrasad[ao]/gi,'apresenta realinhamento de prazo'],
+    [/\batraso\b/gi,'realinhamento de prazo'],
+    [/\batrasad[ao]s?\b/gi,'com prazo realinhado'],
+    [/prazo\s+(?:venceu|vencido|expirou)/gi,'prazo em revisão'],
+    // Paralisação
+    [/(?:está?|tá|ficou)\s+paralisad[ao]/gi,'encontra-se com andamento suspenso temporariamente'],
+    [/\bparalisad[ao]s?\b/gi,'com andamento suspenso temporariamente'],
+    [/\bparalisação\b/gi,'suspensão temporária do andamento'],
+    // Problema / falha
+    [/(?:houve|teve|tivemos)\s+(?:um\s+)?problema\s+(?:com|no|na|em)/gi,'identificou-se ponto de atenção em'],
+    [/\bproblema\s+(?:com|no|na|em)\b/gi,'ponto de atenção em'],
+    [/\bproblemas?\b(?!\s+resolvid)/gi,'pontos de atenção'],
+    [/\bfalhou\b|\bquebrou\b/gi,'requer atenção técnica'],
+    [/\berro\s+(?:de|no|na)\b/gi,'ajuste necessário em'],
+    [/\berros?\b/gi,'ajuste necessário'],
+    // Pendência negativa
+    [/não\s+(?:foi|fomos|conseguimos|conseguiu|houve)\s+(?:\w+\s+)?(?:concluíd[ao]|finalizado|realizado|feito)/gi,'aguarda conclusão'],
+    [/não\s+(?:foi|fomos|conseguimos|conseguiu)\s+possível/gi,'ainda não foi possível'],
+    [/\bnão\s+(?:foi\s+)?(?:entregue|enviado|assinado|aprovado)\b/gi,'pendente de entrega/aprovação'],
+    // Impasse
+    [/\bimpasse\b/gi,'ponto de negociação em aberto'],
+    [/\bconflito\b/gi,'divergência a ser tratada'],
+    [/\bdiscordância\b/gi,'ponto de alinhamento necessário'],
+    // Positivos / confirmações
+    [/\bconcluído\b|\bfinalizado\b|\brealizado\b/gi,'concluído com êxito'],
+    [/\baprovado\b/gi,'aprovado'],
+    [/\bassinado\b/gi,'formalizado'],
+    [/\bentregue\b/gi,'entregue conforme previsto'],
+  ];
+
+  // ── PREFIXOS CONTEXTUAIS ─────────────────────────────────────────────────
+  // Detecta o "tipo" da sentença e adiciona um prefixo adequado
+  function detectPrefix(s){
+    const sl=s.toLowerCase();
+    if(/\baguarda(ndo)?\b|\bpendente\b|\bpend[eê]ncia\b/.test(sl))return'Pendente: ';
+    if(/\bencaminh(ar|ado|amento)\b|\bresponsável\b|\bprazo\s+para\b/.test(sl))return'Encaminhamento: ';
+    if(/\bdecidiu|deliberou|aprovou|definiu|acordo/.test(sl))return'Deliberação: ';
+    if(/\bpreviist[ao]|previsto|agendad[ao]|data\s+de/.test(sl))return'Previsão: ';
+    if(/\bponto de atenção|requer atenção|ajuste necessário|revisão/.test(sl))return'Atenção: ';
+    if(/\bconcluíd[ao] com êxito|entregue conforme|formalizado|aprovado/.test(sl))return'Concluído: ';
+    if(/\binformad[ao]|comunicad[ao]|notificad[ao]/.test(sl))return'Comunicação: ';
+    if(/\balinhament[ao]|alinhad[ao]|confirmad[ao]/.test(sl))return'Alinhamento: ';
+    return'';
+  }
+
+  // ── PIPELINE ─────────────────────────────────────────────────────────────
+  // 1. Normaliza
+  let txt=raw;
+  NORM.forEach(function(p){txt=txt.replace(p[0],p[1]);});
+  // Remove espaços duplos
+  txt=txt.replace(/\s{2,}/g,' ');
+
+  // 2. Segmenta em sentenças
+  // Divide por: \n, ponto+espaço+maiúscula, ";", " — ", " / "
+  const segs=[];
+  txt.split(/\n+/).forEach(function(line){
+    line=line.trim().replace(/^[•\-\*]\s*/,'').replace(/^\d+[\.\)]\s*/,'');
     if(!line)return;
-    line=line.replace(/^[•\-\*]\s+/,'').replace(/^\d+[\.\)]\s*/,'');
-    if(line.length>180){
-      line.split(/;\s+|—\s+/).forEach(function(part){
-        part=part.trim();
-        if(part.length>5)lines.push(part);
+    // Divide linha longa por padrões internos
+    if(line.length>150){
+      line.split(/(?<=[.;])\s+(?=[A-ZÁÉÍÓÚÃ])|;\s+|—\s+|\s\/\s/).forEach(function(seg){
+        seg=seg.trim();
+        if(seg.length>8)segs.push(seg);
       });
     }else{
-      if(line.length>5)lines.push(line);
+      if(line.length>8)segs.push(line);
     }
   });
 
-  // ── 4. Formata cada bullet ────────────────────────────────────────────────
-  const bullets=lines.slice(0,10).map(function(l){
-    l=l.charAt(0).toUpperCase()+l.slice(1);
-    l=l.replace(/não (?:foi|fomos|conseguimos|conseguiu|houve)\s*/gi,'está pendente: ');
-    l=l.replace(/\bfalhou\b|\bquebrou\b/gi,'requer atenção');
-    l=l.replace(/\bproblema com\b/gi,'ponto de atenção em');
-    l=l.replace(/\batrasado\b/gi,'com realinhamento de prazo');
-    l=l.replace(/\bparalisado\b/gi,'com andamento suspenso temporariamente');
-    l=l.replace(/\s{2,}/g,' ').trim();
-    if(l&&!/[.;:!?]$/.test(l))l+='.';
-    return'• '+l;
+  // 3. Reescreve e monta bullets
+  const bullets=segs.slice(0,10).map(function(s){
+    // Aplica reescrita contextual
+    REWRITE.forEach(function(p){s=s.replace(p[0],p[1]);});
+    // Remove marcadores residuais
+    s=s.replace(/^[•\-\*]\s*/,'').replace(/\s{2,}/g,' ').trim();
+    // Capitaliza
+    s=s.charAt(0).toUpperCase()+s.slice(1);
+    // Detecta prefixo contextual (só adiciona se a sentença não começar já com ele)
+    const pref=detectPrefix(s);
+    if(pref&&!s.startsWith(pref.replace(':','').trim()))s=pref+s.charAt(0).toLowerCase()+s.slice(1);
+    // Ponto final
+    if(!/[.;:!?]$/.test(s))s+='.';
+    return'• '+s;
   });
 
   ta.value=bullets.join('\n');
 
+  // Feedback no botão
   const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
   const btn=document.getElementById(btnId);
   if(btn){
     const orig=btn.innerHTML;
-    btn.innerHTML='✓ Formatado';
+    btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>&nbsp;Formatado';
     btn.style.background='var(--success)';btn.style.color='white';btn.style.border='none';
-    setTimeout(function(){btn.innerHTML=orig;btn.style.background='';btn.style.color='';btn.style.border='';},1800);
+    setTimeout(function(){btn.innerHTML=orig;btn.style.background='';btn.style.color='';btn.style.border='';},2000);
   }
 }
 
