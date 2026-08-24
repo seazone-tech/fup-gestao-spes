@@ -3004,41 +3004,78 @@ function formatarComIA(textareaId){
   }
 
   // ── PIPELINE ─────────────────────────────────────────────────────────────
-  // 1. Normaliza
+
+  // Passo 1 — Normaliza vocabulário
   let txt=raw;
   NORM.forEach(function(p){txt=txt.replace(p[0],p[1]);});
-  // Remove espaços duplos
   txt=txt.replace(/\s{2,}/g,' ');
 
-  // 2. Segmenta em sentenças
-  // Divide por: \n, ponto+espaço+maiúscula, ";", " — ", " / "
+  // Passo 2 — Segmenta em frases brutas
   const segs=[];
   txt.split(/\n+/).forEach(function(line){
     line=line.trim().replace(/^[•\-\*]\s*/,'').replace(/^\d+[\.\)]\s*/,'');
-    if(!line)return;
-    // Divide linha longa por padrões internos
-    if(line.length>150){
-      line.split(/(?<=[.;])\s+(?=[A-ZÁÉÍÓÚÃ])|;\s+|—\s+|\s\/\s/).forEach(function(seg){
+    if(!line||line.length<4)return;
+    // Linha muito longa: divide por separadores internos
+    if(line.length>160){
+      line.split(/(?<=[.;])\s+(?=[A-ZÁÉÍÓÚÃ])|;\s+|—\s+/).forEach(function(seg){
         seg=seg.trim();
-        if(seg.length>8)segs.push(seg);
+        if(seg.length>6)segs.push(seg);
       });
     }else{
-      if(line.length>8)segs.push(line);
+      segs.push(line);
     }
   });
 
-  // 3. Reescreve e monta bullets
-  const bullets=segs.slice(0,10).map(function(s){
-    // Aplica reescrita contextual
+  // Passo 3 — Agrupa por tema (evita um bullet por linha)
+  // Estratégia: mescla segmentos curtos/relacionados com o anterior usando ";"
+  function topicWords(s){
+    // Palavras-chave temáticas (> 5 chars) que definem o assunto
+    return (s.toLowerCase().match(/\b[a-záéíóúãõâêôç]{6,}\b/g)||[]);
+  }
+  function sharesTopic(a,b){
+    const wa=new Set(topicWords(a));
+    return topicWords(b).some(function(w){return wa.has(w);});
+  }
+  // Continuações evidentes (começa com conjunção/pronome que amarra ao anterior)
+  const CONTIN=/^(e |também |além |inclusive |bem como |sendo |nesse |neste |nisso |o que |que |com isso|assim |ainda |após |antes |durante |porém |contudo |pois |já que |onde |logo |desse modo)/i;
+  // Verbo principal → sentença autônoma, não mescla com próxima a menos que curta
+  const HAS_VERB=/\b(está|estão|foi|foram|será|serão|ficou|têm|tem|deve|deve[mr]|pode[mr]|precisa[mr]|aguarda|pendente|confirmado|aprovado|definido|realizado|concluído|encaminhado|informado|apresenta|requer|encontra-se|previsto|agendado|deliberado|acordado|definiu|aprovaram|decidiram|informaram)\b/i;
+
+  const grouped=[];
+  let acc=segs[0]||'';
+  for(let i=1;i<segs.length;i++){
+    const next=segs[i];
+    const aLen=acc.length, nLen=next.length, combined=aLen+nLen;
+    const isCont=CONTIN.test(next);
+    // Segmento muito curto SEM verbo próprio: quase sempre detalhe do anterior
+    const nextFragment=nLen<55&&!HAS_VERB.test(next);
+    // Ambos curtos e compartilham palavra-tema: mesmo assunto
+    const sameTheme=aLen<90&&nLen<90&&sharesTopic(acc,next);
+    // Não mescla se resultado ficaria muito longo ou se ambos têm verbos próprios e são longos
+    const tooLong=combined>220;
+    const bothLongAutonomous=aLen>90&&nLen>90&&HAS_VERB.test(acc)&&HAS_VERB.test(next);
+
+    if(!tooLong&&!bothLongAutonomous&&(isCont||nextFragment||sameTheme)){
+      const nl=next.charAt(0).toLowerCase()+next.slice(1);
+      const sep=/[;:,]$/.test(acc.trim())?' ':'; ';
+      acc=acc+sep+nl;
+    }else{
+      if(acc.trim())grouped.push(acc.trim());
+      acc=next;
+    }
+  }
+  if(acc.trim())grouped.push(acc.trim());
+
+  // Passo 4 — Reescrita construtiva + prefixo contextual
+  const bullets=grouped.slice(0,10).map(function(s){
     REWRITE.forEach(function(p){s=s.replace(p[0],p[1]);});
-    // Remove marcadores residuais
     s=s.replace(/^[•\-\*]\s*/,'').replace(/\s{2,}/g,' ').trim();
-    // Capitaliza
     s=s.charAt(0).toUpperCase()+s.slice(1);
-    // Detecta prefixo contextual (só adiciona se a sentença não começar já com ele)
     const pref=detectPrefix(s);
-    if(pref&&!s.startsWith(pref.replace(':','').trim()))s=pref+s.charAt(0).toLowerCase()+s.slice(1);
-    // Ponto final
+    const prefBase=pref.replace(/:\s*$/,'').trim();
+    if(pref&&!new RegExp('^'+prefBase,'i').test(s)){
+      s=pref+s.charAt(0).toLowerCase()+s.slice(1);
+    }
     if(!/[.;:!?]$/.test(s))s+='.';
     return'• '+s;
   });
