@@ -1160,11 +1160,11 @@ const NEKT_TIMELINES = {
     10: {dl:'2027-05-01',dt:null,st:'ainicial'},
   },
   '014': {
-    0: {dl:'2023-08-01',dt:null,st:'ainicial'},
+    0: {dl:'2023-08-01',dt:'2023-08-30',st:'concluido'},
     1: {dl:'2024-10-01',dt:'2026-07-23',st:'concluido'},
     2: {dl:'2024-11-01',dt:'2026-08-31',st:'ainicial'},
-    3: {dl:'2024-09-01',dt:'2026-08-30',st:'ainicial'},
-    4: {dl:'2024-10-01',dt:'2026-10-30',st:'ainicial'},
+    3: {dl:'2024-09-01',dt:'2026-10-20',st:'concluido'},
+    4: {dl:'2024-10-01',dt:'2027-01-08',st:'concluido'},
     5: {dl:'2026-11-01',dt:'2028-08-31',st:'ainicial'},
     6: {dl:'2026-12-01',dt:'2028-09-30',st:'ainicial'},
     7: {dl:'2026-12-01',dt:null,st:'ainicial'},
@@ -1677,6 +1677,7 @@ let cronMarcoFilter='';
 let histSelId=null;
 let curView='painel';
 let curEmpId=null;
+let curFaseFiltro='todos';
 
 function loadData(){
   if(!localStorage.getItem(SK_SEED)){
@@ -1940,11 +1941,24 @@ function renderCurrentView(){
 // ─── PAINEL ──────────────────────────────────────────────────────────────────
 function renderPainel(){
   const c=document.getElementById('view-painel');
-  const sorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
-  if(!curEmpId&&sorted.length)curEmpId=sorted[0].id;
-  const emp=EMPS_RAW.find(function(e){return e.id===curEmpId;})||sorted[0];
+  const allSorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
+  const filtered=curFaseFiltro==='todos'?allSorted:allSorted.filter(function(e){return e.fase===curFaseFiltro;});
+  if(!curEmpId&&filtered.length)curEmpId=filtered[0].id;
+  // If current emp not in filtered set, switch to first of filtered
+  if(!filtered.find(function(e){return e.id===curEmpId;})&&filtered.length)curEmpId=filtered[0].id;
+  const emp=filtered.find(function(e){return e.id===curEmpId;})||filtered[0];
   const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
-  const listHtml=sorted.map(function(e){
+  const fasePills=[
+    {v:'todos',l:'Todos',n:allSorted.length},
+    {v:'preobra',l:'Pré-obra',n:allSorted.filter(e=>e.fase==='preobra').length},
+    {v:'obra',l:'Obra',n:allSorted.filter(e=>e.fase==='obra').length},
+    {v:'entrega',l:'Entrega',n:allSorted.filter(e=>e.fase==='entrega').length},
+  ].filter(p=>p.v==='todos'||p.n>0);
+  const pillsHtml=fasePills.map(p=>{
+    const act=p.v===curFaseFiltro;
+    return`<button onclick="setFaseFiltro('${p.v}')" style="padding:3px 10px;border-radius:99px;border:1px solid ${act?'var(--primary)':'var(--border)'};background:${act?'var(--primary)':'transparent'};color:${act?'white':'var(--muted-fg)'};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">${p.l}<span style="margin-left:4px;opacity:0.7">${p.n}</span></button>`;
+  }).join('');
+  const listHtml=filtered.map(function(e){
     const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
     const act=e.id===curEmpId?'pli-active':'';
     return`<div class="painel-list-item ${act}" data-id="${e.id}" onclick="goToEmp('${e.id}')">
@@ -1956,10 +1970,19 @@ function renderPainel(){
       </span>
     </div>`;
   }).join('');
+  const emptyMsg=filtered.length===0?`<div style="padding:16px;font-size:12px;color:var(--muted-fg);text-align:center">Nenhum empreendimento nesta fase.</div>`:'';
   c.innerHTML=`<div class="painel-split">
-    <div class="painel-list" id="painelList">${listHtml}</div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div style="padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border)">${pillsHtml}</div>
+      <div class="painel-list" id="painelList" style="max-height:calc(100vh - 200px)">${listHtml}${emptyMsg}</div>
+    </div>
     <div class="painel-detail-wrap" id="painel-detail">${emp?renderDetail(emp):''}</div>
   </div>`;
+}
+
+function setFaseFiltro(fase){
+  curFaseFiltro=fase;
+  renderPainel();
 }
 
 function goToEmp(id){
@@ -2209,6 +2232,10 @@ function renderDetail(emp){
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Histórico
         </div>
+        <button onclick="openModal()" style="margin-left:auto;display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r-md);border:none;background:var(--primary);color:white;font-size:11px;font-weight:600;cursor:pointer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Registro
+        </button>
       </div>
       <div class="fup-body">
         ${fupsEmp.length?fupsEmp.map(f=>{
