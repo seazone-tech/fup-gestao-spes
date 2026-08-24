@@ -320,6 +320,24 @@ svg{display:inline-block;vertical-align:middle}
 </style>
 
 <!-- MODAL NOVO FUP -->
+<div class="overlay" id="modalEditFup">
+  <div class="ov-card">
+    <div class="ov-head">
+      <div class="ov-title">Editar Registro FUP</div>
+      <button class="ov-close" onclick="closeEditModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="eEmpLabel" style="font-size:12px;color:var(--muted-fg);margin-bottom:8px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="mf"><label>Data</label><input type="date" id="eData" class="mi"></div>
+      <div class="mf"><label>Tipo</label><input type="text" id="eTipo" class="mi" placeholder="gestao, previa, entrega…"></div>
+    </div>
+    <div class="mf"><label>Histórico</label><textarea id="eHist" class="mi mta" style="min-height:180px" placeholder="Uma linha por ponto…"></textarea></div>
+    <div class="ov-footer">
+      <button class="ov-cancel" onclick="closeEditModal()">Cancelar</button>
+      <button class="ov-save" onclick="saveEditFup()">Salvar</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="modalFup">
   <div class="ov-card">
     <div class="ov-head">
@@ -2200,7 +2218,8 @@ function renderDetail(emp){
           const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':isPrevia?'#B45309':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
           const tipoBg=isPainelPmo?'#FEF3C7':'';
           const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:${tipoBg||`color-mix(in srgb,${tipoColor} 12%,transparent)`};color:${tipoColor}">${esc(tipoTxt)}</span>`;
-          const delBtnP=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
+          const editBtnP=`<button onclick="editFup(${f.id})" title="Editar registro" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:13px;line-height:1" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-fg)'">✎</button>`;
+          const delBtnP=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
           const histTxt=f.hist||f.disc||'';
           const bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){
             return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;
@@ -2209,7 +2228,7 @@ function renderDetail(emp){
             <div class="fup-card-top">
               <span class="fup-card-date">${fmtD(f.data)}</span>
               ${tipoBadge}
-              ${delBtnP}
+              ${editBtnP}${delBtnP}
             </div>
             ${bullets?`<div class="fup-card-enc">${bullets}</div>`:''}
           </div>`;
@@ -2428,13 +2447,14 @@ function renderHistCards(){
       return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;
     }).join('');
     const empLabel=!histSelId&&emp?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg)">${esc(emp.nome)}</span>`:'';
-    const delBtn=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
+    const editBtn=`<button onclick="editFup(${f.id})" title="Editar registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:13px;line-height:1" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-fg)'">✎</button>`;
+    const delBtn=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
     return`<div class="fup-card" style="${isPainelPmo?'border-left:3px solid #D97706':''}">
       <div class="fup-card-top">
         <span class="fup-card-date">${fmtD(f.data)}</span>
         ${tipoBadge}
         ${empLabel}
-        ${delBtn}
+        <span style="margin-left:auto;display:flex;gap:2px">${editBtn}${delBtn}</span>
       </div>
       ${bullets?`<div class="fup-card-enc">${bullets}</div>`:''}
     </div>`;
@@ -2640,6 +2660,39 @@ function renderCronograma(){
     }).join(''):`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted-fg);font-size:12px">Nenhum resultado com os filtros selecionados.</td></tr>`}</tbody>
   </table></div>`;
 }
+
+// ─── MODAL EDIÇÃO ────────────────────────────────────────────────────────────
+var editFupId=null;
+function editFup(id){
+  const f=S.fup.find(function(x){return x.id===id;});
+  if(!f)return;
+  editFupId=id;
+  const emp=EMPS_RAW.find(function(e){return e.id===f.empId;});
+  document.getElementById('eEmpLabel').textContent=emp?emp.nome:'';
+  document.getElementById('eData').value=f.data||'';
+  document.getElementById('eTipo').value=f.tipo||'';
+  document.getElementById('eHist').value=f.hist||f.disc||'';
+  document.getElementById('modalEditFup').classList.add('open');
+  setTimeout(function(){document.getElementById('eHist').focus();},80);
+}
+function closeEditModal(){document.getElementById('modalEditFup').classList.remove('open');editFupId=null;}
+function saveEditFup(){
+  if(!editFupId)return;
+  const f=S.fup.find(function(x){return x.id===editFupId;});
+  if(!f){closeEditModal();return;}
+  const newData=document.getElementById('eData').value;
+  const newHist=document.getElementById('eHist').value;
+  const newTipo=document.getElementById('eTipo').value;
+  if(!newHist.trim()){alert('O histórico não pode ficar vazio.');return;}
+  if(newData)f.data=newData;
+  if(newTipo)f.tipo=newTipo;
+  f.hist=newHist;
+  f.disc=newHist;
+  saveData();
+  closeEditModal();
+  renderCurrentView();
+}
+document.getElementById('modalEditFup').addEventListener('click',function(e){if(e.target===this)closeEditModal();});
 
 // ─── MODAL ───────────────────────────────────────────────────────────────────
 function openModal(){document.getElementById('modalFup').classList.add('open');document.getElementById('mData').value=TODAY.toISOString().split('T')[0];if(curEmpId)document.getElementById('mEmp').value=curEmpId;}
