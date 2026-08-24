@@ -335,10 +335,13 @@ svg{display:inline-block;vertical-align:middle}
     <div class="mf">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
         <label style="margin:0">Histórico</label>
-        <button onclick="formatarComIA('eHist')" id="btnIaEdit" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;border:1px solid #6366F1;background:transparent;color:#6366F1;font-size:11px;font-weight:600;cursor:pointer">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Formatar com IA
-        </button>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="formatarComIA('eHist')" id="btnIaEdit" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;border:1px solid #6366F1;background:transparent;color:#6366F1;font-size:11px;font-weight:600;cursor:pointer">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Formatar com IA
+          </button>
+          <button onclick="_showKeyModal(function(k){localStorage.setItem(PMO_KEY_STORE,k);})" title="Configurar chave de API" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px;opacity:.5" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        </div>
       </div>
       <textarea id="eHist" class="mi mta" style="min-height:180px" placeholder="Uma linha por ponto…"></textarea>
     </div>
@@ -362,10 +365,13 @@ svg{display:inline-block;vertical-align:middle}
     <div class="mf">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
         <label style="margin:0">Histórico</label>
-        <button onclick="formatarComIA('mHist')" id="btnIaNovo" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;border:1px solid #6366F1;background:transparent;color:#6366F1;font-size:11px;font-weight:600;cursor:pointer">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Formatar com IA
-        </button>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="formatarComIA('mHist')" id="btnIaNovo" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;border:1px solid #6366F1;background:transparent;color:#6366F1;font-size:11px;font-weight:600;cursor:pointer">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Formatar com IA
+          </button>
+          <button onclick="_showKeyModal(function(k){localStorage.setItem(PMO_KEY_STORE,k);})" title="Configurar chave de API" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px;opacity:.5" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        </div>
       </div>
       <textarea id="mHist" class="mi mta" placeholder="Registre o que foi discutido, decisões e encaminhamentos..."></textarea>
     </div>
@@ -2894,9 +2900,146 @@ function importFromPainelPMO(){
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
-// ─── FORMATADOR LOCAL ────────────────────────────────────────────────────────
-// Formata notas brutas em histórico estruturado e corrige ortografia comum PT-BR.
+// ─── FORMATADOR IA (Claude API + fallback local) ──────────────────────────────
+const PMO_KEY_STORE='pmo-claude-apikey';
+const PMO_IA_PROMPT=`Você é um redator técnico de PMO imobiliário. Receba as notas brutas abaixo e reescreva como um histórico formal de acompanhamento de SPE (Sociedade de Propósito Específico).
+
+REGRAS OBRIGATÓRIAS:
+1. Formato: lista de bullet points iniciados por "• "
+2. Tom: objetivo, formal e polido — sem gírias, abreviações ou linguagem informal
+3. Corrija todos os erros de ortografia e gramática em português brasileiro
+4. Problemas, atrasos ou pendências: descreva de forma construtiva e propositiva — foco em encaminhamentos, próximas ações e responsáveis, nunca em culpa ou linguagem negativa
+5. Agrupe informações relacionadas no mesmo bullet quando fizer sentido
+6. Máximo 10 bullet points; mínimo o necessário para cobrir todos os pontos
+7. Retorne APENAS os bullet points, sem título, introdução, conclusão ou qualquer texto fora dos bullets`;
+
+function _showKeyModal(onSave){
+  const ex=document.getElementById('pmo-ia-key-modal');
+  if(ex)ex.remove();
+  const m=document.createElement('div');
+  m.id='pmo-ia-key-modal';
+  m.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5)';
+  m.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 26px;width:400px;max-width:94vw;box-shadow:0 16px 48px rgba(0,0,0,.3)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span style="font-size:14px;font-weight:700;color:var(--card-fg)">Configurar Formatação com IA</span>
+    </div>
+    <p style="font-size:11px;color:var(--muted-fg);margin:0 0 14px;line-height:1.6">Cole sua chave de API Anthropic abaixo.<br>Obtenha em <strong>console.anthropic.com → API Keys</strong>.<br>Salva localmente neste navegador — não é enviada a lugar nenhum além da API.</p>
+    <input id="pmo-ia-key-inp" type="password" placeholder="sk-ant-api03-…" autocomplete="off"
+      style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--card-fg);font-size:12px;font-family:monospace;outline:none;margin-bottom:14px">
+    <div style="display:flex;justify-content:flex-end;gap:8px">
+      <button onclick="document.getElementById('pmo-ia-key-modal').remove()" style="padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted-fg);font-size:12px;cursor:pointer">Cancelar</button>
+      <button id="pmo-ia-key-save" style="padding:7px 18px;border-radius:8px;border:none;background:#6366F1;color:#fff;font-size:12px;font-weight:700;cursor:pointer">Salvar e formatar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click',function(e){if(e.target===m)m.remove();});
+  const inp=document.getElementById('pmo-ia-key-inp');
+  const saved=localStorage.getItem(PMO_KEY_STORE);
+  if(saved)inp.value=saved;
+  setTimeout(function(){inp.focus();inp.select();},60);
+  document.getElementById('pmo-ia-key-save').onclick=function(){
+    const k=(inp.value||'').trim();
+    if(!k){inp.style.borderColor='var(--danger)';return;}
+    localStorage.setItem(PMO_KEY_STORE,k);
+    m.remove();
+    onSave(k);
+  };
+}
+
+function _setBtnState(textareaId,loading){
+  const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
+  const btn=document.getElementById(btnId);
+  if(!btn)return null;
+  if(loading){
+    btn._orig=btn.innerHTML;
+    btn.disabled=true;
+    btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>&nbsp;Formatando…';
+  }else if(btn._orig){
+    btn.disabled=false;
+    btn.innerHTML=btn._orig;
+  }
+  return btn;
+}
+
+function _showBtnOk(textareaId){
+  const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
+  const btn=document.getElementById(btnId);
+  if(!btn)return;
+  const orig=btn._orig||btn.innerHTML;
+  btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>&nbsp;Formatado';
+  btn.style.background='var(--success)';btn.style.color='white';btn.style.border='none';
+  setTimeout(function(){btn.innerHTML=orig;btn.style.background='';btn.style.color='';btn.style.border='';btn._orig=null;},2000);
+}
+
+async function _callClaudeAPI(textareaId,apiKey){
+  const ta=document.getElementById(textareaId);
+  const raw=(ta.value||'').trim();
+  _setBtnState(textareaId,true);
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-allow-browser':'true',
+        'content-type':'application/json'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:1024,
+        messages:[{role:'user',content:PMO_IA_PROMPT+'\n\nNotas:\n'+raw}]
+      })
+    });
+    if(resp.status===401){
+      localStorage.removeItem(PMO_KEY_STORE);
+      _setBtnState(textareaId,false);
+      _showKeyModal(function(k){_callClaudeAPI(textareaId,k);});
+      return;
+    }
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      throw new Error(err.error?.message||'Erro HTTP '+resp.status);
+    }
+    const data=await resp.json();
+    const out=((data.content||[])[0]?.text||'').trim();
+    if(!out)throw new Error('Resposta vazia da API.');
+    ta.value=out;
+    _setBtnState(textareaId,false);
+    _showBtnOk(textareaId);
+  }catch(e){
+    _setBtnState(textareaId,false);
+    const msg=e.message||'';
+    if(msg.includes('fetch')||msg.includes('network')||msg.includes('Failed')||msg.includes('CORS')){
+      // CSP block (Artifact) ou sem rede — usa fallback local
+      _formatarLocal(textareaId);
+      const t=document.createElement('div');
+      t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e1b4b;color:#fff;padding:9px 16px;border-radius:10px;font-size:11px;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.3);max-width:340px;text-align:center';
+      t.textContent='IA indisponível neste contexto — aplicada formatação local. Para IA completa, abra o arquivo .html localmente.';
+      document.body.appendChild(t);setTimeout(function(){t.remove();},5000);
+    }else{
+      alert('Erro ao chamar a IA: '+msg);
+    }
+  }
+}
+
 function formatarComIA(textareaId){
+  const ta=document.getElementById(textareaId);
+  const raw=(ta.value||'').trim();
+  if(!raw){
+    const t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--card-fg);padding:9px 16px;border-radius:10px;font-size:12px;z-index:99999';
+    t.textContent='Escreva algo no histórico antes de formatar.';
+    document.body.appendChild(t);setTimeout(function(){t.remove();},3000);
+    return;
+  }
+  const key=(localStorage.getItem(PMO_KEY_STORE)||'').trim();
+  if(!key){_showKeyModal(function(k){_callClaudeAPI(textareaId,k);});return;}
+  _callClaudeAPI(textareaId,key);
+}
+
+// Fallback local — sem API
+function _formatarLocal(textareaId){
   const ta=document.getElementById(textareaId);
   const raw=(ta.value||'').trim();
   if(!raw){
