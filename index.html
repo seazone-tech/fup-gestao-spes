@@ -156,6 +156,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .cron-marco-nome.andamento{color:var(--primary);font-weight:700}
 .cron-marco-nome.ainicial{color:var(--muted-fg);opacity:.5}
 @keyframes cdot-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--primary) 30%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--primary) 0%,transparent)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 /* Sub-marcos */
 .cron-sub-row td{padding:4px 14px 4px 42px;border-bottom:none;background:color-mix(in srgb,var(--accent) 60%,var(--card))}
 .cron-sub-row:last-of-type td{border-bottom:1px solid var(--border)}
@@ -331,7 +332,16 @@ svg{display:inline-block;vertical-align:middle}
       <div class="mf"><label>Data</label><input type="date" id="eData" class="mi"></div>
       <div class="mf"><label>Tipo</label><input type="text" id="eTipo" class="mi" placeholder="gestao, previa, entrega…"></div>
     </div>
-    <div class="mf"><label>Histórico</label><textarea id="eHist" class="mi mta" style="min-height:180px" placeholder="Uma linha por ponto…"></textarea></div>
+    <div class="mf">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <label style="margin:0">Histórico</label>
+        <button onclick="formatarComIA('eHist')" id="btnIaEdit" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;border:1px solid #6366F1;background:transparent;color:#6366F1;font-size:11px;font-weight:600;cursor:pointer">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Formatar com IA
+        </button>
+      </div>
+      <textarea id="eHist" class="mi mta" style="min-height:180px" placeholder="Uma linha por ponto…"></textarea>
+    </div>
     <div class="ov-footer">
       <button class="ov-cancel" onclick="closeEditModal()">Cancelar</button>
       <button class="ov-save" onclick="saveEditFup()">Salvar</button>
@@ -349,7 +359,16 @@ svg{display:inline-block;vertical-align:middle}
       <div class="mf"><label>Fonte</label><input type="text" id="mTipo" class="mi" placeholder="Ex: Reunião FUP, WhatsApp, E-mail..."></div>
     </div>
     <div class="mf"><label>Data</label><input type="date" id="mData" class="mi"></div>
-    <div class="mf"><label>Histórico</label><textarea id="mHist" class="mi mta" placeholder="Registre o que foi discutido, decisões e encaminhamentos..."></textarea></div>
+    <div class="mf">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <label style="margin:0">Histórico</label>
+        <button onclick="formatarComIA('mHist')" id="btnIaNovo" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;border:1px solid #6366F1;background:transparent;color:#6366F1;font-size:11px;font-weight:600;cursor:pointer">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Formatar com IA
+        </button>
+      </div>
+      <textarea id="mHist" class="mi mta" placeholder="Registre o que foi discutido, decisões e encaminhamentos..."></textarea>
+    </div>
     <div class="ov-footer">
       <button class="ov-cancel" onclick="closeModal()">Cancelar</button>
       <button class="ov-save" onclick="salvarModal()">Salvar</button>
@@ -2819,6 +2838,69 @@ function importFromPainelPMO(){
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
+// ─── IA FORMATTER ────────────────────────────────────────────────────────────
+const IA_API_KEY_STORE='pmo-claude-apikey';
+async function formatarComIA(textareaId){
+  const ta=document.getElementById(textareaId);
+  const txt=(ta.value||'').trim();
+  if(!txt){alert('Escreva algo no histórico antes de formatar.');return;}
+  let apiKey=localStorage.getItem(IA_API_KEY_STORE)||'';
+  if(!apiKey){
+    apiKey=window.prompt('Cole sua chave de API Anthropic (claude.ai/settings → API).\nSerá salva localmente apenas neste navegador:');
+    if(!apiKey)return;
+    localStorage.setItem(IA_API_KEY_STORE,apiKey.trim());
+    apiKey=apiKey.trim();
+  }
+  const btn=document.getElementById(textareaId==='mHist'?'btnIaNovo':'btnIaEdit');
+  const orig=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><polyline points="23 4 23 11 16 11"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 11"/></svg> Formatando…';}
+  try{
+    const prompt=`Você é um assistente de PMO (gestão de projetos imobiliários). Receba as notas brutas de acompanhamento abaixo e transforme em um histórico formal e estruturado em tópicos, em português brasileiro.
+
+Regras:
+- Formato: lista de bullet points (use "• " no início de cada ponto)
+- Tom: objetivo, formal e polido — sem gírias ou informalidades
+- Problemas ou atrasos: descreva de forma construtiva, focando em próximas ações e encaminhamentos, sem linguagem negativa ou de culpa
+- Máximo: 10 bullet points. Agrupe informações relacionadas no mesmo bullet quando possível.
+- NÃO adicione introdução, conclusão ou comentários fora dos bullets
+- Retorne APENAS os bullet points formatados
+
+Notas brutas:
+${txt}`;
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-allow-browser':'true',
+        'content-type':'application/json'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:800,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      if(resp.status===401){localStorage.removeItem(IA_API_KEY_STORE);throw new Error('Chave de API inválida. Por favor, tente novamente.');}
+      throw new Error(err.error?.message||`Erro HTTP ${resp.status}`);
+    }
+    const data=await resp.json();
+    const formatted=(data.content||[])[0]?.text||'';
+    if(formatted)ta.value=formatted.trim();
+    else throw new Error('Resposta vazia da IA.');
+  }catch(e){
+    if(e.name==='TypeError'&&e.message.includes('fetch')){
+      alert('Não foi possível conectar à API. Se estiver usando o Artifact, abra o arquivo HTML localmente.');
+    }else{
+      alert('Erro ao formatar: '+e.message);
+    }
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML=orig;}
+  }
+}
+
 loadData();
 populateSelect();
 const th=localStorage.getItem('pmo-theme')||'light';
