@@ -2895,7 +2895,7 @@ function importFromPainelPMO(){
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 // ─── FORMATADOR LOCAL ────────────────────────────────────────────────────────
-// Transforma notas brutas em histórico estruturado em tópicos, sem API externa.
+// Formata notas brutas em histórico estruturado e corrige ortografia comum PT-BR.
 function formatarComIA(textareaId){
   const ta=document.getElementById(textareaId);
   const raw=(ta.value||'').trim();
@@ -2906,58 +2906,112 @@ function formatarComIA(textareaId){
     document.body.appendChild(d);setTimeout(function(){d.remove();},3000);
     return;
   }
-  // Normalização de abreviações/gírias comuns PT-BR PMO
+
+  // ── 1. Abreviações / gírias ──────────────────────────────────────────────
   const abbr=[
-    [/\bvc\b/gi,'você'],[/\bpq\b/gi,'pois'],[/\bms\b/gi,'mas'],
-    [/\btd\b/gi,'tudo'],[/\bsgr\b/gi,'seguir'],[/\bqdo\b/gi,'quando'],
-    [/\bqto\b/gi,'quanto'],[/\bblz\b/gi,''],[/\bokk\b/gi,''],
-    [/\bok\b/gi,'confirmado'],[/\btbm\b/gi,'também'],
-    [/\bprev\b/gi,'previsto'],[/\bprevisao\b/gi,'previsão'],
-    [/\bprob\b/gi,'problema'],[/\bproblema\b/gi,'pendência a resolver'],
-    [/\batraso\b/gi,'realinhamento de prazo necessário'],
-    [/\bnao\b/gi,'não'],[/\bq\b/gi,'que'],
+    [/\bvc\b/gi,'você'],[/\bvcs\b/gi,'vocês'],
+    [/\bpq\b/gi,'pois'],[/\bporq\b/gi,'porque'],[/\bxq\b/gi,'porque'],
+    [/\bms\b/gi,'mas'],[/\bmas sim\b/gi,'porém'],
+    [/\btd\b/gi,'tudo'],[/\btds\b/gi,'todos'],
+    [/\bsgr\b/gi,'seguir'],[/\bsgt\b/gi,'seguinte'],
+    [/\bqdo\b/gi,'quando'],[/\bqndo\b/gi,'quando'],
+    [/\bqto\b/gi,'quanto'],[/\bqts\b/gi,'quantos'],
+    [/\bblz\b/gi,''],[/\bokk\b/gi,'ok'],[/\boks\b/gi,'ok'],
+    [/\btbm\b/gi,'também'],[/\btb\b/gi,'também'],
+    [/\bprev\b/gi,'previsto'],[/\bprevisto\b/gi,'previsto'],
+    [/\bprevisao\b/gi,'previsão'],[/\bprazo\b/gi,'prazo'],
+    [/\bprob\b/gi,'problema'],[/\bprobs\b/gi,'problemas'],
+    [/\bnao\b/gi,'não'],[/\bnão\b/gi,'não'],
+    [/\bq\b/gi,'que'],[/\beh\b/gi,'é'],
+    [/\btá\b/gi,'está'],[/\bta\b(?=\s)/gi,'está'],
+    [/\bpra\b/gi,'para'],[/\bpras\b/gi,'para as'],
+    [/\bnum\b/gi,'em um'],[/\bnuma\b/gi,'em uma'],
+    [/\baqui\b/gi,'neste ponto'],[/\blá\b/gi,'no empreendimento'],
+    [/\breuniao\b/gi,'reunião'],[/\bconvocacao\b/gi,'convocação'],
+    [/\bdeliberacao\b/gi,'deliberação'],[/\baprovacao\b/gi,'aprovação'],
+    [/\bexecucao\b/gi,'execução'],[/\bsolucao\b/gi,'solução'],
+    [/\bgestion\b/gi,'gestão'],[/\bgestao\b/gi,'gestão'],
+    [/\bcomissao\b/gi,'comissão'],[/\bprestacao\b/gi,'prestação'],
+    [/\bcomunicacao\b/gi,'comunicação'],[/\bnegociacao\b/gi,'negociação'],
+    [/\bordanamento\b/gi,'orçamento'],[/\borcamento\b/gi,'orçamento'],
+    [/\borcamentaria\b/gi,'orçamentária'],[/\bprovision\b/gi,'provisão'],
+    [/\bindividualizacao\b/gi,'individualização'],[/\bhabite-se\b/gi,'Habite-se'],
+    [/\bvistoria\b/gi,'vistoria'],[/\blicenca\b/gi,'licença'],
+    [/\blicenciamento\b/gi,'licenciamento'],[/\balvara\b/gi,'alvará'],
+    [/\bprojeto\b/gi,'projeto'],[/\bprojects\b/gi,'projetos'],
+    [/\bempreendimento\b/gi,'empreendimento'],[/\binvestidore\b/gi,'investidores'],
   ];
   let txt=raw;
   abbr.forEach(function(p){txt=txt.replace(p[0],p[1]);});
 
-  // Divide em linhas (por \n ou por . seguido de maiúscula)
+  // ── 2. Erros de ortografia comuns ────────────────────────────────────────
+  const ort=[
+    [/\bnescessário\b/gi,'necessário'],[/\bnecessario\b/gi,'necessário'],
+    [/\bfisico\b/gi,'físico'],[/\bfinanceiro\b/gi,'financeiro'],
+    [/\bconcluido\b/gi,'concluído'],[/\binicio\b/gi,'início'],
+    [/\bprevisão\b/gi,'previsão'],[/\bprazo\b/gi,'prazo'],
+    [/\bcontrato\b/gi,'contrato'],[/\bcontratos\b/gi,'contratos'],
+    [/\bpagamento\b/gi,'pagamento'],[/\bpagamentos\b/gi,'pagamentos'],
+    [/\bavanco\b/gi,'avanço'],[/\bavancos\b/gi,'avanços'],
+    [/\bpendencia\b/gi,'pendência'],[/\bpendencias\b/gi,'pendências'],
+    [/\bencaminhamento\b/gi,'encaminhamento'],[/\bresponsabilidade\b/gi,'responsabilidade'],
+    [/\boporcunidade\b/gi,'oportunidade'],[/\badequacao\b/gi,'adequação'],
+    [/\bimplantacao\b/gi,'implantação'],[/\bconstrucao\b/gi,'construção'],
+    [/\bvistoria\b/gi,'vistoria'],[/\bvistoriia\b/gi,'vistoria'],
+    [/\bassembleia\b/gi,'assembleia'],[/\bassamblea\b/gi,'assembleia'],
+    [/\bconvocatória\b/gi,'convocatória'],[/\bdeliberar\b/gi,'deliberar'],
+    [/\borcamentario\b/gi,'orçamentário'],[/\bcontratacao\b/gi,'contratação'],
+    [/\bopartunidade\b/gi,'oportunidade'],[/\bopurtunidade\b/gi,'oportunidade'],
+    [/\bentraga\b/gi,'entrega'],[/\bintrega\b/gi,'entrega'],
+    [/\bprojeto\b/gi,'projeto'],[/\bproceder\b/gi,'proceder'],
+    [/\bfinalizado\b/gi,'finalizado'],[/\bfinalizar\b/gi,'finalizar'],
+    [/\bancaminhamento\b/gi,'encaminhamento'],[/\balinhamento\b/gi,'alinhamento'],
+    [/\bconferencia\b/gi,'conferência'],[/\bconferências\b/gi,'conferências'],
+    [/\bdevido\b/gi,'devido'],[/\bdivido\b/gi,'dividido'],
+    [/\bcontratante\b/gi,'contratante'],[/\badministrador\b/gi,'administrador'],
+    [/\bserá\b/gi,'será'],[/\bsera\b/gi,'será'],
+    [/\bpoderá\b/gi,'poderá'],[/\bpodera\b/gi,'poderá'],
+    [/\bdeverá\b/gi,'deverá'],[/\bdevera\b/gi,'deverá'],
+    [/\bterá\b/gi,'terá'],[/\btera\b/gi,'terá'],
+    [/\bestá\b/gi,'está'],[/\besta\b(?=\s[a-z])/gi,'está'],
+    [/\bcronograma\b/gi,'cronograma'],[/\bcronogramas\b/gi,'cronogramas'],
+    [/\brepactuação\b/gi,'repactuação'],[/\brepactuacao\b/gi,'repactuação'],
+    [/\binauguracão\b/gi,'inauguração'],[/\binauguração\b/gi,'inauguração'],
+  ];
+  ort.forEach(function(p){txt=txt.replace(p[0],p[1]);});
+
+  // ── 3. Divide em linhas ──────────────────────────────────────────────────
   const rawLines=txt.split(/\n+/);
   const lines=[];
   rawLines.forEach(function(line){
     line=line.trim();
     if(!line)return;
-    // Remove marcadores existentes
     line=line.replace(/^[•\-\*]\s+/,'').replace(/^\d+[\.\)]\s*/,'');
-    // Divide linhas longas em pontos separados por "; " ou " — "
     if(line.length>180){
       line.split(/;\s+|—\s+/).forEach(function(part){
         part=part.trim();
         if(part.length>5)lines.push(part);
       });
-    } else {
+    }else{
       if(line.length>5)lines.push(line);
     }
   });
 
-  // Formata cada linha
+  // ── 4. Formata cada bullet ────────────────────────────────────────────────
   const bullets=lines.slice(0,10).map(function(l){
-    // Capitaliza primeira letra
     l=l.charAt(0).toUpperCase()+l.slice(1);
-    // Reframing construtivo de linguagem negativa
-    l=l.replace(/não (?:foi|fomos|conseguimos|conseguiu)\s*/gi,'está pendente: ');
-    l=l.replace(/falhou|quebrou|parou de/gi,'requer atenção');
-    l=l.replace(/problema com/gi,'ponto de atenção em');
-    l=l.replace(/atrasado/gi,'com realinhamento de prazo');
-    // Remove duplos espaços
+    l=l.replace(/não (?:foi|fomos|conseguimos|conseguiu|houve)\s*/gi,'está pendente: ');
+    l=l.replace(/\bfalhou\b|\bquebrou\b/gi,'requer atenção');
+    l=l.replace(/\bproblema com\b/gi,'ponto de atenção em');
+    l=l.replace(/\batrasado\b/gi,'com realinhamento de prazo');
+    l=l.replace(/\bparalisado\b/gi,'com andamento suspenso temporariamente');
     l=l.replace(/\s{2,}/g,' ').trim();
-    // Garante ponto final
     if(l&&!/[.;:!?]$/.test(l))l+='.';
     return'• '+l;
   });
 
   ta.value=bullets.join('\n');
 
-  // Feedback visual
   const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
   const btn=document.getElementById(btnId);
   if(btn){
