@@ -1691,7 +1691,7 @@ const FUP_SEED=[];
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const SK='pmo-fup-spes-v2';
 const SK_SEED='pmo-fup-seeded-v4';
-let S={fup:[],coment:{},capitalStatus:{},urgente:{}};
+let S={fup:[],coment:{},capitalStatus:{},urgente:{},contrato:{}};
 let farolSort={col:null,dir:1};
 let cronSort={col:null,dir:1};
 let cronFilter='todas';
@@ -1726,8 +1726,9 @@ function loadData(){
   }
   // Migração: enc → hist para registros salvos com campo errado
   if(S.fup){let migEnc=false;S.fup.forEach(function(f){if(f.enc&&!f.hist){f.hist=f.enc;delete f.enc;migEnc=true;}});if(migEnc)saveData();}
-  // Migração: garante campo urgente
+  // Migração: garante campos novos
   if(!S.urgente)S.urgente={};
+  if(!S.contrato)S.contrato={};
   // Seed histórico FUP Entrega 13/08/2026
   const SK_FUP_ENTREGA='pmo-fup-seed-entrega-2026-08-13-v2';
   // Remove seed v1 (campo enc errado)
@@ -2064,6 +2065,14 @@ function toggleUrgente(empId){
   if(curFaseFiltro==='urgente')renderPainel();
 }
 
+function setContrato(empId,field,val){
+  if(!S.contrato)S.contrato={};
+  if(!S.contrato[empId])S.contrato[empId]={st:'sem_prev',farol:null};
+  S.contrato[empId][field]=val;
+  saveData();
+  renderPainel();
+}
+
 function goToEmp(id){
   curEmpId=id;
   const sel=document.getElementById('buildingSelect');
@@ -2200,17 +2209,53 @@ function renderDetail(emp){
     <!-- COL DIREITA: IA -->
     <div class="detail-col-right">
       <!-- IA -->
-      <div class="caixinha" style="flex:1">
+      <div class="caixinha" style="flex:none">
         <div class="cx-head">
           <div class="cx-icon cx-icon-ia"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
           <div class="cx-title">IA — Resumo Semanal</div>
           ${ias.length?`<div class="cx-badge-count">${ias.length}</div>`:''}
         </div>
-        <div class="cx-body">
+        <div class="cx-body" style="max-height:200px;overflow-y:auto">
           ${ias.length?ias.map(renderIAItem).join('')
           :`<div style="font-size:12px;color:var(--muted-fg);padding:4px 0">Nenhuma atualização registrada nesta semana.</div>`}
         </div>
       </div>
+      <!-- Contrato Social / Alteração Contratual -->
+      ${(function(){
+        const cs=(S.contrato&&S.contrato[emp.id])||{st:'sem_prev',farol:null};
+        const stOpts=[
+          {v:'sem_prev',l:'Sem previsão'},
+          {v:'prevista',l:'Prevista em contrato'},
+          {v:'andamento',l:'Em andamento'},
+        ];
+        const stColor=cs.st==='andamento'?'var(--primary)':cs.st==='prevista'?'#F59E0B':'var(--muted-fg)';
+        const farols=[
+          {v:'verde',emoji:'🟢',title:'Verde (ACS ok)'},
+          {v:'amarelo',emoji:'🟡',title:'Amarelo (atenção)'},
+          {v:'vermelho',emoji:'🔴',title:'Vermelho (crítico)'},
+        ];
+        const farolLabel=cs.farol==='verde'?'🟢 Verde':cs.farol==='amarelo'?'🟡 Amarelo':cs.farol==='vermelho'?'🔴 Vermelho':null;
+        return`<div class="caixinha" style="flex:none">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,${stColor} 15%,transparent);color:${stColor}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16h16V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div class="cx-title" style="font-size:11px">Contrato Social / Alt. Contratual</div>
+            <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${stColor};flex-shrink:0"></div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px;gap:6px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <select onchange="setContrato('${emp.id}','st',this.value)" style="flex:1;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer">
+                ${stOpts.map(o=>`<option value="${o.v}"${cs.st===o.v?' selected':''}>${o.l}</option>`).join('')}
+              </select>
+              <div style="display:flex;gap:3px;align-items:center;flex-shrink:0;background:var(--accent);border-radius:8px;padding:3px">
+                ${farols.map(f=>`<button onclick="setContrato('${emp.id}','farol','${f.v}')" title="${f.title}" style="border:none;background:${cs.farol===f.v?'var(--card-bg)':'transparent'};border-radius:6px;width:24px;height:24px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:${cs.farol===f.v?'0 1px 3px rgba(0,0,0,.15)':'none'};transition:all .15s">${f.emoji}</button>`).join('')}
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--muted-fg)">${farolLabel?`Farol Gestão ACS: ${farolLabel}`:'Defina o farol do canal Gestão ACS'}</div>
+          </div>
+        </div>`;
+      })()}
       <!-- Chamada de Capital -->
       ${(function(){
         const capVal=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
