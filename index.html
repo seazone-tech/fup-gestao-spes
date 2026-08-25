@@ -320,6 +320,25 @@ svg{display:inline-block;vertical-align:middle}
 .empty{text-align:center;padding:48px 0;color:var(--muted-fg);font-size:13px}
 </style>
 
+<!-- MODAL IMPORTAR DADOS -->
+<div class="overlay" id="modalImport" style="display:none;z-index:3000">
+  <div class="ov-card" style="max-width:520px;width:100%">
+    <div class="ov-head">
+      <div style="font-size:13px;font-weight:700" id="importTitle">Cole o JSON exportado</div>
+      <button onclick="closeModalImport()" class="ov-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="ov-body" style="padding:16px">
+      <p style="font-size:12px;color:var(--muted-fg);margin:0 0 10px">Copie os dados no <strong>Artifact</strong> clicando em <em>Exportar</em>, depois cole aqui no <strong>GitHub Pages</strong> e confirme.</p>
+      <textarea id="importJson" rows="10" placeholder='{"fup":[...],"coment":{...},...}' style="width:100%;font-size:11px;font-family:monospace;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg);resize:vertical;box-sizing:border-box"></textarea>
+      <div id="importCopyHint" style="display:none;margin-top:8px;font-size:11px;color:var(--muted-fg)">Selecione tudo (Ctrl+A) e copie (Ctrl+C), depois cole no destino.</div>
+    </div>
+    <div id="importActions" class="ov-foot" style="display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)">
+      <button onclick="closeModalImport()" style="padding:7px 16px;border-radius:var(--r-md);border:1px solid var(--border);background:transparent;color:var(--fg);font-size:12px;cursor:pointer">Cancelar</button>
+      <button onclick="confirmImport()" style="padding:7px 18px;border-radius:var(--r-md);border:none;background:var(--primary);color:white;font-size:12px;font-weight:700;cursor:pointer">Confirmar importação</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL NOVO FUP -->
 <div class="overlay" id="modalEditFup">
   <div class="ov-card">
@@ -406,10 +425,20 @@ svg{display:inline-block;vertical-align:middle}
   <main class="main">
     <div class="topbar">
       <div class="topbar-path">PMO <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg> <span>FUP — Gestão de SPEs</span></div>
-      <button class="theme-btn" onclick="toggleTheme()">
-        <svg id="themeIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <span id="themeLabel">Dark</span>
-      </button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="exportarDados()" title="Exportar todos os dados para colar em outra instância" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--accent);color:var(--muted-fg);font-size:11px;font-weight:600;cursor:pointer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Exportar
+        </button>
+        <button onclick="importarDados()" title="Importar dados copiados de outra instância" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--accent);color:var(--muted-fg);font-size:11px;font-weight:600;cursor:pointer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 16 12 21 17 16"/><line x1="12" y1="21" x2="12" y2="9"/></svg>
+          Importar
+        </button>
+        <button class="theme-btn" onclick="toggleTheme()">
+          <svg id="themeIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
     </div>
 
     <div class="content">
@@ -1908,6 +1937,49 @@ function fmtD(d){
   return`${dy}/${m}/${y}`;
 }
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ─── EXPORTAR / IMPORTAR ─────────────────────────────────────────────────────
+function exportarDados(){
+  const json=JSON.stringify(S,null,2);
+  navigator.clipboard.writeText(json).then(function(){
+    showToast('✅ Dados copiados! Cole em outra instância usando "Importar".');
+  }).catch(function(){
+    // Fallback: abre modal com o texto para copiar manualmente
+    var m=document.getElementById('modalImport');
+    document.getElementById('importJson').value=json;
+    document.getElementById('importTitle').textContent='Copie o JSON abaixo';
+    document.getElementById('importActions').style.display='none';
+    document.getElementById('importCopyHint').style.display='block';
+    m.style.display='flex';
+  });
+}
+function importarDados(){
+  var m=document.getElementById('modalImport');
+  document.getElementById('importJson').value='';
+  document.getElementById('importTitle').textContent='Cole o JSON exportado';
+  document.getElementById('importActions').style.display='flex';
+  document.getElementById('importCopyHint').style.display='none';
+  m.style.display='flex';
+  setTimeout(function(){document.getElementById('importJson').focus();},100);
+}
+function confirmImport(){
+  var raw=document.getElementById('importJson').value.trim();
+  if(!raw){showToast('⚠ Cole o JSON antes de confirmar.');return;}
+  var parsed;
+  try{parsed=JSON.parse(raw);}catch(e){showToast('❌ JSON inválido. Verifique o conteúdo copiado.');return;}
+  // Valida estrutura mínima
+  if(typeof parsed!=='object'||!parsed.fup){showToast('❌ Estrutura não reconhecida. Exporte novamente.');return;}
+  S=parsed;
+  if(!S.urgente)S.urgente={};
+  if(!S.contrato)S.contrato={};
+  saveData();
+  closeModalImport();
+  renderPainel();
+  showToast('✅ Dados importados com sucesso!');
+}
+function closeModalImport(){
+  document.getElementById('modalImport').style.display='none';
+}
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 function toggleTheme(){
