@@ -144,17 +144,19 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .cron-table tbody td{padding:6px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:11px;font-weight:400}
 .cron-table tbody tr:last-child td,.cron-table tbody .sub-last td{border-bottom:1px solid var(--border)}
 .cron-table tbody tr:last-child td{border-bottom:none}
-.date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:10px;white-space:nowrap;color:var(--muted-fg)}
-.cron-row-andamento .date-cell{color:var(--primary);font-weight:600}
+.date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap;color:var(--muted-fg)}
+.cron-row-andamento .date-cell{color:var(--muted-fg)}
 .cron-name-cell{display:flex;align-items:center;gap:8px}
 .cron-dot-s{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
 .cron-dot-s.concluido{background:var(--success)}
-.cron-dot-s.andamento{background:var(--primary);animation:cdot-pulse 2s infinite}
+.cron-dot-s.andamento{background:var(--primary)}
+.cron-dot-s.proximo{background:var(--primary);animation:cdot-pulse 2s infinite}
 .cron-dot-s.ainicial{background:var(--card);border:1.5px solid var(--border)}
-@keyframes cdot-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--primary) 30%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--primary) 0%,transparent)}}
 .cron-marco-nome.concluido{color:var(--muted-fg)}
 .cron-marco-nome.andamento{color:var(--primary);font-weight:700}
 .cron-marco-nome.ainicial{color:var(--muted-fg);opacity:.5}
+@keyframes cdot-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--primary) 30%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--primary) 0%,transparent)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 /* Sub-marcos */
 .cron-sub-row td{padding:4px 14px 4px 42px;border-bottom:none;background:color-mix(in srgb,var(--accent) 60%,var(--card))}
 .cron-sub-row:last-of-type td{border-bottom:1px solid var(--border)}
@@ -188,10 +190,12 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .ia-item-new{border-left:3px solid;padding:8px 10px;border-radius:0 var(--r-lg) var(--r-lg) 0;background:var(--accent);display:flex;flex-direction:column;gap:4px}
 .ia-item-new.reuniao{border-color:var(--primary)}
 .ia-item-new.wpp{border-color:var(--success)}
+.ia-item-new.licenc{border-color:#EA580C}
 .ia-item-tag{display:flex;align-items:center;gap:6px;margin-bottom:2px}
 .ia-fonte{font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;display:inline-block}
 .ia-fonte.reuniao{background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary)}
 .ia-fonte.wpp{background:color-mix(in srgb,var(--success) 15%,transparent);color:var(--success)}
+.ia-fonte.licenc{background:color-mix(in srgb,#EA580C 15%,transparent);color:#EA580C}
 .ia-text{font-size:12px;color:var(--card-fg);line-height:1.5}
 /* Assembleias rows */
 .ass-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
@@ -316,11 +320,51 @@ svg{display:inline-block;vertical-align:middle}
 .empty{text-align:center;padding:48px 0;color:var(--muted-fg);font-size:13px}
 </style>
 
+<!-- MODAL IMPORTAR DADOS -->
+<div class="overlay" id="modalImport" style="display:none;z-index:3000">
+  <div class="ov-card" style="max-width:520px;width:100%">
+    <div class="ov-head">
+      <div style="font-size:13px;font-weight:700" id="importTitle">Cole o JSON exportado</div>
+      <button onclick="closeModalImport()" class="ov-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="ov-body" style="padding:16px">
+      <p style="font-size:12px;color:var(--muted-fg);margin:0 0 10px">Copie os dados no <strong>Artifact</strong> clicando em <em>Exportar</em>, depois cole aqui no <strong>GitHub Pages</strong> e confirme.</p>
+      <textarea id="importJson" rows="10" placeholder='{"fup":[...],"coment":{...},...}' style="width:100%;font-size:11px;font-family:monospace;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg);resize:vertical;box-sizing:border-box"></textarea>
+      <div id="importCopyHint" style="display:none;margin-top:8px;font-size:11px;color:var(--muted-fg)">Selecione tudo (Ctrl+A) e copie (Ctrl+C), depois cole no destino.</div>
+    </div>
+    <div id="importActions" class="ov-foot" style="display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)">
+      <button onclick="closeModalImport()" style="padding:7px 16px;border-radius:var(--r-md);border:1px solid var(--border);background:transparent;color:var(--fg);font-size:12px;cursor:pointer">Cancelar</button>
+      <button onclick="confirmImport()" style="padding:7px 18px;border-radius:var(--r-md);border:none;background:var(--primary);color:white;font-size:12px;font-weight:700;cursor:pointer">Confirmar importação</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL NOVO FUP -->
+<div class="overlay" id="modalEditFup">
+  <div class="ov-card">
+    <div class="ov-head">
+      <div class="ov-title">Editar Registro FUP</div>
+      <button class="ov-close" onclick="closeEditModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="eEmpLabel" style="font-size:12px;color:var(--muted-fg);margin-bottom:8px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="mf"><label>Data</label><input type="date" id="eData" class="mi"></div>
+      <div class="mf"><label>Tipo</label><input type="text" id="eTipo" class="mi" placeholder="gestao, previa, entrega…"></div>
+    </div>
+    <div class="mf">
+      <label style="display:block;margin-bottom:5px">Histórico</label>
+      <textarea id="eHist" class="mi mta" style="min-height:180px" placeholder="Uma linha por ponto…"></textarea>
+    </div>
+    <div class="ov-footer">
+      <button class="ov-cancel" onclick="closeEditModal()">Cancelar</button>
+      <button class="ov-save" onclick="saveEditFup()">Salvar</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="modalFup">
   <div class="ov-card">
     <div class="ov-head">
-      <div class="ov-title">Novo Registro FUP</div>
+      <div class="ov-title">Novo Registro Histórico</div>
       <button class="ov-close" onclick="closeModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -328,7 +372,10 @@ svg{display:inline-block;vertical-align:middle}
       <div class="mf"><label>Fonte</label><input type="text" id="mTipo" class="mi" placeholder="Ex: Reunião FUP, WhatsApp, E-mail..."></div>
     </div>
     <div class="mf"><label>Data</label><input type="date" id="mData" class="mi"></div>
-    <div class="mf"><label>Histórico</label><textarea id="mHist" class="mi mta" placeholder="Registre o que foi discutido, decisões e encaminhamentos..."></textarea></div>
+    <div class="mf">
+      <label style="display:block;margin-bottom:5px">Histórico</label>
+      <textarea id="mHist" class="mi mta" placeholder="Registre o que foi discutido, decisões e encaminhamentos..."></textarea>
+    </div>
     <div class="ov-footer">
       <button class="ov-cancel" onclick="closeModal()">Cancelar</button>
       <button class="ov-save" onclick="salvarModal()">Salvar</button>
@@ -362,10 +409,20 @@ svg{display:inline-block;vertical-align:middle}
   <main class="main">
     <div class="topbar">
       <div class="topbar-path">PMO <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg> <span>FUP — Gestão de SPEs</span></div>
-      <button class="theme-btn" onclick="toggleTheme()">
-        <svg id="themeIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <span id="themeLabel">Dark</span>
-      </button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="exportarDados()" title="Exportar todos os dados para colar em outra instância" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--accent);color:var(--muted-fg);font-size:11px;font-weight:600;cursor:pointer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Exportar
+        </button>
+        <button onclick="importarDados()" title="Importar dados copiados de outra instância" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--accent);color:var(--muted-fg);font-size:11px;font-weight:600;cursor:pointer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 16 12 21 17 16"/><line x1="12" y1="21" x2="12" y2="9"/></svg>
+          Importar
+        </button>
+        <button class="theme-btn" onclick="toggleTheme()">
+          <svg id="themeIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <span id="themeLabel">Dark</span>
+        </button>
+      </div>
     </div>
 
     <div class="content">
@@ -417,12 +474,12 @@ const EMPS_RAW = [
   {id:'002',nome:'Lagoa Spot',fase:'entrega',pf:100.0,pfin:100.0,dl:'2024-10-14',dt:'2026-12-25',dr:'2027-01-13',risco:'semrisco',pag:'Vigente',pv:'2026-09-01',pval:'R$ 210.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'concluido'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'concluido'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'003',nome:'Rosa Spot',fase:'entrega',pf:100.0,pfin:100.0,dl:'2025-03-11',dt:'2026-10-20',dr:'2026-08-12',risco:'semrisco',pag:'Vigente',pv:'2026-09-15',pval:'R$ 185.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'concluido'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'concluido'},{nome:'Individualização',st:'andamento'}]}},
   {id:'007',nome:'Barra Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2022-04-28',dt:'2027-07-20',dr:'2027-11-24',risco:'semrisco',pag:'Paralisado',pv:'2026-08-20',pval:'R$ 540.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'008',nome:'Rosa Sul Spot',fase:'entrega',pf:49.2,pfin:49.2,dl:'2026-03-09',dt:'2027-06-08',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-08-01',pval:'R$ 320.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'009',nome:'Ingleses Spot',fase:'entrega',pf:0.0,pfin:0.0,dl:'2026-03-09',dt:'',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-10-01',pval:'R$ 275.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'008',nome:'Rosa Sul Spot',fase:'obra',pf:49.2,pfin:49.2,dl:'2026-03-09',dt:'2027-06-08',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-08-01',pval:'R$ 320.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'009',nome:'Ingleses Spot',fase:'obra',pf:0.0,pfin:0.0,dl:'2026-03-09',dt:'',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-10-01',pval:'R$ 275.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'010',nome:'Urubici Spot',fase:'entrega',pf:0.0,pfin:0.0,dl:'',dt:'',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-01',pval:'R$ 285.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'andamento'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'011',nome:'Japaratinga Spot',fase:'obra',pf:69.5,pfin:69.5,dl:'2024-10-01',dt:'2026-12-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-10-15',pval:'R$ 140.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'012',nome:'Imbassai Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2023-04-05',dt:'2027-07-07',dr:'2025-10-06',risco:'semrisco',pag:'Paralisado',pv:'2026-08-20',pval:'R$ 520.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'013',nome:'Trancoso Spot',fase:'entrega',pf:47.1,pfin:47.1,dl:'2026-03-09',dt:'2027-06-08',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-07-01',pval:'R$ 460.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'013',nome:'Trancoso Spot',fase:'obra',pf:47.1,pfin:47.1,dl:'2026-03-09',dt:'2027-06-08',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-07-01',pval:'R$ 460.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'014',nome:'Salvador Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2023-08-30',dt:'2027-01-14',dr:'2025-09-26',risco:'semrisco',pag:'Vigente',pv:'2026-09-10',pval:'R$ 310.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'015',nome:'Campeche Spot',fase:'obra',pf:54.6,pfin:54.6,dl:'2025-04-01',dt:'2027-03-16',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-01',pval:'R$ 230.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'016',nome:'Urubici Spot II',fase:'obra',pf:32.9,pfin:32.9,dl:'2025-06-03',dt:'2027-11-17',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-07-01',pval:'R$ 380.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
@@ -442,10 +499,10 @@ const EMPS_RAW = [
   {id:'030',nome:'Bonito Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-01-28',dt:'2031-10-03',dr:'2028-04-24',risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 120.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'031',nome:'Santinho Spot',fase:'preobra',pf:25.0,pfin:25.0,dl:'2025-01-22',dt:'2029-03-30',dr:'2028-02-24',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 185.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'032',nome:'Jurerê Spot II',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-02-14',dt:'2027-05-25',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 160.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'033',nome:'Caraguá Spot',fase:'obra',pf:0.0,pfin:0.0,dl:'2028-02-04',dt:'2028-02-04',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-20',pval:'R$ 270.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'033',nome:'Caraguá Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2028-02-04',dt:'2028-02-04',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-20',pval:'R$ 270.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'034',nome:'Bonito Spot II',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-04-10',dt:'2030-02-07',dr:'2028-02-08',risco:'semrisco',pag:'Vigente',pv:'2027-05-01',pval:'R$ 105.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'035',nome:'Itacare Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-05-26',dt:'2029-05-08',dr:'2027-06-03',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 135.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'036',nome:'Barra Grande Spot',fase:'entrega',pf:0.0,pfin:0.0,dl:'2027-06-03',dt:'2027-11-01',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 95.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'036',nome:'Barra Grande Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2027-06-03',dt:'2027-11-01',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 95.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'037',nome:'Ponta das Canas Spot',fase:'preobra',pf:11.8,pfin:11.8,dl:'2025-05-16',dt:'2028-02-15',dr:'2027-05-04',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 150.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'038',nome:'Foz Spot',fase:'preobra',pf:0.0,pfin:0.0,dl:'2025-06-27',dt:'2027-06-25',dr:'2027-05-10',risco:'semrisco',pag:'Vigente',pv:'2026-12-15',pval:'R$ 180.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'039',nome:'Canas Beach Spot',fase:'preobra',pf:23.1,pfin:23.1,dl:'2025-05-28',dt:'2028-01-03',dr:'2027-05-10',risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 125.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
@@ -480,7 +537,7 @@ const MARCOS_DEF = {
 // Marcos lineares (cronograma único, 11 etapas em ordem) com sub-marcos
 const MARCOS_SEQ=[
   {nome:'Lançamento do Empreendimento',subs:[]},
-  {nome:'Alvará de Construção',subs:['Regularização Terreno','Licenciamento Ambiental','Aprovação Projeto Arquitetônico']},
+  {nome:'Alvará de Construção',subs:['Regularização Terreno','Licenciamento Ambiental','Projeto Arquitetônico']},
   {nome:'Inicio das Obras',subs:[]},
   {nome:'Projetos Executivos',subs:[]},
   {nome:'Orçamento Executivo',subs:[]},
@@ -491,6 +548,1028 @@ const MARCOS_SEQ=[
   {nome:'Habite-se e Inicio das Operações',subs:[]},
   {nome:'Individualização das Matrículas',subs:[]},
 ];
+
+// ─── Datas reais do Smartsheet (geradas automaticamente) ──────────────────────
+﻿// ─── PRÉ-OBRA: SUBMARCOS (Regularização Terreno / Lic. Ambiental / Proj. Arq.) ──
+const PREOBRA_MARCOS={
+  '007':{licAmbiental:{dl:'2024-12-16',dt:null,st:'concluido'},aprovProjArq:{dl:'2025-09-12',dt:'2025-09-12',st:'concluido'}},
+  '012':{aprovProjArq:{dl:'2026-08-31',dt:null,st:'andamento'}},
+  '014':{licAmbiental:{dl:'2024-10-01',dt:'2024-10-01',st:'concluido'},aprovProjArq:{dl:'2025-04-10',dt:'2025-04-10',st:'concluido'},regulTerreno:{dl:'2026-02-05',dt:'2026-02-05',st:'concluido'}},
+  '018':{licAmbiental:{dl:'2026-09-16',dt:null,st:'andamento'},aprovProjArq:{dl:'2025-04-14',dt:'2026-03-12',st:'concluido'},regulTerreno:{dl:'2027-02-22',dt:null,st:'andamento'}},
+  '019':{aprovProjArq:{dl:'2026-06-12',dt:null,st:'andamento'},regulTerreno:{dl:'2025-03-07',dt:'2025-03-07',st:'concluido'},licAmbiental:{dl:'2026-02-13',dt:'2026-02-13',st:'concluido'}},
+  '020':{aprovProjArq:{dl:'2026-04-20',dt:null,st:'andamento'},regulTerreno:{dl:'2025-10-13',dt:'2025-10-13',st:'concluido'}},
+  '021':{licAmbiental:{dl:'2025-08-21',dt:'2026-08-04',st:'concluido'},regulTerreno:{dl:'2026-11-13',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-09-21',dt:null,st:'andamento'}},
+  '022':{licAmbiental:{dl:'2026-11-27',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-06-10',dt:null,st:'concluido'},regulTerreno:{dl:'2026-12-09',dt:null,st:'andamento'}},
+  '025':{aprovProjArq:{dl:'2026-05-01',dt:null,st:'concluido'},licAmbiental:{dl:'2026-12-29',dt:null,st:'concluido'},regulTerreno:{dl:'2025-10-28',dt:'2026-05-12',st:'concluido'}},
+  '026':{licAmbiental:{dl:'2027-02-05',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-05-06',dt:null,st:'concluido'},regulTerreno:{dl:'2025-08-13',dt:null,st:'andamento'}},
+  '027':{licAmbiental:{dl:'2027-11-19',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-07-29',dt:'2026-07-30',st:'concluido'},regulTerreno:{dl:'2025-06-13',dt:null,st:'concluido'}},
+  '028':{licAmbiental:{dl:'2026-07-23',dt:'2026-07-23',st:'concluido'},aprovProjArq:{dl:'2026-07-24',dt:'2025-11-10',st:'concluido'},regulTerreno:{dl:'2025-11-11',dt:null,st:'concluido'}},
+  '029':{licAmbiental:{dl:'2026-05-20',dt:'2026-04-27',st:'concluido'},aprovProjArq:{dl:'2026-02-11',dt:'2026-02-11',st:'concluido'},regulTerreno:{dl:'2025-10-14',dt:'2025-10-14',st:'concluido'}},
+  '030':{aprovProjArq:{dl:'2026-10-30',dt:null,st:'andamento'},regulTerreno:{dl:'2026-08-25',dt:null,st:'andamento'},licAmbiental:{dl:'2026-07-14',dt:'2026-04-29',st:'concluido'}},
+  '031':{licAmbiental:{dl:'2027-10-22',dt:null,st:'andamento'},aprovProjArq:{dl:'2026-07-27',dt:null,st:'andamento'},regulTerreno:{dl:'2026-08-27',dt:null,st:'andamento'}},
+  '032':{licAmbiental:{dl:'2026-03-16',dt:'2026-04-22',st:'concluido'},aprovProjArq:{dl:'2025-12-12',dt:'2025-12-12',st:'concluido'},regulTerreno:{dl:'2026-11-20',dt:null,st:'andamento'}},
+  '033':{licAmbiental:{dl:'2025-09-02',dt:'2025-09-02',st:'concluido'},aprovProjArq:{dl:'2026-06-12',dt:null,st:'concluido'}},
+  '034':{aprovProjArq:{dl:'2026-12-24',dt:null,st:'andamento'},licAmbiental:{dl:'2026-03-09',dt:'2026-03-09',st:'concluido'},regulTerreno:{dl:'2026-10-07',dt:null,st:'andamento'}},
+  '035':{aprovProjArq:{dl:'2026-05-05',dt:'2026-05-05',st:'concluido'},licAmbiental:{dl:'2026-08-14',dt:null,st:'andamento'},regulTerreno:{dl:'2026-09-17',dt:null,st:'nao_iniciado'}},
+  '036':{aprovProjArq:{dl:'2026-09-24',dt:null,st:'andamento'},licAmbiental:{dl:'2027-11-15',dt:null,st:'nao_iniciado'},regulTerreno:{dl:'2026-05-19',dt:null,st:'nao_iniciado'}},
+  '037':{regulTerreno:{dl:'2027-01-01',dt:null,st:'andamento'},licAmbiental:{dl:'2026-09-30',dt:null,st:'nao_iniciado'},aprovProjArq:{dl:'2026-08-27',dt:null,st:'andamento'}},
+  '038':{aprovProjArq:{dl:'2026-12-03',dt:null,st:'andamento'},licAmbiental:{dl:'2026-08-19',dt:null,st:'nao_iniciado'}},
+  '039':{regulTerreno:{dl:'2026-10-27',dt:null,st:'andamento'},licAmbiental:{dl:'2026-04-28',dt:'2026-04-27',st:'concluido'},aprovProjArq:{dl:'2026-01-26',dt:'2026-01-26',st:'concluido'}},
+  '040':{licAmbiental:{dl:'2026-10-29',dt:null,st:'nao_iniciado'},aprovProjArq:{dl:'2026-09-17',dt:null,st:'andamento'},regulTerreno:{dl:'2027-02-17',dt:null,st:'andamento'}},
+  '041':{aprovProjArq:{dl:'2026-11-16',dt:null,st:'nao_iniciado'},licAmbiental:{dl:'2027-04-22',dt:null,st:'andamento'},regulTerreno:{dl:'2026-12-10',dt:null,st:'nao_iniciado'}},
+  '042':{aprovProjArq:{dl:'2025-11-05',dt:'2025-11-05',st:'concluido'},regulTerreno:{dl:'2027-06-22',dt:null,st:'andamento'}},
+  '043':{licAmbiental:{dl:'2026-08-07',dt:null,st:'nao_iniciado'},aprovProjArq:{dl:'2026-11-24',dt:null,st:'andamento'},regulTerreno:{dl:'2026-07-06',dt:null,st:'nao_iniciado'}},
+  '044':{aprovProjArq:{dl:'2026-12-22',dt:null,st:'nao_iniciado'},licAmbiental:{dl:'2027-02-18',dt:null,st:'andamento'}},
+};
+
+// ─── SMARTSHEET MARCOS (gerado automaticamente) ─────────────────────────────
+const SMARTSHEET_MARCOS = {
+  '002': {
+    1: {dl:'2023-11-01',dt:'2023-09-01',st:'concluido'},
+    2: {dl:'2023-11-01',dt:'2023-11-01',st:'concluido'},
+    3: {dl:'2023-09-02',dt:'2023-11-01',st:'concluido'},
+    4: {dl:'2023-10-02',dt:'2023-11-01',st:'concluido'},
+    5: {dl:'2025-05-01',dt:'2025-12-10',st:'concluido'},
+    6: {dl:'2025-05-31',dt:'2025-09-15',st:'concluido'},
+    7: {dl:'2025-05-31',dt:'2025-09-17',st:'concluido'},
+    8: {dl:'2025-07-30',dt:'2026-03-10',st:'concluido'},
+    9: {dl:'2025-07-30',dt:'2026-06-30',st:'concluido'},
+    10: {dl:'2025-10-28',dt:'2026-11-09',st:'ainicial'},
+  },
+  '003': {
+    1: {dl:'2022-07-01',dt:'2022-05-01',st:'concluido'},
+    2: {dl:'2022-07-01',dt:'2022-05-01',st:'concluido'},
+    3: {dl:'2022-05-02',dt:'2022-05-01',st:'concluido'},
+    4: {dl:'2022-06-01',dt:'2022-05-01',st:'concluido'},
+    5: {dl:'2025-01-01',dt:'2025-12-19',st:'concluido'},
+    6: {dl:'2025-01-31',dt:'2025-11-17',st:'concluido'},
+    7: {dl:'2025-01-31',dt:'2025-12-03',st:'concluido'},
+    8: {dl:'2025-04-01',dt:'2025-12-19',st:'concluido'},
+    9: {dl:'2025-04-01',dt:'2026-01-21',st:'concluido'},
+    10: {dl:'2025-06-30',dt:'2026-10-20',st:'andamento'},
+  },
+  '007': {
+    1: {dl:'2023-09-01',dt:'2026-06-23',st:'concluido'},
+    2: {dl:'2023-09-01',dt:'2026-07-23',st:'ainicial'},
+    3: {dl:'2023-07-03',dt:'2027-04-22',st:'andamento'},
+    4: {dl:'2023-08-02',dt:'2027-07-20',st:'ainicial'},
+    5: {dl:'2025-09-01',dt:'2028-07-23',st:'ainicial'},
+    6: {dl:'2025-10-01',dt:'2028-08-22',st:'ainicial'},
+    7: {dl:'2025-10-01',dt:'2028-08-22',st:'ainicial'},
+    8: {dl:'2025-11-30',dt:'2028-10-21',st:'ainicial'},
+    9: {dl:'2025-11-30',dt:'2028-10-21',st:'ainicial'},
+    10: {dl:'2026-02-28',dt:'2029-01-19',st:'ainicial'},
+  },
+  '008': {
+    1: {dl:'2023-11-01',dt:'2023-08-01',st:'concluido'},
+    2: {dl:'2023-10-01',dt:'2023-11-01',st:'concluido'},
+    3: {dl:'2023-08-02',dt:'2023-11-01',st:'concluido'},
+    4: {dl:'2023-09-01',dt:'2023-11-01',st:'concluido'},
+    5: {dl:'2025-10-01',dt:'2026-09-18',st:'andamento'},
+    6: {dl:'2025-10-31',dt:'2026-09-02',st:'ainicial'},
+    7: {dl:'2025-10-31',dt:'2026-10-30',st:'ainicial'},
+    8: {dl:'2025-12-30',dt:'2027-01-04',st:'ainicial'},
+    9: {dl:'2025-12-30',dt:'2026-12-02',st:'ainicial'},
+    10: {dl:'2026-03-30',dt:'2027-04-09',st:'ainicial'},
+  },
+  '009': {
+    1: {dl:'2023-08-01',dt:'2023-08-01',st:'concluido'},
+    2: {dl:'2023-11-01',dt:'2023-08-01',st:'concluido'},
+    3: {dl:'2023-09-02',dt:'2023-08-01',st:'concluido'},
+    4: {dl:'2023-10-02',dt:'2023-08-01',st:'concluido'},
+    5: {dl:'2025-11-01',dt:'2026-06-30',st:'andamento'},
+    6: {dl:'2025-12-01',dt:'2026-06-01',st:'ainicial'},
+    7: {dl:'2025-12-01',dt:'2026-07-13',st:'ainicial'},
+    8: {dl:'2026-01-30',dt:'2026-09-07',st:'ainicial'},
+    9: {dl:'2026-01-30',dt:'2026-06-01',st:'ainicial'},
+    10: {dl:'2026-04-30',dt:'2026-11-11',st:'ainicial'},
+  },
+  '010': {
+    1: {dl:'2023-12-01',dt:'2023-07-01',st:'concluido'},
+    2: {dl:'2023-12-01',dt:'2023-08-01',st:'concluido'},
+    3: {dl:'2023-10-02',dt:'2023-08-01',st:'concluido'},
+    4: {dl:'2023-11-01',dt:'2023-08-01',st:'concluido'},
+    5: {dl:'2025-12-01',dt:'2026-01-26',st:'andamento'},
+    6: {dl:'2025-12-31',dt:'2026-04-20',st:'concluido'},
+    7: {dl:'2025-12-31',dt:'2026-04-16',st:'concluido'},
+    8: {dl:'2026-03-01',dt:'2026-04-27',st:'andamento'},
+    9: {dl:'2026-03-01',dt:'2026-06-22',st:'andamento'},
+    10: {dl:'2026-06-01',dt:'2026-08-24',st:'ainicial'},
+  },
+  '011': {
+    1: {dl:'2024-07-01',dt:'2024-07-02',st:'concluido'},
+    2: {dl:'2024-07-01',dt:'2024-07-02',st:'concluido'},
+    3: {dl:'2024-05-02',dt:'2024-07-02',st:'concluido'},
+    4: {dl:'2024-06-01',dt:'2024-07-02',st:'concluido'},
+    5: {dl:'2026-06-01',dt:'2026-12-31',st:'ainicial'},
+    6: {dl:'2026-07-01',dt:'2027-01-30',st:'ainicial'},
+    7: {dl:'2026-07-01',dt:'2027-01-30',st:'ainicial'},
+    8: {dl:'2026-08-30',dt:'2027-03-31',st:'ainicial'},
+    9: {dl:'2026-08-30',dt:'2027-03-31',st:'ainicial'},
+    10: {dl:'2026-11-28',dt:'2027-06-29',st:'ainicial'},
+  },
+  '012': {
+    0: {dl:'2023-04-05',dt:'2023-04-05',st:'concluido'},
+    1: {dl:'2025-02-01',dt:'2027-01-26',st:'andamento'},
+    2: {dl:'2025-02-01',dt:'2027-03-10',st:'ainicial'},
+    3: {dl:'2024-12-03',dt:'2027-04-09',st:'ainicial'},
+    4: {dl:'2025-01-02',dt:'2027-07-07',st:'ainicial'},
+    5: {dl:'2027-02-01',dt:'2029-03-10',st:'ainicial'},
+    6: {dl:'2027-03-03',dt:'2029-04-09',st:'ainicial'},
+    7: {dl:'2027-03-03',dt:'2029-04-09',st:'ainicial'},
+    8: {dl:'2027-05-02',dt:'2029-06-08',st:'ainicial'},
+    9: {dl:'2027-05-02',dt:'2029-06-08',st:'ainicial'},
+    10: {dl:'2027-07-31',dt:'2029-09-06',st:'ainicial'},
+  },
+  '013': {
+    1: {dl:'2024-11-30',dt:'2024-08-01',st:'concluido'},
+    2: {dl:'2024-11-01',dt:'2024-09-13',st:'concluido'},
+    3: {dl:'2024-09-01',dt:'2024-09-01',st:'concluido'},
+    4: {dl:'2024-10-01',dt:'2024-09-01',st:'concluido'},
+    5: {dl:'2026-11-01',dt:'2026-08-30',st:'ainicial'},
+    6: {dl:'2026-12-01',dt:'2026-09-02',st:'ainicial'},
+    7: {dl:'2026-12-01',dt:'2026-09-29',st:'ainicial'},
+    8: {dl:'2027-01-30',dt:'2026-12-02',st:'ainicial'},
+    9: {dl:'2027-02-01',dt:'2026-12-02',st:'ainicial'},
+    10: {dl:'2027-04-30',dt:'2027-04-09',st:'ainicial'},
+  },
+  '014': {
+    1: {dl:'2024-11-01',dt:'2026-07-06',st:'andamento'},
+    2: {dl:'2024-11-01',dt:'2026-08-18',st:'ainicial'},
+    3: {dl:'2024-09-02',dt:'2027-01-14',st:'andamento'},
+    4: {dl:'2024-10-02',dt:'2027-04-01',st:'ainicial'},
+    5: {dl:'2026-11-01',dt:'2028-08-18',st:'ainicial'},
+    6: {dl:'2026-12-01',dt:'2028-09-17',st:'ainicial'},
+    7: {dl:'2026-12-01',dt:'2028-09-17',st:'ainicial'},
+    8: {dl:'2027-01-30',dt:'2028-11-16',st:'ainicial'},
+    9: {dl:'2027-01-30',dt:'2028-11-16',st:'ainicial'},
+    10: {dl:'2027-04-30',dt:'2029-02-14',st:'ainicial'},
+  },
+  '015': {
+    1: {dl:'2025-02-01',dt:'2025-04-09',st:'concluido'},
+    2: {dl:'2025-02-01',dt:'2025-04-09',st:'concluido'},
+    3: {dl:'2024-12-31',dt:'2025-04-09',st:'concluido'},
+    4: {dl:'2025-01-30',dt:'2025-04-09',st:'concluido'},
+    5: {dl:'2027-02-01',dt:'2027-03-16',st:'ainicial'},
+    6: {dl:'2027-03-31',dt:'2027-04-15',st:'ainicial'},
+    7: {dl:'2027-03-31',dt:'2027-04-15',st:'ainicial'},
+    8: {dl:'2027-05-30',dt:'2027-06-14',st:'ainicial'},
+    9: {dl:'2027-05-30',dt:'2027-06-14',st:'ainicial'},
+    10: {dl:'2027-08-28',dt:'2027-09-12',st:'ainicial'},
+  },
+  '016': {
+    1: {dl:'2025-05-30',dt:'2025-02-13',st:'concluido'},
+    2: {dl:'2025-05-01',dt:'2025-06-16',st:'concluido'},
+    3: {dl:'2025-03-01',dt:'2025-06-16',st:'concluido'},
+    4: {dl:'2025-04-01',dt:'2025-06-16',st:'concluido'},
+    5: {dl:'2027-11-01',dt:'2027-11-17',st:'ainicial'},
+    6: {dl:'2027-12-01',dt:'2027-12-17',st:'ainicial'},
+    7: {dl:'2027-12-01',dt:'2027-12-17',st:'ainicial'},
+    8: {dl:'2028-01-30',dt:'2028-02-15',st:'ainicial'},
+    9: {dl:'2028-02-01',dt:'2028-02-15',st:'ainicial'},
+    10: {dl:'2028-05-01',dt:'2028-05-15',st:'ainicial'},
+  },
+  '017': {
+    1: {dl:'2025-06-28',dt:'2025-08-11',st:'concluido'},
+    2: {dl:'2025-06-30',dt:'2025-08-26',st:'concluido'},
+    3: {dl:'2025-05-02',dt:'2025-11-05',st:'andamento'},
+    4: {dl:'2025-06-01',dt:'2025-08-26',st:'andamento'},
+    5: {dl:'2027-12-23',dt:'2028-02-24',st:'ainicial'},
+    6: {dl:'2028-01-31',dt:'2028-03-25',st:'ainicial'},
+    7: {dl:'2028-01-31',dt:'2028-03-25',st:'ainicial'},
+    8: {dl:'2028-03-31',dt:'2028-05-24',st:'ainicial'},
+    9: {dl:'2028-03-31',dt:'2028-05-24',st:'ainicial'},
+    10: {dl:'2028-06-29',dt:'2028-08-22',st:'ainicial'},
+  },
+  '018': {
+    0: {dl:'2024-02-02',dt:'2024-02-02',st:'concluido'},
+    1: {dl:'2025-07-15',dt:'2026-10-26',st:'andamento'},
+    2: {dl:'2025-07-01',dt:'2027-10-26',st:'ainicial'},
+    3: {dl:'2025-05-02',dt:'2027-03-26',st:'andamento'},
+    4: {dl:'2025-06-01',dt:'2027-06-10',st:'ainicial'},
+    5: {dl:'2028-01-01',dt:'2030-04-26',st:'ainicial'},
+    6: {dl:'2028-01-31',dt:'2030-05-26',st:'ainicial'},
+    7: {dl:'2028-01-31',dt:'2030-05-26',st:'ainicial'},
+    8: {dl:'2028-03-31',dt:'2030-07-25',st:'ainicial'},
+    9: {dl:'2028-03-31',dt:'2030-07-25',st:'ainicial'},
+    10: {dl:'2028-06-29',dt:'2030-10-23',st:'ainicial'},
+  },
+  '019': {
+    1: {dl:'2025-09-15',dt:'2026-03-27',st:'concluido'},
+    2: {dl:'2025-09-01',dt:'2026-05-11',st:'concluido'},
+    3: {dl:'2025-07-03',dt:'2026-09-25',st:'andamento'},
+    4: {dl:'2025-08-02',dt:'2026-10-07',st:'andamento'},
+    5: {dl:'2027-09-01',dt:'2028-03-20',st:'ainicial'},
+    6: {dl:'2027-10-01',dt:'2028-04-19',st:'ainicial'},
+    7: {dl:'2027-10-01',dt:'2028-04-19',st:'ainicial'},
+    8: {dl:'2027-11-30',dt:'2028-06-18',st:'ainicial'},
+    9: {dl:'2027-11-30',dt:'2028-06-18',st:'ainicial'},
+    10: {dl:'2028-02-28',dt:'2028-09-16',st:'ainicial'},
+  },
+  '020': {
+    1: {dl:'2025-10-15',dt:'2026-02-06',st:'concluido'},
+    2: {dl:'2025-10-01',dt:'2025-11-19',st:'concluido'},
+    3: {dl:'2025-08-02',dt:'2026-08-19',st:'andamento'},
+    5: {dl:'2028-04-01',dt:'2028-10-26',st:'ainicial'},
+    6: {dl:'2028-05-01',dt:'2028-11-25',st:'ainicial'},
+    7: {dl:'2028-05-01',dt:'2028-11-25',st:'ainicial'},
+    8: {dl:'2028-06-30',dt:'2029-01-24',st:'ainicial'},
+    9: {dl:'2028-07-30',dt:'2029-01-24',st:'ainicial'},
+    10: {dl:'2028-09-28',dt:'2029-04-24',st:'ainicial'},
+  },
+  '021': {
+    1: {dl:'2025-10-01',dt:'2027-02-15',st:'andamento'},
+    2: {dl:'2025-10-01',dt:'2027-01-20',st:'ainicial'},
+    3: {dl:'2025-08-01',dt:'2027-03-12',st:'andamento'},
+    4: {dl:'2025-09-01',dt:'2027-06-02',st:'ainicial'},
+    5: {dl:'2028-04-01',dt:'2029-07-20',st:'ainicial'},
+    6: {dl:'2028-05-01',dt:'2029-08-19',st:'ainicial'},
+    7: {dl:'2028-05-01',dt:'2029-08-19',st:'ainicial'},
+    8: {dl:'2028-06-30',dt:'2029-10-18',st:'ainicial'},
+    9: {dl:'2028-06-30',dt:'2029-10-18',st:'ainicial'},
+    10: {dl:'2028-09-28',dt:'2030-01-16',st:'ainicial'},
+  },
+  '022': {
+    1: {dl:'2025-11-15',dt:'2026-12-10',st:'andamento'},
+    2: {dl:'2025-10-01',dt:'2026-10-23',st:'ainicial'},
+    3: {dl:'2025-08-02',dt:'2027-02-03',st:'andamento'},
+    4: {dl:'2025-09-01',dt:'2027-04-30',st:'ainicial'},
+    5: {dl:'2028-04-01',dt:'2029-04-23',st:'ainicial'},
+    6: {dl:'2028-05-01',dt:'2029-05-23',st:'ainicial'},
+    7: {dl:'2028-05-01',dt:'2029-05-23',st:'ainicial'},
+    8: {dl:'2028-06-30',dt:'2029-07-22',st:'ainicial'},
+    9: {dl:'2028-06-30',dt:'2029-07-22',st:'ainicial'},
+    10: {dl:'2028-09-28',dt:'2029-10-20',st:'ainicial'},
+  },
+  '023': {
+    1: {dl:'2025-08-01',dt:'2025-08-12',st:'concluido'},
+    2: {dl:'2025-11-01',dt:'2025-11-17',st:'concluido'},
+    3: {dl:'2025-09-02',dt:'2026-07-10',st:'concluido'},
+    4: {dl:'2025-10-02',dt:'2026-10-14',st:'concluido'},
+    5: {dl:'2028-05-01',dt:'2028-05-04',st:'ainicial'},
+    6: {dl:'2028-05-31',dt:'2028-06-03',st:'ainicial'},
+    7: {dl:'2028-05-31',dt:'2028-06-03',st:'ainicial'},
+    8: {dl:'2028-07-30',dt:'2028-08-02',st:'ainicial'},
+    9: {dl:'2028-08-02',dt:'2028-08-02',st:'ainicial'},
+    10: {dl:'2028-10-28',dt:'2028-10-31',st:'ainicial'},
+  },
+  '024': {
+    1: {dl:'2025-11-17',dt:'2026-01-06',st:'concluido'},
+    2: {dl:'2025-11-01',dt:'2026-01-06',st:'concluido'},
+    3: {dl:'2025-09-02',dt:'2025-11-17',st:'concluido'},
+    4: {dl:'2025-10-02',dt:'2025-11-17',st:'concluido'},
+    5: {dl:'2027-11-01',dt:'2027-10-13',st:'ainicial'},
+    6: {dl:'2027-12-01',dt:'2027-11-12',st:'ainicial'},
+    7: {dl:'2027-12-01',dt:'2027-11-12',st:'ainicial'},
+    8: {dl:'2028-01-30',dt:'2028-01-11',st:'ainicial'},
+    9: {dl:'2028-01-30',dt:'2028-01-11',st:'ainicial'},
+    10: {dl:'2028-04-29',dt:'2028-04-10',st:'ainicial'},
+  },
+  '025': {
+    1: {dl:'2026-01-01',dt:'2026-03-24',st:'concluido'},
+    2: {dl:'2025-12-01',dt:'2026-07-27',st:'ainicial'},
+    3: {dl:'2025-10-02',dt:'2026-11-09',st:'ainicial'},
+    4: {dl:'2025-11-01',dt:'2026-12-31',st:'ainicial'},
+    5: {dl:'2028-11-01',dt:'2029-06-26',st:'ainicial'},
+    6: {dl:'2028-12-01',dt:'2029-07-24',st:'ainicial'},
+    7: {dl:'2028-12-01',dt:'2029-07-24',st:'ainicial'},
+    8: {dl:'2029-01-30',dt:'2029-09-24',st:'ainicial'},
+    9: {dl:'2029-01-30',dt:'2029-09-24',st:'ainicial'},
+    10: {dl:'2029-04-30',dt:'2029-12-21',st:'ainicial'},
+  },
+  '026': {
+    1: {dl:'2027-03-15',dt:'2026-09-02',st:'andamento'},
+    2: {dl:'2027-03-01',dt:'2026-09-02',st:'ainicial'},
+    3: {dl:'2026-12-31',dt:'2027-04-14',st:'ainicial'},
+    4: {dl:'2027-01-30',dt:'2027-07-12',st:'ainicial'},
+    5: {dl:'2029-03-01',dt:'2028-09-02',st:'ainicial'},
+    6: {dl:'2029-03-31',dt:'2028-10-02',st:'ainicial'},
+    7: {dl:'2029-03-31',dt:'2028-10-02',st:'ainicial'},
+    8: {dl:'2029-05-30',dt:'2028-12-01',st:'ainicial'},
+    9: {dl:'2029-05-30',dt:'2028-12-01',st:'ainicial'},
+    10: {dl:'2029-08-28',dt:'2029-03-01',st:'ainicial'},
+  },
+  '027': {
+    1: {dl:'2026-02-15',dt:'2027-11-22',st:'ainicial'},
+    2: {dl:'2026-02-01',dt:'2028-01-04',st:'ainicial'},
+    3: {dl:'2025-11-02',dt:'2027-03-16',st:'andamento'},
+    4: {dl:'2025-12-02',dt:'2027-03-03',st:'ainicial'},
+    5: {dl:'2028-07-01',dt:'2030-07-04',st:'ainicial'},
+    6: {dl:'2028-07-31',dt:'2030-08-02',st:'ainicial'},
+    7: {dl:'2028-07-31',dt:'2030-08-02',st:'ainicial'},
+    8: {dl:'2028-09-29',dt:'2030-10-03',st:'ainicial'},
+    9: {dl:'2028-09-29',dt:'2030-10-03',st:'ainicial'},
+    10: {dl:'2028-12-28',dt:'2031-01-01',st:'ainicial'},
+  },
+  '028': {
+    1: {dl:'2027-02-15',dt:'2026-08-03',st:'andamento'},
+    2: {dl:'2027-02-01',dt:'2026-09-18',st:'ainicial'},
+    3: {dl:'2026-12-03',dt:'2026-12-15',st:'andamento'},
+    4: {dl:'2027-01-02',dt:'2027-03-22',st:'ainicial'},
+    5: {dl:'2029-08-01',dt:'2029-03-20',st:'ainicial'},
+    6: {dl:'2029-08-31',dt:'2029-04-18',st:'ainicial'},
+    7: {dl:'2029-08-31',dt:'2029-04-18',st:'ainicial'},
+    8: {dl:'2029-10-30',dt:'2029-06-15',st:'ainicial'},
+    9: {dl:'2029-10-30',dt:'2029-06-15',st:'ainicial'},
+    10: {dl:'2030-01-28',dt:'2029-09-13',st:'ainicial'},
+  },
+  '029': {
+    2: {dl:'2027-04-04',dt:'2026-07-23',st:'ainicial'},
+    3: {dl:'2027-03-02',dt:'2027-04-29',st:'ainicial'},
+    4: {dl:'2027-04-01',dt:'2027-07-01',st:'ainicial'},
+    5: {dl:'2029-10-01',dt:'2029-01-23',st:'ainicial'},
+    6: {dl:'2029-12-01',dt:'2029-02-22',st:'ainicial'},
+    7: {dl:'2029-12-01',dt:'2029-02-22',st:'ainicial'},
+    8: {dl:'2030-01-30',dt:'2029-04-23',st:'ainicial'},
+    9: {dl:'2030-01-30',dt:'2029-04-23',st:'ainicial'},
+    10: {dl:'2030-04-30',dt:'2029-07-22',st:'ainicial'},
+  },
+  '030': {
+    1: {dl:'2027-06-15',dt:'2026-11-06',st:'andamento'},
+    2: {dl:'2027-06-01',dt:'2028-04-03',st:'ainicial'},
+    3: {dl:'2027-04-02',dt:'2031-10-03',st:'ainicial'},
+    4: {dl:'2027-05-02',dt:'2031-07-07',st:'ainicial'},
+    5: {dl:'2029-06-01',dt:'2030-03-20',st:'ainicial'},
+    6: {dl:'2029-07-01',dt:'2031-04-14',st:'ainicial'},
+    7: {dl:'2029-07-01',dt:'2031-04-14',st:'ainicial'},
+    8: {dl:'2029-08-30',dt:'2031-06-12',st:'ainicial'},
+    9: {dl:'2029-09-30',dt:'2031-06-12',st:'ainicial'},
+    10: {dl:'2029-11-28',dt:'2031-09-10',st:'ainicial'},
+  },
+  '031': {
+    1: {dl:'2027-06-15',dt:'2027-03-22',st:'andamento'},
+  },
+  '032': {
+    1: {dl:'2027-06-26',dt:'2026-11-23',st:'andamento'},
+    2: {dl:'2027-07-01',dt:'2027-01-07',st:'ainicial'},
+    3: {dl:'2027-05-02',dt:'2027-04-05',st:'andamento'},
+    4: {dl:'2027-06-01',dt:'2027-05-25',st:'ainicial'},
+    5: {dl:'2029-07-01',dt:'2029-01-07',st:'ainicial'},
+    6: {dl:'2029-07-31',dt:'2029-02-06',st:'ainicial'},
+    7: {dl:'2029-07-31',dt:'2029-02-06',st:'ainicial'},
+    8: {dl:'2029-09-29',dt:'2029-04-07',st:'ainicial'},
+    9: {dl:'2029-09-29',dt:'2029-04-07',st:'ainicial'},
+    10: {dl:'2029-12-28',dt:'2029-07-06',st:'ainicial'},
+  },
+  '033': {
+    1: {dl:'2027-07-01',dt:'2026-07-30',st:'concluido'},
+    2: {dl:'2027-08-01',dt:'2029-04-05',st:'ainicial'},
+    3: {dl:'2027-07-03',dt:'2027-04-02',st:'ainicial'},
+    4: {dl:'2027-08-02',dt:'2027-06-08',st:'ainicial'},
+    5: {dl:'2030-03-01',dt:null,st:'ainicial'},
+    6: {dl:'2030-03-31',dt:null,st:'ainicial'},
+    7: {dl:'2030-03-31',dt:null,st:'ainicial'},
+    8: {dl:'2030-05-30',dt:null,st:'ainicial'},
+    9: {dl:'2030-06-30',dt:null,st:'ainicial'},
+    10: {dl:'2030-08-28',dt:null,st:'ainicial'},
+  },
+  '034': {
+    1: {dl:'2027-08-12',dt:'2026-12-29',st:'andamento'},
+    2: {dl:'2027-09-01',dt:'2027-02-10',st:'ainicial'},
+    3: {dl:'2027-07-03',dt:'2029-11-29',st:'ainicial'},
+    4: {dl:'2027-08-02',dt:'2027-09-28',st:'ainicial'},
+    5: {dl:'2029-09-01',dt:'2029-02-08',st:'ainicial'},
+    6: {dl:'2029-10-01',dt:'2029-03-12',st:'ainicial'},
+    7: {dl:'2029-10-01',dt:'2029-03-12',st:'ainicial'},
+    8: {dl:'2029-11-30',dt:'2029-05-09',st:'ainicial'},
+    9: {dl:'2029-12-23',dt:'2029-05-09',st:'ainicial'},
+    10: {dl:'2030-02-28',dt:'2029-08-08',st:'ainicial'},
+  },
+  '035': {
+    1: {dl:'2027-10-30',dt:'2026-09-24',st:'ainicial'},
+    2: {dl:'2027-10-01',dt:'2026-11-06',st:'ainicial'},
+    3: {dl:'2027-08-02',dt:'2029-05-08',st:'ainicial'},
+    4: {dl:'2027-09-01',dt:'2027-10-20',st:'ainicial'},
+    5: {dl:'2029-10-01',dt:'2028-11-06',st:'ainicial'},
+    6: {dl:'2029-10-31',dt:'2028-12-06',st:'ainicial'},
+    7: {dl:'2029-10-31',dt:'2028-12-06',st:'ainicial'},
+    8: {dl:'2029-12-30',dt:'2029-02-02',st:'ainicial'},
+    9: {dl:'2029-12-30',dt:'2029-02-02',st:'ainicial'},
+    10: {dl:'2030-03-30',dt:'2029-05-04',st:'ainicial'},
+  },
+  '036': {
+    1: {dl:'2027-09-01',dt:'2026-10-09',st:'ainicial'},
+    2: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
+    3: {dl:'2027-08-02',dt:'2030-10-07',st:'ainicial'},
+    4: {dl:'2027-09-01',dt:'2030-09-17',st:'ainicial'},
+    5: {dl:'2029-10-01',dt:'2029-11-26',st:'ainicial'},
+    6: {dl:'2029-10-31',dt:'2027-06-03',st:'ainicial'},
+    7: {dl:'2029-10-31',dt:'2027-06-03',st:'ainicial'},
+    8: {dl:'2029-12-30',dt:'2027-08-02',st:'ainicial'},
+    9: {dl:'2030-01-01',dt:'2027-08-02',st:'ainicial'},
+    10: {dl:'2030-03-30',dt:'2027-11-01',st:'ainicial'},
+  },
+  '037': {
+    1: {dl:'2027-10-30',dt:'2027-01-28',st:'ainicial'},
+    2: {dl:'2027-10-01',dt:'2027-03-12',st:'ainicial'},
+    3: {dl:'2027-08-02',dt:'2028-02-15',st:'ainicial'},
+    4: {dl:'2027-09-01',dt:'2027-04-29',st:'ainicial'},
+    5: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    6: {dl:'2030-05-01',dt:'2027-06-07',st:'ainicial'},
+    7: {dl:'2030-05-01',dt:'2027-06-07',st:'ainicial'},
+    8: {dl:'2030-06-30',dt:'2027-08-06',st:'ainicial'},
+    9: {dl:'2030-06-30',dt:'2027-08-06',st:'ainicial'},
+    10: {dl:'2030-09-28',dt:'2027-11-04',st:'ainicial'},
+  },
+  '038': {
+    1: {dl:'2027-10-30',dt:'2027-05-06',st:'andamento'},
+    2: {dl:'2027-11-01',dt:'2027-06-18',st:'ainicial'},
+    3: {dl:'2027-09-02',dt:'2027-06-25',st:'ainicial'},
+    4: {dl:'2027-10-02',dt:'2027-09-14',st:'ainicial'},
+    5: {dl:'2030-05-01',dt:'2029-12-14',st:'ainicial'},
+    6: {dl:'2030-05-31',dt:'2030-01-15',st:'ainicial'},
+    7: {dl:'2030-05-31',dt:'2030-01-15',st:'ainicial'},
+    8: {dl:'2030-07-30',dt:'2030-03-15',st:'ainicial'},
+    9: {dl:'2030-07-30',dt:'2030-03-15',st:'ainicial'},
+    10: {dl:'2030-10-28',dt:'2030-06-14',st:'ainicial'},
+  },
+  '039': {
+    1: {dl:'2027-10-30',dt:'2026-11-27',st:'andamento'},
+    2: {dl:'2027-11-01',dt:'2026-09-08',st:'ainicial'},
+    3: {dl:'2027-09-02',dt:'2028-01-03',st:'ainicial'},
+    5: {dl:'2030-05-01',dt:'2029-03-08',st:'ainicial'},
+    6: {dl:'2030-05-31',dt:'2029-04-07',st:'ainicial'},
+    7: {dl:'2030-05-31',dt:'2029-04-07',st:'ainicial'},
+    8: {dl:'2030-07-30',dt:'2029-06-06',st:'ainicial'},
+    9: {dl:'2030-08-30',dt:'2029-06-06',st:'ainicial'},
+    10: {dl:'2030-10-28',dt:'2029-09-04',st:'ainicial'},
+  },
+  '040': {
+    1: {dl:'2027-12-20',dt:'2027-03-04',st:'ainicial'},
+    2: {dl:'2027-12-01',dt:'2027-04-16',st:'ainicial'},
+    3: {dl:'2027-10-02',dt:'2028-03-14',st:'ainicial'},
+    4: {dl:'2027-11-01',dt:'2027-05-18',st:'ainicial'},
+    5: {dl:'2030-12-01',dt:'2030-04-16',st:'ainicial'},
+    6: {dl:'2030-12-31',dt:'2030-05-16',st:'ainicial'},
+    7: {dl:'2030-12-31',dt:'2030-05-16',st:'ainicial'},
+    8: {dl:'2031-03-01',dt:'2030-07-16',st:'ainicial'},
+    9: {dl:'2031-03-01',dt:'2030-07-16',st:'ainicial'},
+    10: {dl:'2031-05-30',dt:'2030-10-15',st:'ainicial'},
+  },
+  '041': {
+    1: {dl:'2028-01-28',dt:'2027-05-28',st:'ainicial'},
+    2: {dl:'2028-01-01',dt:'2028-01-01',st:'ainicial'},
+    3: {dl:'2027-11-02',dt:'2027-07-20',st:'ainicial'},
+    4: {dl:'2027-12-02',dt:'2027-10-15',st:'ainicial'},
+    5: {dl:'2030-01-01',dt:'2030-01-01',st:'ainicial'},
+    6: {dl:'2030-01-31',dt:'2030-01-31',st:'ainicial'},
+    7: {dl:'2030-01-31',dt:'2030-01-31',st:'ainicial'},
+    8: {dl:'2030-04-01',dt:'2030-04-01',st:'ainicial'},
+    9: {dl:'2030-04-01',dt:'2030-04-01',st:'ainicial'},
+    10: {dl:'2030-06-30',dt:'2030-06-30',st:'ainicial'},
+  },
+  '042': {
+    1: {dl:'2027-01-28',dt:'2027-08-24',st:'ainicial'},
+    2: {dl:'2028-02-01',dt:'2027-10-06',st:'ainicial'},
+    3: {dl:'2027-12-03',dt:'2028-01-25',st:'ainicial'},
+    4: {dl:'2028-01-02',dt:'2028-04-11',st:'ainicial'},
+    5: {dl:'2030-08-01',dt:'2030-05-13',st:'ainicial'},
+    6: {dl:'2030-08-31',dt:'2026-08-31',st:'ainicial'},
+    7: {dl:'2030-08-31',dt:'2026-08-31',st:'ainicial'},
+    8: {dl:'2030-10-30',dt:'2026-10-30',st:'ainicial'},
+    9: {dl:'2030-10-30',dt:'2026-10-30',st:'ainicial'},
+    10: {dl:'2031-01-28',dt:'2027-01-28',st:'ainicial'},
+  },
+  '043': {
+    1: {dl:'2027-03-09',dt:'2027-01-04',st:'ainicial'},
+    2: {dl:'2028-03-01',dt:'2027-02-16',st:'ainicial'},
+    3: {dl:'2028-01-01',dt:'2027-08-12',st:'ainicial'},
+    4: {dl:'2028-01-31',dt:'2027-11-09',st:'ainicial'},
+    5: {dl:'2030-03-01',dt:'2029-02-16',st:'ainicial'},
+    6: {dl:'2030-03-31',dt:'2029-03-18',st:'ainicial'},
+    7: {dl:'2030-03-31',dt:'2029-03-18',st:'ainicial'},
+    8: {dl:'2030-05-30',dt:'2029-05-17',st:'ainicial'},
+    9: {dl:'2030-05-30',dt:'2029-05-17',st:'ainicial'},
+    10: {dl:'2030-08-28',dt:'2029-08-15',st:'ainicial'},
+  },
+  '044': {
+    1: {dl:'2027-04-06',dt:'2027-05-28',st:'ainicial'},
+    2: {dl:'2028-04-01',dt:'2027-05-28',st:'ainicial'},
+    3: {dl:'2028-02-01',dt:'2027-08-02',st:'ainicial'},
+    4: {dl:'2028-03-02',dt:'2027-10-18',st:'ainicial'},
+    5: {dl:'2030-04-01',dt:'2029-05-28',st:'ainicial'},
+    6: {dl:'2030-05-01',dt:'2029-06-27',st:'ainicial'},
+    7: {dl:'2030-05-01',dt:'2029-06-27',st:'ainicial'},
+    8: {dl:'2030-06-30',dt:'2029-08-26',st:'ainicial'},
+    9: {dl:'2030-06-30',dt:'2029-08-26',st:'ainicial'},
+    10: {dl:'2030-09-28',dt:'2029-11-24',st:'ainicial'},
+  },
+};
+
+const SM_URLS = {
+  '002': 'https://app.smartsheet.com/sheets/6jvqx7VQm2pC6cxC3H3gGrHmX6GVHX32CCgH7F31',
+  '003': 'https://app.smartsheet.com/sheets/7858xmxFPmMmfc99PhG9FP57WcXpCVP5MXPGJq51',
+  '007': 'https://app.smartsheet.com/sheets/8xHHCWCjvw3XgHw4g8pGcVhvCXxRrc84q8pcFpJ1',
+  '008': 'https://app.smartsheet.com/sheets/5wx7f7MgHMpmMFc5pv6fwGj5JGvM7Gxw3HpwQ591',
+  '009': 'https://app.smartsheet.com/sheets/2c2hMVchcWjmf7w424fjGQ938hGWHGJFm39jPGw1',
+  '010': 'https://app.smartsheet.com/sheets/QX787X2gXmgRcRqrf846Gg8Wg45gXcxqq27CpfC1',
+  '011': 'https://app.smartsheet.com/sheets/qQ5j4Qx4gRr9Gq22mGGCgCJ3jGM7m3V8jmr6vQ31',
+  '012': 'https://app.smartsheet.com/sheets/H7wwjqPCV9gJqpMq2CJvv5XjGCrph3g4mGF726J1',
+  '013': 'https://app.smartsheet.com/sheets/V8rRG5g8M26J4XrGQVpQFh3wmChw3WjcjVQVFWv1',
+  '014': 'https://app.smartsheet.com/sheets/QxWcG4Wqv2mh82m7vjXPg23H4WWC84V25cHvcGf1',
+  '015': 'https://app.smartsheet.com/sheets/xqvwqWh2x4Xqh7XX3qgMGh86q9x9Vh2Fqm5RX2c1',
+  '016': 'https://app.smartsheet.com/sheets/vC2vh2x3G52hghhw67PWcqCCMhvw2Fc9wQCQvWx1',
+  '017': 'https://app.smartsheet.com/sheets/4RHJjQMRC8v8gjgpXjFqP2qFmC8hR929Q4vfPm81',
+  '018': 'https://app.smartsheet.com/sheets/6qWxMh9ff5vhFPRXH83X95RGcW4PGwJc64v9m7h1',
+  '019': 'https://app.smartsheet.com/sheets/2vHmwv3PwqVcwWwVfMfW8gjRR5rFwqff2g647jv1',
+  '020': 'https://app.smartsheet.com/sheets/xC34wVxXFPcGv7PgcMpXpvH66wX5pcv2W954c9x1',
+  '021': 'https://app.smartsheet.com/sheets/WQC664j2QjJM24r76r4GcQcCmMXrxMFvxpP6fXh1',
+  '022': 'https://app.smartsheet.com/sheets/9Q5R4rRr45FWfJ4J7jVg4vr8MgfCm9Jv8PV8Ccx1',
+  '023': 'https://app.smartsheet.com/sheets/r9FRww425vQW3M6J2w4VrVrwF3CWVfJQ46WwwM31',
+  '024': 'https://app.smartsheet.com/sheets/R8x37m7hFw8c6R526Q7PPQgjmCPfV5xcfrCfRpw1',
+  '025': 'https://app.smartsheet.com/sheets/jgcx756rqccH4Gj4xMHvc3V64VrC7x4J6hcfcfc1',
+  '026': 'https://app.smartsheet.com/sheets/r5vR69HjQVvc2hQ3JqqV2jw799fXmQGfhhRrV3V1',
+  '027': 'https://app.smartsheet.com/sheets/jP2XjG8HxHP3hwM2c92RpXG3FJPGCrH9CqPXQq21',
+  '028': 'https://app.smartsheet.com/sheets/x9MGxfwg7jg5vrvGr6FqGjPr398W79Fw2x9RR4p1',
+  '029': 'https://app.smartsheet.com/sheets/rQVMPcX42pm8w9g3prX9fcWHR4RVpHV9jpFpCHW1',
+  '030': 'https://app.smartsheet.com/sheets/mR8HcfXJpxvVm2WCqG2HmcWf4Hc7Vcw9FvxxPR81',
+  '031': 'https://app.smartsheet.com/sheets/2H2xr6Qgxx89V42F3GVjjGcF9q65RHW7xv9M2261',
+  '032': 'https://app.smartsheet.com/sheets/Cxqvwf6GPMrHPFQMRPQ5gG6VP9pG6RCJvwWF4VH1',
+  '033': 'https://app.smartsheet.com/sheets/76gqQF3F7rx6J6QgPJ4fr6hJgwMjW885Jhp8MQP1',
+  '034': 'https://app.smartsheet.com/sheets/GVJJgCxFxgxmjgGqJcj27qv5xmJvVJmmV5vHxmx1',
+  '035': 'https://app.smartsheet.com/sheets/6rqXrChfh3vGM34vqXgqJPGfgh86qHFQMrHjmx61',
+  '036': 'https://app.smartsheet.com/sheets/WJV43CM6FffMm43PJjW4CxphPMHGQfmCFrXjxX41',
+  '037': 'https://app.smartsheet.com/sheets/7pC24g3MhhrcFVJ9Q2GJ8RgcC9X4vjjWGFFXP361',
+  '038': 'https://app.smartsheet.com/sheets/V9FQr9vfWhvG6R5mrrpGR7QjGWq8mhxHcMFpgxc1',
+  '039': 'https://app.smartsheet.com/sheets/WpQjgxGRRwhrqJPFGh6486Vpmr577WHq7j9XX7x1',
+  '040': 'https://app.smartsheet.com/sheets/48prVfWGqXx6jpg25qJ5g2GjchPjwV8qmXfHjv51',
+  '041': 'https://app.smartsheet.com/sheets/3H2QmqrrjQRjHm98368CQhCvFghg4rmgG3QF3941',
+  '042': 'https://app.smartsheet.com/sheets/2mh8c44w5gP64CxRjxw44g9RF6w7C4g2vrF3xrx1',
+  '043': 'https://app.smartsheet.com/sheets/J69WPW3HfPmQFgMc9cFX48fr7r5jx2vGXFr6XJM1',
+  '044': 'https://app.smartsheet.com/sheets/mVFVHHRP5Qjh5JvxF3wchC3CJC6Wf5WgF5hjGXW1',
+};
+EMPS_RAW.forEach(function(e){ if(SM_URLS[e.id]) e.sm_url=SM_URLS[e.id]; });
+
+// ─── NEKT Timelines — dl: junho/2026 | dt/st: julho/2026 ──────────────────────
+const NEKT_TIMELINES = {
+  '002': {
+  },
+  '003': {
+  },
+  '006': {
+    0: {dl:'2023-01-01',dt:'2023-01-01',st:'concluido'},
+    2: {dl:'2023-07-01',dt:'2023-05-01',st:'concluido'},
+    5: {dl:'2026-06-01',dt:'2027-02-01',st:'ainicial'},
+  },
+  '007': {
+    0: {dl:'2022-06-01',dt:'2022-06-01',st:'concluido'},
+    1: {dl:'2023-09-01',dt:'2026-06-24',st:'concluido'},
+    2: {dl:'2023-09-01',dt:'2026-09-01',st:'ainicial'},
+    3: {dl:'2023-07-01',dt:'2026-10-30',st:'ainicial'},
+    4: {dl:'2023-08-01',dt:'2026-10-30',st:'ainicial'},
+    5: {dl:'2025-09-01',dt:'2028-09-01',st:'ainicial'},
+    6: {dl:'2025-10-01',dt:'2028-10-01',st:'ainicial'},
+    7: {dl:'2025-10-01',dt:null,st:'ainicial'},
+    9: {dl:'2025-12-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-03-01',dt:null,st:'ainicial'},
+  },
+  '008': {
+    0: {dl:'2022-07-01',dt:'2022-07-01',st:'concluido'},
+    1: {dl:'2023-08-01',dt:'2023-08-21',st:'concluido'},
+    2: {dl:'2023-11-01',dt:'2023-11-30',st:'concluido'},
+    3: {dl:'2023-09-01',dt:'2023-09-07',st:'concluido'},
+    4: {dl:'2023-10-01',dt:'2025-11-25',st:'concluido'},
+    5: {dl:'2025-09-01',dt:'2026-09-30',st:'ainicial'},
+    6: {dl:'2025-10-01',dt:'2026-10-30',st:'ainicial'},
+    7: {dl:'2025-10-01',dt:null,st:'ainicial'},
+    9: {dl:'2025-12-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-03-01',dt:null,st:'ainicial'},
+  },
+  '009': {
+    0: {dl:'2023-06-01',dt:'2023-06-01',st:'concluido'},
+    1: {dl:'2023-10-01',dt:'2023-07-13',st:'concluido'},
+    2: {dl:'2023-10-01',dt:'2023-09-01',st:'concluido'},
+    3: {dl:'2023-08-01',dt:'2025-09-25',st:'concluido'},
+    4: {dl:'2023-09-01',dt:'2025-12-15',st:'concluido'},
+    5: {dl:'2025-11-01',dt:'2026-08-31',st:'ainicial'},
+    6: {dl:'2025-12-01',dt:'2026-09-30',st:'ainicial'},
+    7: {dl:'2025-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2026-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-05-01',dt:null,st:'ainicial'},
+  },
+  '010': {
+    0: {dl:'2022-12-01',dt:'2022-12-01',st:'concluido'},
+    1: {dl:'2023-12-01',dt:'2023-07-04',st:'concluido'},
+    2: {dl:'2023-12-01',dt:'2023-08-14',st:'concluido'},
+    3: {dl:'2023-10-01',dt:'2023-06-26',st:'concluido'},
+    4: {dl:'2023-11-01',dt:'2023-08-26',st:'concluido'},
+    5: {dl:'2025-12-01',dt:'2026-02-02',st:'concluido'},
+    6: {dl:'2026-01-01',dt:'2026-04-09',st:'concluido'},
+    7: {dl:'2026-01-01',dt:null,st:'ainicial'},
+    9: {dl:'2026-03-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-06-01',dt:null,st:'ainicial'},
+  },
+  '011': {
+    0: {dl:'2023-03-01',dt:'2023-03-01',st:'concluido'},
+    1: {dl:'2024-01-01',dt:'2024-01-12',st:'concluido'},
+    2: {dl:'2024-07-01',dt:'2024-09-16',st:'concluido'},
+    3: {dl:'2024-05-01',dt:'2025-05-30',st:'concluido'},
+    4: {dl:'2024-06-01',dt:'2026-05-26',st:'concluido'},
+    5: {dl:'2026-06-01',dt:'2026-12-31',st:'ainicial'},
+    6: {dl:'2026-07-01',dt:'2027-01-30',st:'ainicial'},
+    7: {dl:'2026-07-01',dt:null,st:'ainicial'},
+    9: {dl:'2026-09-01',dt:null,st:'ainicial'},
+    10: {dl:'2026-12-01',dt:null,st:'ainicial'},
+  },
+  '012': {
+    0: {dl:'2023-04-05',dt:'2023-04-05',st:'concluido'},
+    1: {dl:'2025-01-01',dt:null,st:'andamento'},
+    2: {dl:'2025-02-01',dt:'2027-02-26',st:'ainicial'},
+    3: {dl:'2024-12-01',dt:'2027-02-26',st:'ainicial'},
+    4: {dl:'2025-01-01',dt:'2027-04-26',st:'ainicial'},
+    5: {dl:'2027-02-01',dt:'2029-02-26',st:'ainicial'},
+    6: {dl:'2027-03-01',dt:'2029-03-26',st:'ainicial'},
+    7: {dl:'2027-03-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-05-01',dt:null,st:'ainicial'},
+    10: {dl:'2027-08-01',dt:null,st:'ainicial'},
+  },
+  '013': {
+    0: {dl:'2023-08-01',dt:'2023-08-01',st:'concluido'},
+    1: {dl:'2024-11-01',dt:'2024-08-01',st:'concluido'},
+    2: {dl:'2024-11-01',dt:'2024-09-05',st:'concluido'},
+    3: {dl:'2024-09-01',dt:'2024-09-05',st:'concluido'},
+    4: {dl:'2024-10-01',dt:'2026-03-04',st:'concluido'},
+    5: {dl:'2026-11-01',dt:'2026-08-30',st:'ainicial'},
+    6: {dl:'2026-12-01',dt:'2026-09-30',st:'ainicial'},
+    7: {dl:'2026-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2027-05-01',dt:null,st:'ainicial'},
+  },
+  '014': {
+    0: {dl:'2023-08-01',dt:'2023-08-30',st:'concluido'},
+    1: {dl:'2024-10-01',dt:'2026-07-23',st:'concluido'},
+    2: {dl:'2024-11-01',dt:'2026-08-31',st:'ainicial'},
+    3: {dl:'2024-09-01',dt:'2026-09-30',st:'ainicial'},
+    4: {dl:'2024-10-01',dt:'2026-11-30',st:'ainicial'},
+    5: {dl:'2026-11-01',dt:'2028-08-31',st:'ainicial'},
+    6: {dl:'2026-12-01',dt:'2028-09-30',st:'ainicial'},
+    7: {dl:'2026-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2027-05-01',dt:null,st:'ainicial'},
+  },
+  '015': {
+    0: {dl:'2023-11-01',dt:'2023-11-01',st:'concluido'},
+    1: {dl:'2025-02-01',dt:'2025-04-09',st:'concluido'},
+    2: {dl:'2025-02-01',dt:'2025-05-14',st:'concluido'},
+    3: {dl:'2024-12-01',dt:'2026-08-21',st:'ainicial'},
+    4: {dl:'2025-01-01',dt:'2026-10-21',st:'ainicial'},
+    5: {dl:'2027-02-01',dt:'2027-05-14',st:'ainicial'},
+    6: {dl:'2027-03-01',dt:'2027-06-14',st:'ainicial'},
+    7: {dl:'2027-03-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-05-01',dt:null,st:'ainicial'},
+    10: {dl:'2027-08-01',dt:null,st:'ainicial'},
+  },
+  '016': {
+    0: {dl:'2024-02-01',dt:'2024-02-01',st:'concluido'},
+    1: {dl:'2025-06-01',dt:'2025-02-13',st:'concluido'},
+    2: {dl:'2025-05-01',dt:'2025-06-16',st:'concluido'},
+    3: {dl:'2025-03-01',dt:'2026-07-31',st:'concluido'},
+    4: {dl:'2025-04-01',dt:'2026-07-31',st:'concluido'},
+    5: {dl:'2027-11-01',dt:'2027-12-17',st:'ainicial'},
+    6: {dl:'2027-12-01',dt:'2028-01-17',st:'ainicial'},
+    7: {dl:'2027-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-05-01',dt:null,st:'ainicial'},
+  },
+  '017': {
+    0: {dl:'2024-03-01',dt:'2024-03-01',st:'concluido'},
+    1: {dl:'2025-06-01',dt:'2025-08-11',st:'concluido'},
+    2: {dl:'2025-06-01',dt:'2025-08-26',st:'concluido'},
+    3: {dl:'2025-04-02',dt:'2026-08-10',st:'concluido'},
+    4: {dl:'2025-05-02',dt:'2026-10-10',st:'ainicial'},
+    5: {dl:'2027-12-01',dt:'2028-02-24',st:'ainicial'},
+    6: {dl:'2028-01-01',dt:'2028-03-24',st:'ainicial'},
+    7: {dl:'2028-01-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-03-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-06-01',dt:null,st:'ainicial'},
+  },
+  '018': {
+    0: {dl:'2024-02-02',dt:'2024-02-02',st:'concluido'},
+    1: {dl:'2025-06-01',dt:'2026-10-07',st:'andamento'},
+    2: {dl:'2025-07-01',dt:'2026-11-07',st:'ainicial'},
+    3: {dl:'2025-05-01',dt:'2026-10-22',st:'ainicial'},
+    4: {dl:'2025-06-01',dt:'2026-12-22',st:'ainicial'},
+    5: {dl:'2028-01-01',dt:'2029-05-07',st:'ainicial'},
+    6: {dl:'2028-02-01',dt:'2029-06-07',st:'ainicial'},
+    7: {dl:'2028-02-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-04-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-07-01',dt:null,st:'ainicial'},
+  },
+  '019': {
+    0: {dl:'2024-06-01',dt:'2024-06-01',st:'concluido'},
+    1: {dl:'2025-09-01',dt:'2026-03-27',st:'concluido'},
+    2: {dl:'2025-09-01',dt:'2026-04-22',st:'concluido'},
+    3: {dl:'2025-07-01',dt:'2026-08-28',st:'ainicial'},
+    4: {dl:'2025-08-01',dt:'2026-10-28',st:'ainicial'},
+    5: {dl:'2027-09-01',dt:'2028-04-30',st:'ainicial'},
+    6: {dl:'2027-10-01',dt:'2028-05-30',st:'ainicial'},
+    7: {dl:'2027-10-01',dt:null,st:'ainicial'},
+    9: {dl:'2027-12-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-02-28',dt:null,st:'ainicial'},
+  },
+  '020': {
+    0: {dl:'2024-07-01',dt:'2024-07-01',st:'concluido'},
+    1: {dl:'2025-10-01',dt:'2026-03-25',st:'concluido'},
+    2: {dl:'2025-10-01',dt:'2026-04-23',st:'concluido'},
+    3: {dl:'2025-08-01',dt:'2026-08-31',st:'ainicial'},
+    4: {dl:'2025-09-01',dt:'2026-10-31',st:'ainicial'},
+    5: {dl:'2028-04-01',dt:'2028-10-26',st:'ainicial'},
+    6: {dl:'2028-05-01',dt:'2028-11-26',st:'ainicial'},
+    7: {dl:'2028-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-07-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-10-01',dt:null,st:'ainicial'},
+  },
+  '021': {
+    0: {dl:'2024-07-01',dt:'2024-07-01',st:'concluido'},
+    1: {dl:'2025-09-01',dt:'2026-12-08',st:'ainicial'},
+    2: {dl:'2025-10-01',dt:'2027-01-08',st:'ainicial'},
+    3: {dl:'2025-08-01',dt:'2027-01-15',st:'ainicial'},
+    4: {dl:'2025-09-01',dt:'2027-03-15',st:'ainicial'},
+    5: {dl:'2028-04-01',dt:'2029-07-08',st:'ainicial'},
+    6: {dl:'2028-05-01',dt:'2029-08-08',st:'ainicial'},
+    7: {dl:'2028-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-07-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-10-01',dt:null,st:'ainicial'},
+  },
+  '022': {
+    0: {dl:'2024-08-01',dt:'2024-08-01',st:'concluido'},
+    1: {dl:'2025-09-01',dt:'2026-09-10',st:'ainicial'},
+    2: {dl:'2025-10-01',dt:'2026-10-10',st:'ainicial'},
+    3: {dl:'2025-08-01',dt:'2026-10-02',st:'ainicial'},
+    4: {dl:'2025-09-01',dt:'2026-12-02',st:'ainicial'},
+    5: {dl:'2028-04-01',dt:'2029-04-10',st:'ainicial'},
+    6: {dl:'2028-05-01',dt:'2029-05-10',st:'ainicial'},
+    7: {dl:'2028-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-04-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-09-01',dt:null,st:'ainicial'},
+  },
+  '023': {
+    0: {dl:'2024-08-01',dt:'2024-08-01',st:'concluido'},
+    1: {dl:'2025-08-01',dt:'2025-08-12',st:'concluido'},
+    2: {dl:'2025-11-01',dt:'2025-11-17',st:'concluido'},
+    3: {dl:'2025-09-01',dt:'2026-08-21',st:'ainicial'},
+    4: {dl:'2025-10-01',dt:'2026-10-21',st:'ainicial'},
+    5: {dl:'2028-05-01',dt:'2028-05-04',st:'ainicial'},
+    6: {dl:'2028-06-01',dt:'2028-06-04',st:'ainicial'},
+    7: {dl:'2028-06-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-08-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-11-01',dt:null,st:'ainicial'},
+  },
+  '024': {
+    0: {dl:'2024-09-01',dt:'2024-09-01',st:'concluido'},
+    1: {dl:'2025-11-01',dt:'2025-12-05',st:'concluido'},
+    2: {dl:'2025-11-01',dt:'2026-01-06',st:'concluido'},
+    3: {dl:'2025-09-01',dt:'2026-08-10',st:'ainicial'},
+    4: {dl:'2025-10-01',dt:'2026-10-10',st:'ainicial'},
+    5: {dl:'2027-11-01',dt:'2027-12-06',st:'ainicial'},
+    6: {dl:'2027-12-01',dt:'2028-01-06',st:'ainicial'},
+    7: {dl:'2027-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2028-05-01',dt:null,st:'ainicial'},
+  },
+  '025': {
+    0: {dl:'2024-10-01',dt:'2024-10-01',st:'concluido'},
+    1: {dl:'2026-01-01',dt:'2026-04-30',st:'concluido'},
+    2: {dl:'2026-01-01',dt:'2026-07-06',st:'concluido'},
+    3: {dl:'2025-11-01',dt:'2026-10-30',st:'ainicial'},
+    4: {dl:'2025-12-01',dt:'2026-12-30',st:'ainicial'},
+    5: {dl:'2028-07-01',dt:'2028-12-06',st:'ainicial'},
+    6: {dl:'2028-08-01',dt:'2029-01-06',st:'ainicial'},
+    7: {dl:'2028-08-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-10-01',dt:null,st:'ainicial'},
+    10: {dl:'2029-01-01',dt:null,st:'ainicial'},
+  },
+  '026': {
+    0: {dl:'2024-12-01',dt:'2024-12-01',st:'concluido'},
+    1: {dl:'2027-03-01',dt:'2026-10-07',st:'ainicial'},
+    2: {dl:'2027-03-01',dt:'2027-03-01',st:'ainicial'},
+    3: {dl:'2027-01-01',dt:'2027-01-01',st:'ainicial'},
+    4: {dl:'2027-02-01',dt:'2027-02-01',st:'ainicial'},
+    5: {dl:'2029-03-01',dt:'2029-03-01',st:'ainicial'},
+    6: {dl:'2029-04-01',dt:'2029-04-01',st:'ainicial'},
+    7: {dl:'2029-04-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-06-01',dt:null,st:'ainicial'},
+    10: {dl:'2029-09-01',dt:null,st:'ainicial'},
+  },
+  '027': {
+    0: {dl:'2024-11-01',dt:'2024-11-01',st:'concluido'},
+    1: {dl:'2026-01-01',dt:'2026-11-27',st:'ainicial'},
+    2: {dl:'2026-02-01',dt:'2026-12-27',st:'ainicial'},
+    3: {dl:'2025-12-01',dt:'2026-12-18',st:'ainicial'},
+    4: {dl:'2026-01-01',dt:'2027-02-18',st:'ainicial'},
+    5: {dl:'2028-08-01',dt:'2029-06-27',st:'ainicial'},
+    6: {dl:'2028-09-01',dt:'2029-07-27',st:'ainicial'},
+    7: {dl:'2028-09-01',dt:null,st:'ainicial'},
+    9: {dl:'2028-11-01',dt:null,st:'ainicial'},
+    10: {dl:'2029-02-01',dt:null,st:'ainicial'},
+  },
+  '028': {
+    0: {dl:'2024-11-01',dt:'2024-11-01',st:'concluido'},
+    1: {dl:'2027-01-01',dt:'2026-08-03',st:'concluido'},
+    2: {dl:'2027-02-01',dt:'2027-02-01',st:'ainicial'},
+    3: {dl:'2026-12-01',dt:'2026-12-01',st:'ainicial'},
+    4: {dl:'2027-01-01',dt:'2027-01-01',st:'ainicial'},
+    5: {dl:'2029-08-01',dt:'2029-08-01',st:'ainicial'},
+    6: {dl:'2029-09-01',dt:'2029-09-01',st:'ainicial'},
+    7: {dl:'2029-09-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-11-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-02-01',dt:null,st:'ainicial'},
+  },
+  '029': {
+    0: {dl:'2025-01-01',dt:'2025-01-01',st:'concluido'},
+    1: {dl:'2027-04-01',dt:'2026-06-08',st:'concluido'},
+    2: {dl:'2027-05-01',dt:'2027-05-01',st:'ainicial'},
+    3: {dl:'2027-03-01',dt:'2026-10-08',st:'ainicial'},
+    4: {dl:'2027-04-01',dt:'2026-12-08',st:'ainicial'},
+    5: {dl:'2029-11-01',dt:'2029-11-01',st:'ainicial'},
+    6: {dl:'2029-12-01',dt:'2029-12-01',st:'ainicial'},
+    7: {dl:'2029-12-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-02-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-05-01',dt:null,st:'ainicial'},
+  },
+  '030': {
+    0: {dl:'2025-03-01',dt:'2025-03-01',st:'concluido'},
+    1: {dl:'2027-06-01',dt:null,st:'ainicial'},
+    2: {dl:'2027-06-01',dt:'2027-06-01',st:'ainicial'},
+    3: {dl:'2027-04-01',dt:'2027-04-01',st:'ainicial'},
+    4: {dl:'2027-05-01',dt:'2027-05-01',st:'ainicial'},
+    5: {dl:'2029-06-01',dt:'2029-06-01',st:'ainicial'},
+    6: {dl:'2029-07-01',dt:'2029-07-01',st:'ainicial'},
+    7: {dl:'2029-07-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-09-01',dt:null,st:'ainicial'},
+    10: {dl:'2029-12-01',dt:null,st:'ainicial'},
+  },
+  '031': {
+    0: {dl:'2025-04-01',dt:'2025-04-01',st:'concluido'},
+    1: {dl:'2027-05-01',dt:'2026-12-18',st:'ainicial'},
+    2: {dl:'2027-06-01',dt:'2027-06-01',st:'ainicial'},
+    3: {dl:'2027-04-01',dt:'2027-04-01',st:'ainicial'},
+    4: {dl:'2027-05-01',dt:'2027-05-01',st:'ainicial'},
+    5: {dl:'2030-01-01',dt:'2030-01-01',st:'ainicial'},
+    6: {dl:'2030-02-01',dt:'2030-02-01',st:'ainicial'},
+    7: {dl:'2030-02-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-07-01',dt:null,st:'ainicial'},
+  },
+  '032': {
+    0: {dl:'2025-04-01',dt:'2025-04-01',st:'concluido'},
+    1: {dl:'2027-06-01',dt:'2026-11-25',st:'ainicial'},
+    2: {dl:'2027-06-01',dt:'2027-06-01',st:'ainicial'},
+    3: {dl:'2027-04-01',dt:'2027-04-01',st:'ainicial'},
+    4: {dl:'2027-05-01',dt:'2027-05-01',st:'ainicial'},
+    5: {dl:'2029-07-01',dt:'2029-07-01',st:'ainicial'},
+    6: {dl:'2029-08-01',dt:'2029-08-01',st:'ainicial'},
+    7: {dl:'2029-08-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-10-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-01-01',dt:null,st:'ainicial'},
+  },
+  '033': {
+    0: {dl:'2025-05-01',dt:'2025-05-01',st:'concluido'},
+    1: {dl:'2027-07-01',dt:'2026-08-12',st:'concluido'},
+    2: {dl:'2027-08-01',dt:'2027-08-01',st:'ainicial'},
+    3: {dl:'2027-06-01',dt:'2027-06-01',st:'ainicial'},
+    4: {dl:'2027-07-01',dt:'2027-07-01',st:'ainicial'},
+    5: {dl:'2030-03-01',dt:'2030-03-01',st:'ainicial'},
+    6: {dl:'2030-04-01',dt:'2030-04-01',st:'ainicial'},
+    7: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-06-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-09-01',dt:null,st:'ainicial'},
+  },
+  '034': {
+    0: {dl:'2025-06-01',dt:'2025-06-01',st:'concluido'},
+    1: {dl:'2027-08-01',dt:'2026-12-25',st:'ainicial'},
+    2: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
+    3: {dl:'2027-07-01',dt:'2027-07-01',st:'ainicial'},
+    4: {dl:'2027-08-01',dt:'2027-08-01',st:'ainicial'},
+    5: {dl:'2029-09-01',dt:'2029-09-01',st:'ainicial'},
+    6: {dl:'2029-10-01',dt:'2029-10-01',st:'ainicial'},
+    7: {dl:'2029-10-01',dt:null,st:'ainicial'},
+    9: {dl:'2029-12-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-03-01',dt:null,st:'ainicial'},
+  },
+  '035': {
+    0: {dl:'2025-07-01',dt:'2025-07-01',st:'concluido'},
+    1: {dl:'2027-09-01',dt:'2026-09-24',st:'ainicial'},
+    2: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
+    3: {dl:'2027-08-01',dt:'2027-08-01',st:'ainicial'},
+    4: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
+    5: {dl:'2029-10-01',dt:'2029-10-01',st:'ainicial'},
+    6: {dl:'2029-11-01',dt:'2029-11-01',st:'ainicial'},
+    7: {dl:'2029-11-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-01-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-04-01',dt:null,st:'ainicial'},
+  },
+  '036': {
+    0: {dl:'2025-07-01',dt:'2025-07-01',st:'concluido'},
+    1: {dl:'2027-09-01',dt:'2026-09-25',st:'ainicial'},
+    2: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
+    3: {dl:'2027-08-01',dt:'2027-08-01',st:'ainicial'},
+    4: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
+    5: {dl:'2029-10-01',dt:'2029-10-01',st:'ainicial'},
+    6: {dl:'2029-11-01',dt:'2029-11-01',st:'ainicial'},
+    7: {dl:'2029-11-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-01-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-04-01',dt:null,st:'ainicial'},
+  },
+  '037': {
+    0: {dl:'2025-07-01',dt:'2025-07-01',st:'concluido'},
+    1: {dl:'2027-09-01',dt:'2027-03-26',st:'ainicial'},
+    2: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
+    3: {dl:'2027-08-01',dt:'2027-08-01',st:'ainicial'},
+    4: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
+    5: {dl:'2030-04-01',dt:'2030-04-01',st:'ainicial'},
+    6: {dl:'2030-05-01',dt:'2030-05-01',st:'ainicial'},
+    7: {dl:'2030-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-07-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-10-01',dt:null,st:'ainicial'},
+  },
+  '038': {
+    0: {dl:'2025-08-01',dt:'2025-08-01',st:'concluido'},
+    1: {dl:'2027-10-01',dt:'2026-12-03',st:'ainicial'},
+    2: {dl:'2027-11-01',dt:'2027-11-01',st:'ainicial'},
+    3: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
+    4: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
+    5: {dl:'2030-05-01',dt:'2030-05-01',st:'ainicial'},
+    6: {dl:'2030-06-01',dt:'2030-06-01',st:'ainicial'},
+    7: {dl:'2030-06-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-08-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-11-01',dt:null,st:'ainicial'},
+  },
+  '039': {
+    0: {dl:'2025-08-01',dt:'2025-08-01',st:'concluido'},
+    1: {dl:'2027-10-01',dt:null,st:'ainicial'},
+    2: {dl:'2027-11-01',dt:'2027-11-01',st:'ainicial'},
+    3: {dl:'2027-09-01',dt:'2027-09-01',st:'ainicial'},
+    4: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
+    5: {dl:'2030-05-01',dt:'2030-05-01',st:'ainicial'},
+    6: {dl:'2030-06-01',dt:'2030-06-01',st:'ainicial'},
+    7: {dl:'2030-06-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-08-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-11-01',dt:null,st:'ainicial'},
+  },
+  '040': {
+    0: {dl:'2025-09-01',dt:'2025-09-01',st:'concluido'},
+    1: {dl:'2027-11-01',dt:'2027-04-30',st:'ainicial'},
+    2: {dl:'2027-12-01',dt:'2027-12-01',st:'ainicial'},
+    3: {dl:'2027-10-01',dt:'2027-10-01',st:'ainicial'},
+    4: {dl:'2027-11-01',dt:'2027-11-01',st:'ainicial'},
+    5: {dl:'2030-12-01',dt:'2030-12-01',st:'ainicial'},
+    6: {dl:'2031-01-01',dt:'2031-01-01',st:'ainicial'},
+    7: {dl:'2031-01-01',dt:null,st:'ainicial'},
+    9: {dl:'2031-03-01',dt:null,st:'ainicial'},
+    10: {dl:'2031-06-01',dt:null,st:'ainicial'},
+  },
+  '041': {
+    0: {dl:'2025-10-01',dt:'2025-10-01',st:'concluido'},
+    1: {dl:'2027-12-01',dt:'2027-05-27',st:'ainicial'},
+    2: {dl:'2028-01-01',dt:'2028-01-01',st:'ainicial'},
+    3: {dl:'2027-11-01',dt:'2027-11-01',st:'ainicial'},
+    4: {dl:'2027-12-01',dt:'2027-12-01',st:'ainicial'},
+    5: {dl:'2030-01-01',dt:'2030-01-01',st:'ainicial'},
+    6: {dl:'2030-02-01',dt:'2030-02-01',st:'ainicial'},
+    7: {dl:'2030-02-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-07-01',dt:null,st:'ainicial'},
+  },
+  '042': {
+    0: {dl:'2025-10-01',dt:'2025-10-01',st:'concluido'},
+    1: {dl:'2028-01-01',dt:'2027-04-26',st:'ainicial'},
+    2: {dl:'2028-02-01',dt:'2028-02-01',st:'ainicial'},
+    3: {dl:'2027-12-01',dt:'2027-12-01',st:'ainicial'},
+    4: {dl:'2028-01-01',dt:'2028-01-01',st:'ainicial'},
+    5: {dl:'2030-08-01',dt:'2030-08-01',st:'ainicial'},
+    6: {dl:'2030-09-01',dt:'2030-09-01',st:'ainicial'},
+    7: {dl:'2030-09-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-11-01',dt:null,st:'ainicial'},
+    10: {dl:'2031-02-01',dt:null,st:'ainicial'},
+  },
+  '043': {
+    0: {dl:'2025-12-01',dt:'2025-12-01',st:'concluido'},
+    1: {dl:'2028-02-01',dt:'2027-07-30',st:'ainicial'},
+    2: {dl:'2028-03-01',dt:'2028-03-01',st:'ainicial'},
+    3: {dl:'2028-01-01',dt:null,st:'ainicial'},
+    4: {dl:'2028-02-01',dt:null,st:'ainicial'},
+    5: {dl:'2030-03-01',dt:'2030-03-01',st:'ainicial'},
+    6: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    7: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-06-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-09-01',dt:null,st:'ainicial'},
+  },
+  '044': {
+    0: {dl:'2025-10-01',dt:'2025-10-01',st:'concluido'},
+    1: {dl:'2028-03-01',dt:null,st:'ainicial'},
+    2: {dl:'2028-04-01',dt:null,st:'ainicial'},
+    3: {dl:'2028-02-01',dt:null,st:'ainicial'},
+    4: {dl:'2028-03-01',dt:null,st:'ainicial'},
+    5: {dl:'2030-04-01',dt:null,st:'ainicial'},
+    6: {dl:'2030-05-01',dt:null,st:'ainicial'},
+    7: {dl:'2030-05-01',dt:null,st:'ainicial'},
+    9: {dl:'2030-07-01',dt:null,st:'ainicial'},
+    10: {dl:'2030-10-01',dt:null,st:'ainicial'},
+  },
+};
+
+
 
 // Gera statuses de marco baseado na fase do empreendimento
 function genMarcos(emp){
@@ -523,15 +1602,22 @@ function genMarcos(emp){
 
 // Interpola datas dos 11 marcos a partir das datas-chave do empreendimento
 function genMarcosDates(emp){
+  const sm=SMARTSHEET_MARCOS[emp.id]||{};
   const N=MARCOS_SEQ.length;
   function lerp(d1,d2,f){
     if(!d1||!d2)return null;
     const t1=new Date(d1).getTime(),t2=new Date(d2).getTime();
     return new Date(Math.round(t1+(t2-t1)*f)).toISOString().split('T')[0];
   }
+  const nk=NEKT_TIMELINES[emp.id]||{};
   return MARCOS_SEQ.map(function(_,i){
+    // NEKT tem dados do informativo (prev. lançamento / prev. atualizada)
+    const nkd=nk[i]||null;
+    if(nkd&&(nkd.dl||nkd.dt)) return{dl:nkd.dl||null,dr:null,dt:nkd.dt||nkd.dl||null};
+    // Fallback Smartsheet
+    if(sm[i]) return{dl:sm[i].dl||null,dr:null,dt:sm[i].dt||null};
+    // Fallback: interpolar das datas-chave do empreendimento
     const f=i===0?0:i/(N-1);
-    // Lançamento: plano original ~80% do horizonte repactuação/tendência (era mais otimista)
     const refEnd=emp.dr||emp.dt;
     const dlEndMs=refEnd?new Date(emp.dl).getTime()+(new Date(refEnd).getTime()-new Date(emp.dl).getTime())*0.8:null;
     const dlEnd=dlEndMs?new Date(dlEndMs).toISOString().split('T')[0]:null;
@@ -571,381 +1657,54 @@ function genMarcosSeq(emp){
     fi>1?getSt(ent,0):'ainicial',           // 9 Habite-se e Inicio das Operações
     fi>1?getSt(ent,4):'ainicial',           // 10 Individualização das Matrículas
   ];
+  const sm=SMARTSHEET_MARCOS[emp.id]||{};
+  const nkSeq=NEKT_TIMELINES[emp.id]||{};
   return MARCOS_SEQ.map(function(m,i){
-    const st=sts[i];
-    // Sub-marcos: herdam status proporcional ao do pai
+    const st=nkSeq[i]?nkSeq[i].st:(sm[i]?sm[i].st:sts[i]);
+    // Sub-marcos: usa PREOBRA_MARCOS para Alvará (i===1), senão herda do pai
+    const PM_KEYS=['regulTerreno','licAmbiental','aprovProjArq'];
+    const pmEmp=(i===1&&typeof PREOBRA_MARCOS!=='undefined')?PREOBRA_MARCOS[emp.id]||{}:{};
     const subsArr=(m.subs||[]).map(function(s,si){
-      if(st==='concluido')return{nome:s,st:'concluido'};
-      if(st==='andamento')return{nome:s,st:si===0?'andamento':'ainicial'};
-      return{nome:s,st:'ainicial'};
+      if(i===1){const pmSub=pmEmp[PM_KEYS[si]];if(pmSub)return{nome:s,st:pmSub.st||'ainicial',dl:pmSub.dl||null,dt:pmSub.dt||null};}
+      if(st==='concluido')return{nome:s,st:'concluido',dl:null,dt:null};
+      if(st==='andamento')return{nome:s,st:si===0?'andamento':'ainicial',dl:null,dt:null};
+      return{nome:s,st:'ainicial',dl:null,dt:null};
     });
     return{nome:m.nome,st:st,subs:subsArr};
   });
 }
 
-const ASSEMBLEIAS={
-  '002':{tipo:'AGO',data:'2026-09-10',st:'Prevista'},
-  '003':{tipo:'AGO',data:'2026-09-15',st:'Prevista'},
-  '007':{tipo:'AGE',data:'2026-08-25',st:'Confirmada'},
-  '008':{tipo:'AGO',data:'2026-10-01',st:'Prevista'},
-  '009':{tipo:'AGO',data:'2026-10-10',st:'Prevista'},
-  '010':{tipo:'AGO',data:'2026-09-20',st:'Prevista'},
-  '011':{tipo:'AGO',data:'2026-10-15',st:'Prevista'},
-  '012':{tipo:'AGE',data:'2026-08-28',st:'Confirmada'},
-  '013':{tipo:'AGO',data:'2026-10-05',st:'Prevista'},
-  '014':{tipo:'AGO',data:'2026-11-10',st:'Prevista'},
-  '015':{tipo:'AGO',data:'2026-11-01',st:'Prevista'},
-  '016':{tipo:'AGO',data:'2026-10-10',st:'Prevista'},
-  '017':{tipo:'AGO',data:'2026-11-15',st:'Prevista'},
-  '018':{tipo:'AGO',data:'2026-11-20',st:'Prevista'},
-  '019':{tipo:'AGE',data:'2026-08-22',st:'Confirmada'},
-  '020':{tipo:'AGO',data:'2026-09-05',st:'Prevista'},
-  '021':{tipo:'AGO',data:'2027-01-15',st:'Prevista'},
-  '022':{tipo:'AGO',data:'2027-02-01',st:'Prevista'},
-  '023':{tipo:'AGO',data:'2026-12-01',st:'Prevista'},
-  '024':{tipo:'AGO',data:'2026-11-15',st:'Prevista'},
-  '025':{tipo:'AGO',data:'2027-03-01',st:'Prevista'},
-  '026':{tipo:'AGO',data:'2026-12-10',st:'Prevista'},
-  '027':{tipo:'AGO',data:'2027-01-15',st:'Prevista'},
-  '028':{tipo:'AGO',data:'2026-12-01',st:'Prevista'},
-  '029':{tipo:'AGO',data:'2027-02-01',st:'Prevista'},
-  '030':{tipo:'AGO',data:'2027-04-01',st:'Prevista'},
-  '031':{tipo:'AGO',data:'2027-01-01',st:'Prevista'},
-  '032':{tipo:'AGO',data:'2027-03-01',st:'Prevista'},
-  '033':{tipo:'AGO',data:'2026-09-20',st:'Prevista'},
-  '034':{tipo:'AGO',data:'2027-05-01',st:'Prevista'},
-  '035':{tipo:'AGO',data:'2027-02-01',st:'Prevista'},
-  '036':{tipo:'AGO',data:'2027-04-01',st:'Prevista'},
-  '037':{tipo:'AGO',data:'2027-01-01',st:'Prevista'},
-  '038':{tipo:'AGO',data:'2026-12-15',st:'Prevista'},
-  '039':{tipo:'AGO',data:'2027-04-01',st:'Prevista'},
-  '040':{tipo:'AGO',data:'2027-06-01',st:'Prevista'},
-  '041':{tipo:'AGO',data:'2027-03-01',st:'Prevista'},
-  '042':{tipo:'AGO',data:'2027-07-01',st:'Prevista'},
-  '043':{tipo:'AGO',data:'2027-08-01',st:'Prevista'},
-  '044':{tipo:'AGO',data:'2027-09-01',st:'Prevista'},
-};
+const ASSEMBLEIAS={};
 
-const ACS={
-  '002':{ativo:true,fase:'Vistoria final',inicio:'2026-07-15',prev:'2026-09-30'},
-  '003':{ativo:true,fase:'Aceite de chaves',inicio:'2026-08-01',prev:'2026-10-15'},
-  '008':{ativo:true,fase:'Inspeção técnica',inicio:'2026-06-20',prev:'2026-09-01'},
-  '010':{ativo:true,fase:'Análise documental',inicio:'2026-07-01',prev:'2026-09-30'},
-  '011':{ativo:true,fase:'Relatório parcial',inicio:'2026-07-10',prev:'2026-10-31'},
-  '012':{ativo:true,fase:'Inspeção técnica',inicio:'2026-06-15',prev:'2026-08-31'},
-  '013':{ativo:true,fase:'Análise documental',inicio:'2026-07-20',prev:'2026-10-01'},
-  '015':{ativo:true,fase:'Análise documental',inicio:'2026-08-01',prev:'2026-11-01'},
-  '016':{ativo:true,fase:'Relatório final',inicio:'2026-07-20',prev:'2026-09-15'},
-  '019':{ativo:true,fase:'Análise documental',inicio:'2026-07-10',prev:'2026-09-20'},
-  '027':{ativo:true,fase:'Inspeção técnica',inicio:'2026-08-10',prev:'2026-11-30'},
-};
+const ACS={};
 
-const COMS={
-  '002':[
-    {data:'2026-08-15',canal:'Grupo Lagoa Spot Investidores',tipo:'Informativo',txt:'Habite-se emitido. Próximos passos: ligação definitiva e individualização das matrículas.'},
-    {data:'2026-08-01',canal:'Grupo Lagoa Spot Investidores',tipo:'Financeiro',txt:'Demonstrativo financeiro de julho disponível na pasta compartilhada.'},
-  ],
-  '003':[
-    {data:'2026-08-10',canal:'Grupo Rosa Spot',tipo:'Informativo',txt:'Decor concluído. Vistoria e aceite agendados para setembro.'},
-  ],
-  '007':[
-    {data:'2026-08-10',canal:'Grupo Barra Spot',tipo:'Urgente',txt:'Reunião emergencial com construtora marcada para 22/08.'},
-    {data:'2026-07-30',canal:'Grupo Barra Spot',tipo:'Financeiro',txt:'Chamada de capital em análise pelo board.'},
-    {data:'2026-07-15',canal:'Grupo Barra Spot',tipo:'Urgente',txt:'Obras suspensas por falta de pagamento. Situação em monitoramento.'},
-  ],
-  '008':[
-    {data:'2026-08-12',canal:'Grupo Rosa Sul Spot',tipo:'Financeiro',txt:'Pagamentos em atraso. PMO em contato com construtora para regularização.'},
-    {data:'2026-08-01',canal:'Grupo Rosa Sul Spot',tipo:'Informativo',txt:'Estrutura 49% concluída. Prazo sendo monitorado.'},
-  ],
-  '009':[
-    {data:'2026-08-05',canal:'Grupo Ingleses Spot',tipo:'Informativo',txt:'Projeto em fase de entrega. Cronograma sendo validado com a construtora.'},
-  ],
-  '010':[
-    {data:'2026-08-14',canal:'Grupo Urubici Spot Investidores',tipo:'Informativo',txt:'Habite-se em andamento. PMO acompanha processo junto à prefeitura.'},
-    {data:'2026-08-01',canal:'Grupo Urubici Spot Investidores',tipo:'Financeiro',txt:'Demonstrativo financeiro de julho disponível na pasta.'},
-  ],
-  '011':[
-    {data:'2026-08-08',canal:'Grupo Japaratinga Spot',tipo:'Informativo',txt:'Obra no 3º pavimento. Progresso físico: 69,5%.'},
-  ],
-  '012':[
-    {data:'2026-08-12',canal:'Grupo Imbassaí Spot',tipo:'Urgente',txt:'Pagamentos paralisados desde jun/2026. Reunião convocada.'},
-    {data:'2026-07-28',canal:'Grupo Imbassaí Spot',tipo:'Urgente',txt:'Construtora em default. Jurídico acionado.'},
-  ],
-  '013':[
-    {data:'2026-08-08',canal:'Grupo Trancoso Spot',tipo:'Financeiro',txt:'Situação de inadimplência persistente. Risco de chamada de capital.'},
-    {data:'2026-07-20',canal:'Grupo Trancoso Spot',tipo:'Informativo',txt:'Nova proposta de entrega: dez/2026. Aditivo contratual em elaboração.'},
-  ],
-  '014':[
-    {data:'2026-08-05',canal:'Grupo Salvador Spot',tipo:'Informativo',txt:'Alvará e projetos executivos em fase avançada de aprovação.'},
-  ],
-  '015':[
-    {data:'2026-08-10',canal:'Grupo Campeche Spot',tipo:'Informativo',txt:'Obra no 2º pavimento. Progresso: 54,6%. Cronograma dentro do previsto.'},
-  ],
-  '016':[
-    {data:'2026-08-11',canal:'Grupo Urubici Spot II',tipo:'Financeiro',txt:'Pagamentos em atraso há 30 dias. Construtora notificada.'},
-    {data:'2026-08-01',canal:'Grupo Urubici Spot II',tipo:'Informativo',txt:'Estrutura em 32,9%. PMO monitora ritmo de obras.'},
-  ],
-  '017':[
-    {data:'2026-08-05',canal:'Grupo Canasvieiras Spot',tipo:'Informativo',txt:'Obras iniciadas. Fundação concluída, estrutura em início.'},
-  ],
-  '018':[
-    {data:'2026-08-08',canal:'Grupo Ilha do Campeche',tipo:'Informativo',txt:'Alvará em análise na prefeitura. Previsão de liberação: setembro.'},
-  ],
-  '019':[
-    {data:'2026-08-11',canal:'Grupo Rosa Norte Spot',tipo:'Urgente',txt:'Construtora notificada por atraso de 5 meses no cronograma.'},
-    {data:'2026-07-25',canal:'Grupo Rosa Norte Spot',tipo:'Urgente',txt:'Obras paralisadas. Situação financeira crítica na construtora.'},
-    {data:'2026-07-10',canal:'Grupo Rosa Norte Spot',tipo:'Financeiro',txt:'Chamada de capital pode ser necessária. Board em análise.'},
-  ],
-  '020':[
-    {data:'2026-08-09',canal:'Grupo Cachoeira Spot',tipo:'Informativo',txt:'Obra iniciada. Fundação em execução. Progresso: 4,6%.'},
-  ],
-  '021':[
-    {data:'2026-08-06',canal:'Grupo Sul da Ilha Spot',tipo:'Informativo',txt:'Alvará em aprovação. Projetos executivos em andamento.'},
-  ],
-  '022':[
-    {data:'2026-08-04',canal:'Grupo Morro das Pedras',tipo:'Informativo',txt:'Projetos executivos em fase II. Alvará previsto para outubro.'},
-  ],
-  '023':[
-    {data:'2026-08-07',canal:'Grupo Batel Spot',tipo:'Informativo',txt:'Instalações em andamento. Progresso: 11,3%.'},
-  ],
-  '024':[
-    {data:'2026-08-09',canal:'Grupo Jurerê Beach Spot',tipo:'Informativo',txt:'Estrutura em andamento. Progresso: 30,2%. Prazo dentro do previsto.'},
-  ],
-  '025':[
-    {data:'2026-08-03',canal:'Grupo Marista 144',tipo:'Informativo',txt:'Obras com início previsto para Q4/2028. Alvará em processo.'},
-  ],
-  '026':[
-    {data:'2026-08-06',canal:'Grupo Ilha Campeche II',tipo:'Informativo',txt:'Alvará em análise. Repactuação prevista para setembro/2026.'},
-  ],
-  '027':[
-    {data:'2026-08-08',canal:'Grupo Santo Antonio Spot',tipo:'Informativo',txt:'Projetos executivos em andamento. ACS iniciado.'},
-  ],
-  '028':[
-    {data:'2026-08-05',canal:'Grupo Meireles Spot',tipo:'Informativo',txt:'Alvará e projetos em fase inicial de aprovação.'},
-  ],
-  '029':[
-    {data:'2026-08-04',canal:'Grupo Cachoeira Beach',tipo:'Informativo',txt:'Projetos 50% elaborados. Repactuação: abr/2027.'},
-  ],
-  '030':[
-    {data:'2026-08-03',canal:'Grupo Bonito Spot',tipo:'Informativo',txt:'Alvará em análise. Obra prevista para 2031.'},
-  ],
-  '031':[
-    {data:'2026-08-05',canal:'Grupo Santinho Spot',tipo:'Informativo',txt:'Alvará em tramitação. Projetos 25% concluídos.'},
-  ],
-  '032':[
-    {data:'2026-08-04',canal:'Grupo Jurerê Spot II',tipo:'Informativo',txt:'Projetos executivos em fase inicial. Alvará pendente.'},
-  ],
-  '033':[
-    {data:'2026-08-13',canal:'Grupo Caraguá Spot',tipo:'Informativo',txt:'Obras iniciadas. Construtora apresentou cronograma revisado.'},
-    {data:'2026-08-01',canal:'Grupo Caraguá Spot',tipo:'Financeiro',txt:'Fluxo de caixa monitorado. Pagamentos em dia.'},
-  ],
-  '034':[
-    {data:'2026-08-03',canal:'Grupo Bonito Spot II',tipo:'Informativo',txt:'Alvará em aprovação. Início de obras previsto para 2028.'},
-  ],
-  '035':[
-    {data:'2026-08-04',canal:'Grupo Itacaré Spot',tipo:'Informativo',txt:'Projetos em elaboração. Repactuação: jun/2027.'},
-  ],
-  '036':[
-    {data:'2026-08-05',canal:'Grupo Barra Grande Spot',tipo:'Informativo',txt:'Fase de entrega iniciada. Habite-se em processo.'},
-  ],
-  '037':[
-    {data:'2026-08-04',canal:'Grupo Ponta das Canas',tipo:'Informativo',txt:'Alvará em tramitação. Projetos 11,8% elaborados.'},
-  ],
-  '038':[
-    {data:'2026-08-03',canal:'Grupo Foz Spot',tipo:'Informativo',txt:'Alvará em análise na prefeitura de Foz do Iguaçu.'},
-  ],
-  '039':[
-    {data:'2026-08-04',canal:'Grupo Canas Beach',tipo:'Informativo',txt:'Projetos 23% concluídos. Repactuação: mai/2027.'},
-  ],
-  '040':[
-    {data:'2026-08-03',canal:'Grupo Ponta das Canas II',tipo:'Informativo',txt:'Projetos em elaboração. Repactuação: mai/2027.'},
-  ],
-  '041':[
-    {data:'2026-08-04',canal:'Grupo Novo Campeche',tipo:'Informativo',txt:'Alvará em aprovação. Obras previstas para 2027.'},
-  ],
-  '042':[
-    {data:'2026-08-03',canal:'Grupo Natal Spot',tipo:'Informativo',txt:'Projetos 39% elaborados. Repactuação: jan/2027.'},
-  ],
-  '043':[
-    {data:'2026-08-03',canal:'Grupo Jurerê Spot III',tipo:'Informativo',txt:'Projetos em elaboração. Repactuação: ago/2027.'},
-  ],
-  '044':[
-    {data:'2026-08-03',canal:'Grupo Novo Campeche II',tipo:'Informativo',txt:'Projetos 18% elaborados. Repactuação: jul/2027.'},
-  ],
-};
+const COMS={};
 
+// Panorama de Processos de Licenciamento — 2026-08-24
 const IA_UPD={
-  '002':[
-    {fonte:'reuniao',txt:'Habite-se emitido em julho. Pendências: ligação definitiva e individualização de matrículas.'},
-    {fonte:'wpp',txt:'Investidores satisfeitos com o progresso. Chaves previstas para entrega em Q4/2026.'},
-  ],
-  '003':[
-    {fonte:'reuniao',txt:'Decor 100% concluído. Vistoria agendada para setembro com investidores.'},
-  ],
-  '007':[
-    {fonte:'reuniao',txt:'Pagamentos à construtora suspensos. Obras parcialmente paralisadas desde jul/2026.'},
-    {fonte:'wpp',txt:'Sócios acionaram advogado. Reunião de mediação agendada para 25/08.'},
-  ],
-  '008':[
-    {fonte:'reuniao',txt:'Pagamentos em atraso há 45 dias. Construtora ameaça paralisia. PMO em negociação.'},
-    {fonte:'wpp',txt:'Grupo questiona atraso nos pagamentos. PMO enviou nota explicativa com cronograma de regularização.'},
-  ],
-  '009':[
-    {fonte:'reuniao',txt:'Fase de entrega. Habite-se aguardando validação da prefeitura.'},
-  ],
-  '010':[
-    {fonte:'reuniao',txt:'Habite-se em andamento junto à prefeitura. Prazo estimado: 60 dias para emissão.'},
-    {fonte:'wpp',txt:'Investidores aguardam atualização do prazo de entrega das chaves.'},
-  ],
-  '011':[
-    {fonte:'reuniao',txt:'Obra no 3º pavimento. Estrutura 69,5% concluída. Ritmo dentro do cronograma.'},
-  ],
-  '012':[
-    {fonte:'reuniao',txt:'Construtora em default desde junho. Risco de chamada de capital avaliado em R$ 520 mil.'},
-    {fonte:'wpp',txt:'Investidores pedem reunião presencial. Marcada para 22/08 em Florianópolis.'},
-  ],
-  '013':[
-    {fonte:'reuniao',txt:'Entrega estimada para dez/2026. Atraso de 14 meses vs. data original.'},
-    {fonte:'wpp',txt:'Grupo questiona atraso. PMO preparou comunicado formal com nova timeline.'},
-  ],
-  '014':[
-    {fonte:'reuniao',txt:'Alvará em fase avançada na prefeitura de Salvador. Projetos executivos em revisão.'},
-  ],
-  '015':[
-    {fonte:'reuniao',txt:'Progresso de 54,6%. Instalações hidráulicas iniciadas no 2º pavimento.'},
-  ],
-  '016':[
-    {fonte:'reuniao',txt:'Pagamentos em atraso. Construtora comprometeu-se a regularizar até 31/08.'},
-    {fonte:'wpp',txt:'Sócios questionam atraso nos repasses. PMO monitora situação diariamente.'},
-  ],
-  '017':[
-    {fonte:'reuniao',txt:'Fundação concluída. Estrutura em início. Obras dentro do cronograma inicial.'},
-  ],
-  '018':[
-    {fonte:'reuniao',txt:'Alvará aguardando análise da Comissão de Patrimônio Histórico. Prazo incerto.'},
-  ],
-  '019':[
-    {fonte:'reuniao',txt:'Atraso acumulado de ~150 dias. Nova data de entrega ainda não formalizada.'},
-    {fonte:'wpp',txt:'Grupo em alta tensão; PMO respondeu com nota explicativa e cronograma revisado.'},
-  ],
-  '020':[
-    {fonte:'reuniao',txt:'Fundação em execução. Obras iniciadas em abril/2026. Progresso: 4,6%.'},
-  ],
-  '021':[
-    {fonte:'reuniao',txt:'Alvará com previsão de emissão em setembro. Projetos executivos em elaboração.'},
-  ],
-  '022':[
-    {fonte:'reuniao',txt:'Projetos executivos fase II. Repactuação prevista: abr/2026 (já vencida). PMO monitora.'},
-  ],
-  '023':[
-    {fonte:'reuniao',txt:'Instalações em andamento. 11,3% de progresso. Cronograma dentro do previsto.'},
-  ],
-  '024':[
-    {fonte:'reuniao',txt:'Estrutura e instalações em andamento simultâneo. Progresso: 30,2%.'},
-  ],
-  '025':[
-    {fonte:'reuniao',txt:'Início de obras previsto para 2028. Alvará em processo de aprovação.'},
-  ],
-  '026':[
-    {fonte:'reuniao',txt:'Alvará em análise. Projetos executivos a iniciar após aprovação do alvará.'},
-  ],
-  '027':[
-    {fonte:'reuniao',txt:'Projetos executivos 53% elaborados. ACS iniciado para acompanhamento técnico.'},
-  ],
-  '028':[
-    {fonte:'reuniao',txt:'Alvará e projetos em fase muito inicial. Nenhum marco crítico identificado.'},
-  ],
-  '029':[
-    {fonte:'reuniao',txt:'Projetos 50% elaborados. Obras previstas para long prazo (2029).'},
-  ],
-  '030':[
-    {fonte:'reuniao',txt:'Empreendimento de longo prazo. Alvará em análise. Sem marcos críticos no curto prazo.'},
-  ],
-  '031':[
-    {fonte:'reuniao',txt:'Alvará em tramitação. Projetos em elaboração inicial.'},
-  ],
-  '032':[
-    {fonte:'reuniao',txt:'Projetos executivos iniciados. Alvará aguardando protocolo.'},
-  ],
-  '033':[
-    {fonte:'reuniao',txt:'Obras iniciadas. Construtora apresentou novo cronograma com entregas mensais.'},
-    {fonte:'wpp',txt:'Grupo ativo. PMO enviou primeiro comunicado de acompanhamento.'},
-  ],
-  '034':[
-    {fonte:'reuniao',txt:'Alvará em aprovação. Obras previstas para 2030. Sem urgências no momento.'},
-  ],
-  '035':[
-    {fonte:'reuniao',txt:'Projetos em elaboração. Repactuação: jun/2027. Empreendimento sem criticidades.'},
-  ],
-  '036':[
-    {fonte:'reuniao',txt:'Fase de entrega iniciada. Habite-se em tramitação na prefeitura.'},
-  ],
-  '037':[
-    {fonte:'reuniao',txt:'Projetos em elaboração. Alvará pendente. Cronograma de longo prazo (2028).'},
-  ],
-  '038':[
-    {fonte:'reuniao',txt:'Alvará protocolado. Projetos em elaboração. Empreendimento em fase inicial.'},
-  ],
-  '039':[
-    {fonte:'reuniao',txt:'Projetos 23% elaborados. Sem criticidades imediatas.'},
-  ],
-  '040':[
-    {fonte:'reuniao',txt:'Projetos em fase muito inicial. Longo prazo (2030). Monitoramento mensal.'},
-  ],
-  '041':[
-    {fonte:'reuniao',txt:'Alvará em aprovação. Obras com início previsto para meados de 2027.'},
-  ],
-  '042':[
-    {fonte:'reuniao',txt:'Projetos 39% elaborados. Repactuação: jan/2027. Evolução dentro do esperado.'},
-  ],
-  '043':[
-    {fonte:'reuniao',txt:'Projetos em elaboração. Repactuação: ago/2027. Sem marcos críticos.'},
-  ],
-  '044':[
-    {fonte:'reuniao',txt:'Projetos 18% elaborados. Monitoramento trimestral. Longo prazo.'},
-  ],
+  '030':[{fonte:'licenc',txt:'Bombeiros / Segurança — aberto há 271 dias, sem tramitação publicada\nÚltima movimentação: 26/11/2025 — PARADO HÁ MAIS DE 30 DIAS'}],
+  '035':[{fonte:'licenc',txt:'Alvará de Construção + Arquitetônico — última movimentação há 152 dias (25/03/2026) — PARADO HÁ MAIS DE 30 DIAS\nCorte de Árvores + Licenciamento Ambiental — última movimentação há 34 dias (21/07/2026) — PARADO HÁ MAIS DE 30 DIAS'}],
+  '039':[{fonte:'licenc',txt:'Alvará de Construção — pendente de retorno da Seazone/projetista há 105 dias (última mov. 11/05/2026) — PARADO HÁ MAIS DE 30 DIAS\nArte Pública — Comunique-se em 20/05/2026 (96 dias sem retorno) — PARADO\nMelhorias Urbanas — aberto em 15/04/2026, sem tramitação há 131 dias — PARADO'}],
+  '018':[{fonte:'licenc',txt:'Licenciamento Ambiental — 77 dias sem tramitação (última mov. 08/06/2026) — PARADO HÁ MAIS DE 30 DIAS\nAlvará de Construção — pendente de retorno Seazone/projetista há 39 dias (última mov. 16/07/2026) — PARADO HÁ MAIS DE 30 DIAS\nArquitetônico — Assinatura de documentos em 03/08/2026 (21 dias)\nArte Pública — Comunique-se em 10/08/2026 (14 dias)\nMelhorias Urbanas — aberto em 07/08/2026, sem tramitação há 17 dias'}],
+  '040':[{fonte:'licenc',txt:'Arquitetônico — pendente de retorno da Seazone/projetista há 56 dias (última mov. 29/06/2026) — PARADO HÁ MAIS DE 30 DIAS'}],
+  '021':[{fonte:'licenc',txt:'Arquitetônico — em análise há 38 dias (última mov. 17/07/2026) — PARADO HÁ MAIS DE 30 DIAS'}],
+  '041':[{fonte:'licenc',txt:'Arquitetônico — pendente de retorno da Seazone/projetista há 38 dias (última mov. 17/07/2026) — PARADO HÁ MAIS DE 30 DIAS\nConsulta de Resíduos Sólidos — Comunique-se em 10/08/2026 (14 dias)'}],
+  '038':[{fonte:'licenc',txt:'Alvará de Construção + Arquitetônico — falha de acesso ao sistema (eFoz) na conferência de 24/08/2026'}],
+  '012':[{fonte:'licenc',txt:'Alvará de Construção + Arquitetônico — Notificação Ambiental Nº 056/2026 em 30/07/2026\nPendente de retorno da Seazone/projetista há 25 dias'}],
+  '043':[{fonte:'licenc',txt:'Arquitetônico — Analisar processo (SMPHDU/SDU/DILU/SAP) em 31/07/2026\nEm análise há 24 dias'}],
+  '042':[{fonte:'licenc',txt:'Alvará de Demolição — Para Providência em 19/08/2026\nÚltima movimentação: 19/08/2026 (5 dias)'}],
+  '037':[{fonte:'licenc',txt:'Arquitetônico — Analisar processo (SMPHDU/SDU/DILU/SAP) em 20/08/2026\nEm análise há 4 dias'}],
+  '031':[{fonte:'licenc',txt:'Arquitetônico — Comunique-se em 28/07/2026\nPendente de retorno da Seazone/projetista há 27 dias'}],
+  '044':[{fonte:'licenc',txt:'Consulta de Resíduos Sólidos — Comunique-se em 10/08/2026 (14 dias)'}],
 };
 
 // FUP seed data
-const FUP_SEED=[
-  // Urubici Spot (010)
-  {id:1,empId:'010',data:'2026-08-10',tipo:'gestao',part:'Bruna Z., Lucas M., Felipe G. (construtora)',disc:'Revisão de cronograma para emissão do Habite-se. Prefeitura solicitou documentação complementar.',enc:'1. Enviar docs complementares até 15/08\n2. Agendar vistoria municipal para setembro',resp:'Bruna Z.'},
-  {id:2,empId:'010',data:'2026-07-14',tipo:'gestao',part:'Bruna Z., Marcos T.',disc:'Alinhamento com construtora sobre pendências de Decor. Cronograma revisado.',enc:'1. Construtora entrega itens pendentes até 20/07\n2. Novo FUP em 30 dias',resp:'Bruna Z.'},
-  {id:3,empId:'010',data:'2026-06-10',tipo:'gestao',part:'Bruna Z., equipe PMO',disc:'Reunião de acompanhamento mensal. Obras de acabamento concluídas. Decor em andamento.',enc:'1. Acompanhar Decor\n2. Preparar dossiê para Habite-se',resp:'Bruna Z.'},
-  // Barra Spot (007)
-  {id:4,empId:'007',data:'2026-08-08',tipo:'gestao',part:'Bruna Z., Marina S., Adv. Peixoto',disc:'Pagamentos paralisados. Construtora ameaçou paralisia total das obras. Contrato em análise pelo jurídico.',enc:'1. Contato com diretoria financeira até 12/08\n2. Elaborar relatório ao board\n3. Avaliar antecipação de cotas',resp:'Bruna Z.'},
-  {id:5,empId:'007',data:'2026-07-15',tipo:'gestao',part:'Bruna Z., Ana P.',disc:'Primeira reunião de crise após suspensão de obras. Construtora exige pagamento em atraso.',enc:'1. Board deve deliberar sobre pagamento até 22/07\n2. Jurídico revisa contrato',resp:'Bruna Z.'},
-  {id:6,empId:'007',data:'2026-06-20',tipo:'gestao',part:'Bruna Z., Ricardo P.',disc:'Alerta de risco financeiro. Construtora sinaliza dificuldade de caixa.',enc:'1. Monitorar próximos pagamentos\n2. Acionar diretoria se houver novo atraso',resp:'Ricardo P.'},
-  // Trancoso Spot (013)
-  {id:7,empId:'013',data:'2026-08-06',tipo:'gestao',part:'Bruna Z., Ricardo P.',disc:'Revisão de repactuação com construtora. Nova proposta de entrega: dez/2026. Atraso acumulado de ~14 meses.',enc:'1. Formalizar nova data em aditivo contratual\n2. Comunicar investidores até 10/08',resp:'Ricardo P.'},
-  {id:8,empId:'013',data:'2026-07-01',tipo:'entrega',part:'Bruna Z., equipe Trancoso',disc:'FUP Entrega: vistoria técnica revelou pendências em acabamentos. Construtora comprometida a regularizar.',enc:'1. Construtora envia cronograma de correções até 07/07\n2. Nova vistoria em 30 dias',resp:'Bruna Z.'},
-  {id:9,empId:'013',data:'2026-06-05',tipo:'gestao',part:'Bruna Z., Ana P.',disc:'Reunião mensal. Atraso confirmado. Inadimplência identificada em 3 cotas.',enc:'1. Acionar inadimplentes via jurídico\n2. Avaliar chamada de capital',resp:'Ana P.'},
-  // Imbassai Spot (012)
-  {id:10,empId:'012',data:'2026-08-03',tipo:'gestao',part:'Bruna Z., Ana P. (financeiro)',disc:'Construtora em default. Chamada de capital de R$ 520 mil em avaliação para cobrir gap financeiro.',enc:'1. Aprovar chamada no board\n2. Comunicar investidores com antecedência de 30 dias',resp:'Bruna Z.'},
-  {id:11,empId:'012',data:'2026-07-10',tipo:'gestao',part:'Bruna Z., Adv. Peixoto',disc:'Construtora notificada extrajudicialmente. Prazo de 15 dias para regularização ou rescisão contratual.',enc:'1. Aguardar resposta da construtora\n2. Preparar alternativas: nova construtora ou rescisão',resp:'Bruna Z.'},
-  {id:12,empId:'012',data:'2026-06-15',tipo:'gestao',part:'Bruna Z., equipe PMO',disc:'Primeira reunião de crise. Obras paradas há 2 semanas por falta de pagamento.',enc:'1. Contato urgente com diretoria financeira\n2. Reunião presencial com board em 48h',resp:'Bruna Z.'},
-  // Urubici Spot II (016)
-  {id:13,empId:'016',data:'2026-08-11',tipo:'gestao',part:'Bruna Z., Lucas M.',disc:'Pagamentos em atraso há 45 dias. Construtora apresentou plano de regularização.',enc:'1. Monitorar regularização até 31/08\n2. FUP em 30 dias',resp:'Bruna Z.'},
-  {id:14,empId:'016',data:'2026-07-08',tipo:'gestao',part:'Bruna Z., equipe PMO',disc:'Reunião mensal. Estrutura em 32,9%. Risco de atraso identificado.',enc:'1. Construtora comprometida com aceleração\n2. Monitorar ritmo semanal',resp:'Lucas M.'},
-  // Rosa Norte Spot (019)
-  {id:15,empId:'019',data:'2026-08-11',tipo:'gestao',part:'Bruna Z., Marina S., Adv. Peixoto',disc:'Atraso de 150 dias. Construtora sem previsão formal de entrega. Obras paralisadas.',enc:'1. Emitir notificação formal\n2. Reunião com sócios e board até 20/08',resp:'Bruna Z.'},
-  {id:16,empId:'019',data:'2026-07-14',tipo:'gestao',part:'Bruna Z., Ricardo P.',disc:'Segunda reunião de crise. Construtora apresentou novo cronograma com atraso de 6 meses adicionais.',enc:'1. Analisar viabilidade do novo cronograma\n2. Comunicar investidores',resp:'Ricardo P.'},
-  {id:17,empId:'019',data:'2026-06-10',tipo:'gestao',part:'Bruna Z., equipe PMO',disc:'Obras paralisadas por questões trabalhistas na construtora. PMO acionou jurídico.',enc:'1. Jurídico monitora situação\n2. Board delibera sobre próximos passos',resp:'Bruna Z.'},
-  // Cachoeira Spot (020)
-  {id:18,empId:'020',data:'2026-08-09',tipo:'gestao',part:'Bruna Z., Lucas M.',disc:'Kick-off do FUP. Obras iniciadas em abril. Fundação em execução. Progresso: 4,6%.',enc:'1. Estabelecer ciclo mensal de FUP\n2. Alinhar com construtora sobre marcos',resp:'Lucas M.'},
-  // Caraguá Spot (033)
-  {id:19,empId:'033',data:'2026-08-13',tipo:'gestao',part:'Bruna Z., equipe Caraguá',disc:'Kick-off do FUP. Obras iniciadas. Construtora apresentou cronograma físico-financeiro.',enc:'1. Validar cronograma com PMO\n2. Estabelecer grupo WhatsApp de investidores',resp:'Bruna Z.'},
-  {id:20,empId:'033',data:'2026-07-20',tipo:'gestao',part:'Bruna Z., Marcos T.',disc:'Primeira reunião pós-lançamento. Alvará obtido. Obras com início imediato.',enc:'1. Construtora inicia mobilização\n2. PMO define frequência de FUP',resp:'Bruna Z.'},
-  // Lagoa Spot (002)
-  {id:21,empId:'002',data:'2026-08-05',tipo:'entrega',part:'Bruna Z., equipe Lagoa',disc:'FUP Entrega: Habite-se emitido em julho. Pendências: ligação definitiva, individualização de matrículas.',enc:'1. Acompanhar processo de ligação definitiva\n2. Cartório: iniciar individualização',resp:'Bruna Z.'},
-  // Rosa Spot (003)
-  {id:22,empId:'003',data:'2026-08-07',tipo:'entrega',part:'Bruna Z., Lucas M.',disc:'FUP Entrega: Decor concluído. Vistoria agendada para setembro. Individualização em andamento.',enc:'1. Confirmar vistoria com investidores\n2. Acompanhar individualização no cartório',resp:'Lucas M.'},
-];
+const FUP_SEED=[];
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const SK='pmo-fup-spes-v2';
-const SK_SEED='pmo-fup-seeded-v2';
-let S={fup:[],coment:{}};
+const SK_SEED='pmo-fup-seeded-v4';
+let S={fup:[],coment:{},capitalStatus:{},urgente:{},contrato:{},terrenoStatus:{},cotasData:{},fechamentoGrupo:{}};
 let farolSort={col:null,dir:1};
 let cronSort={col:null,dir:1};
 let cronFilter='todas';
@@ -954,6 +1713,7 @@ let cronMarcoFilter='';
 let histSelId=null;
 let curView='painel';
 let curEmpId=null;
+let curFaseFiltro='todos';
 
 function loadData(){
   if(!localStorage.getItem(SK_SEED)){
@@ -964,6 +1724,135 @@ function loadData(){
     const d=localStorage.getItem(SK);
     if(d) S=JSON.parse(d);
     else{S.fup=FUP_SEED.map(r=>({...r}));saveData();}
+  }
+  // Migra datas antigas DD/MM/YYYY → YYYY-MM-DD em fup entries
+  if(S.fup){
+    let migrated=false;
+    S.fup.forEach(function(f){
+      if(f.data&&/^\d{2}\/\d{2}\/\d{4}$/.test(f.data)){
+        const p=f.data.split('/');
+        f.data=p[2]+'-'+p[1]+'-'+p[0];
+        migrated=true;
+      }
+    });
+    if(migrated)saveData();
+  }
+  // Migração: enc → hist para registros salvos com campo errado
+  if(S.fup){let migEnc=false;S.fup.forEach(function(f){if(f.enc&&!f.hist){f.hist=f.enc;delete f.enc;migEnc=true;}});if(migEnc)saveData();}
+  // Migração: garante campos novos
+  if(!S.urgente)S.urgente={};
+  if(!S.contrato)S.contrato={};
+  if(!S.terrenoStatus)S.terrenoStatus={};
+  if(!S.cotasData)S.cotasData={};
+  if(!S.fechamentoGrupo)S.fechamentoGrupo={};
+  // Seed histórico FUP Entrega 13/08/2026
+  const SK_FUP_ENTREGA='pmo-fup-seed-entrega-2026-08-13-v2';
+  // Remove seed v1 (campo enc errado)
+  const OLD_EMP_IDS=['009','008','011','013','002'];
+  if(localStorage.getItem('pmo-fup-seed-entrega-2026-08-13')&&!localStorage.getItem(SK_FUP_ENTREGA)){
+    S.fup=S.fup.filter(function(f){return!(f.tipo==='entrega'&&f.data==='2026-08-13'&&OLD_EMP_IDS.indexOf(f.empId)>=0);});
+    saveData();
+  }
+  if(!localStorage.getItem(SK_FUP_ENTREGA)){
+    const FUP_ENTREGA=[
+      {empId:'009',enc:[
+        'Nova data de entrega de obra: 11/09; início das vistorias privativas: 14/09',
+        'Comunicado aos investidores: nova data alinhada com conselho e RV',
+        'Ligação definitiva de água (CASAN): pendente instalação de grade no medidor — previsão final de semana',
+        'Ligação definitiva de energia (Celesc): melhorias pela Massai em andamento; previsão quarta da semana seguinte',
+        'Esquadrias (STK/BRZ): BRZ ainda em produção, meta 31/08 — atrasos pontuais recuperáveis',
+        'ABIT e PPCI: protocolo previsto para 31/08; questão do bombeiro (guarda corpo, corrimão) parcial',
+        'Licença ambiental: a verificar (Sabrina iria validar; Trancoso não tem ETE)',
+        'Vistoria privativa: Sizone como secretariado — agendar, acompanhar e formalizar checklist; template via Caroline',
+        'Manual do empreendimento: síndica não revisou; Alice vai solicitar upload à construtora',
+        'MOG (decor): 49 unidades, 6 vistorias/dia; Pat contratando pessoa para acompanhar',
+        'Vistoria de área comum: sem comitê de investidores definido — tentar delegação ao síndico/conselho fiscal',
+      ]},
+      {empId:'008',enc:[
+        'Data de entrega de obra: 30/09',
+        'Vistorias decor (MOG): ~10 unidades com Caroline; ajustes em andamento (piso, esquadrilhas, silicone, pintura, portas, registros)',
+        'Ligações de água e energia: protocolos previstos para agosto; meta da 1ª quinzena pode atrasar por chuva, sem impacto na data final',
+        'Atividades externas: muro frontal e portão — ataque previsto nas próximas 2 semanas',
+        'ABIT e bombeiro: previsão setembro',
+        'Relatório fotográfico MOG: a ser elaborado (antes e depois das correções), para formalização via BD',
+        'Quadros de arte: pendente confirmação de data com Mario Marquet; decisão de instalar na vistoria de área comum',
+        'Início do decor: 10/08 (já iniciado com ressalvas)',
+        'Vistoria de área comum: síndico Renê participará; contratação de engenheiro pelos investidores a ser conversada',
+      ]},
+      {empId:'011',enc:[
+        'Custos de obra: estouro de ~R$ 500k identificado; 3 análises necessárias (histograma MO, salários equipe, % NF vertical × SPE)',
+        'AGE: prevista para deliberar locação de terreno ao lado e pagamento ao Ramiro / redivisão de chamada de capital',
+        'Estratégia de comunicação: alinhamento com jurídico antes de levar custos aos investidores; sessão de tira-dúvidas com conselho separada ou logo após AGE',
+        'Ligação definitiva de água: rede atual de instituto agrícola que não fornecerá água; possível necessidade de poço (custo elevado); aguardando reunião com Igor e diretoria da vertical',
+        'Ligação definitiva de energia: rede não comporta a carga; concessionária com prazo de 15 meses; carta de viabilidade nunca entregue/renovada; Igor elaborará apresentação',
+        'Notificação à construtora: abrir notificação formal sobre inconsistência na carta de viabilidade; Tati quer revisar antes do envio',
+      ]},
+      {empId:'013',enc:[
+        'Data de entrega: setembro (BRZ instalados por fora, não bloqueia decor)',
+        'MOG: 9 procurações assinadas; Pat vai pessoalmente nas primeiras 2 semanas, Amanda acompanha',
+        'Data de vistoria MOG: tentando antecipar para dia 8, 9 ou 10; comunicar investidor com pré-agendamento para dia 14',
+        'Vistoria de área comum: terça às 9h — Manuel (Terra Vista), Camila (Sizone), síndico Renê, 1 investidor',
+        'Ligação definitiva de água: rede não comporta 76 unidades; poço em análise; aguardando reunião com construtora',
+        'Ligação definitiva de energia: rede insuficiente; concessionária com prazo de 15 meses',
+        'BRZ (esquadrias): em produção/testes; Terra Vista deve priorizar vistorias nas unidades não-decor primeiro',
+        'Manual do empreendimento: Terra Vista atrasando; Sizone revisará, construtora corrige até dia 24, entrega em 31/08',
+        'Ligação definitiva (update positivo): Cláudo confirmou ligação de água e energia realizadas — a confirmar com Lucas',
+      ]},
+      {empId:'002',enc:[
+        'Quadro de áreas (NBR): divergência entre área da matrícula e quadro de áreas; jurídico (Sabrina) tentando justificar para cartório; versão atual já igual ao projeto legal',
+      ]},
+    ];
+    FUP_ENTREGA.forEach(function(e){
+      S.fup.push({id:Date.now()+Math.random(),empId:e.empId,data:'2026-08-13',tipo:'entrega',resp:'PMO',hist:e.enc.join('\n')});
+    });
+    saveData();
+    localStorage.setItem(SK_FUP_ENTREGA,'1');
+  }
+  // Seed Prévia FUP 18/08/2026
+  const SK_FUP_PREVIA='pmo-fup-seed-previa-2026-08-18-v1';
+  if(!localStorage.getItem(SK_FUP_PREVIA)){
+    const FUP_PREVIA=[
+      {empId:'014',hist:'• Projeto executivo com nova data para 30/09, e orçamento executivo 30/11.\n• STD em 20/08 com repactuação de datas.\n• Placa de obra pendente de licença e instalação.'},
+      {empId:'012',hist:'• Licença Ambiental - O Plano A previa licença para supressão da área sem compensação (2.400m²). Por conta da morosidade da aprovação junto ao INEMA, optou-se pelo Plano B. O Plano B é compra de terreno com área semelhante e custo de 50mil. A proposta foi apresentada ao INEMA, e o analista aprovando será formalizada a aquisição. O retorno do analista está previsto para 21/08, ou 28/08 caso necessidade de visita presencial do INEMA.\n• Licença Ambiental e Projeto Arq - recebido dois comunique-se com retorno até 19/08, previsto retornar em 18/08. No caso da Licença Ambiental são documentos apresentados ao INEMA. No caso do Projeto Arq ajustes em áreas comuns, sem impacto em unidades.'},
+      {empId:'042',hist:'• O alvará de demolição está em emissão, em pagamento de taxa em 17/08.'},
+      {empId:'039',hist:'• Autorização de corte em emissão.'},
+      {empId:'031',hist:'• Comunicado sobre o impacto nas varandas no comunique-se da prefeitura, e na alteração atual. Protocolo previsto para 21/08.\n• Licença Ambiental - seguirá o processo simplificado, com data a confirmar. Projeto de ETE e valor considerado, avaliar a construção no inicio ou final da obra.'},
+      {empId:'036',hist:'• Novo protocolo da prefeitura previsto para 28/08, impacto nas vagas de veículos de algumas unidades.\n• Confirmar sobre o fechamento da área pós-habite-se.'},
+      {empId:'027',hist:'• Licença Ambiental seguirá o processo simplificado, com data a confirmar. Projeto de ETE e valor considerado, avaliar a construção no inicio ou final da obra.'},
+      {empId:'030',hist:'• Cartório com previsão de retorno 28/08, já protocolado.'},
+      {empId:'034',hist:'• Avançou na prefeitura a regularização do terreno, o próximo passo é no cartório.'},
+      {empId:'035',hist:'• Haverá reuniões para destravar o Alvará. Previsto até 28/08 o Alvará de Construção e até 11/09 a versão assinada.'},
+      {empId:'018',hist:'• O Licenciamento Ambiental está com divergência de entendimento dentro da Floram, pela área técnica e jurídica. O setor jurídico emitiu um parecer tomado como inconclusivo pelo setor técnico, pois a área está dentro da faixa de 300 metros de restinga, mesmo estabelecendo que só há restrição efetiva quando existe restinga fixadora de dunas comprovada, não pela simples proximidade da faixa de 300 metros.\n• Temos um parecer favorável já obtido para outro terreno na mesma região como precedente direto, que serve de argumento de apoio, mas cada empreendimento precisa de uma análise individual.\n• Próximo passo: contato presencial com a presidência do órgão ambiental para cobrar diretriz clara e destravar o processo, reforçando laudo técnico de ausência de restinga e precedente favorável em empreendimento vizinho. Na sexta-feira 21/08, reunião marcada com a analista jurídica que emitiu o primeiro parecer.\n• Além disso, está em processo de retificação de terreno pelo Dr. Marcelo.'},
+      {empId:'022',hist:'• O Licenciamento Ambiental está com divergência de entendimento dentro da Floram, pela área técnica e jurídica. O setor jurídico emitiu um parecer tomado como inconclusivo pelo setor técnico, pois a área está dentro da faixa de 300 metros de restinga, mesmo estabelecendo que só há restrição efetiva quando existe restinga fixadora de dunas comprovada, não pela simples proximidade da faixa de 300 metros.\n• Temos um parecer favorável já obtido para outro terreno na mesma região como precedente direto, que serve de argumento de apoio, mas cada empreendimento precisa de uma análise individual.\n• Próximo passo: contato presencial com a presidência do órgão ambiental para cobrar diretriz clara e destravar o processo, reforçando laudo técnico de ausência de restinga e precedente favorável em empreendimento vizinho. Na sexta-feira 21/08, reunião marcada com a analista jurídica que emitiu o primeiro parecer.\n• Além disso, está em processo de retificação de terreno pelo Dr. Marcelo.'},
+      {empId:'026',hist:'• O Licenciamento Ambiental está com divergência de entendimento dentro da Floram, pela área técnica e jurídica. O setor jurídico emitiu um parecer tomado como inconclusivo pelo setor técnico, pois a área está dentro da faixa de 300 metros de restinga, mesmo estabelecendo que só há restrição efetiva quando existe restinga fixadora de dunas comprovada, não pela simples proximidade da faixa de 300 metros.\n• Temos um parecer favorável já obtido para outro terreno na mesma região como precedente direto, que serve de argumento de apoio, mas cada empreendimento precisa de uma análise individual.\n• Próximo passo: contato presencial com a presidência do órgão ambiental para cobrar diretriz clara e destravar o processo, reforçando laudo técnico de ausência de restinga e precedente favorável em empreendimento vizinho. Na sexta-feira 21/08, reunião marcada com a analista jurídica que emitiu o primeiro parecer.\n• Além disso, está em processo de retificação de terreno pelo Dr. Marcelo.'},
+    ];
+    FUP_PREVIA.forEach(function(e){
+      S.fup.push({id:Date.now()+Math.random(),empId:e.empId,data:'2026-08-18',tipo:'previa',resp:'PMO',hist:e.hist});
+    });
+    saveData();
+    localStorage.setItem(SK_FUP_PREVIA,'1');
+  }
+  const SK_FUP_PREVIA2='pmo-fup-seed-previa-2026-08-24-v2';
+  if(!localStorage.getItem(SK_FUP_PREVIA2)){
+    const FUP_PREVIA2=[
+      {empId:'011',hist:'Reunião de Conselho Fiscal agendada em 27/08 — todos os pontos serão levados\nAGE em 31/08: deliberação para redistribuição do valor do terrenista e locação do terreno ao lado\nAssuntos introduzidos conforme alinhamento prévio com conselho: água, energia e chamada de R$ 500k\nPrévia interna: 25/08'},
+      {empId:'013',hist:'AGE não convocada ainda — possíveis datas: 08 ou 10/09\nPendência: orçamento da engenharia sobre os R$ 200k, validado com custo de finalização da obra\nTema mobiliário: será levado como apresentação\nConfirmar se calendário de vistorias segue conforme alinhado'},
+      {empId:'016',hist:'Aguardando posicionamento da administradora de obras\nTendência para nova AGE: final de setembro'},
+      {empId:'019',hist:'Investidores informados sobre datas de recebimento dos pareceres\nEstacas: previsto para 30/08\nBlocos: parecer do projetista em 25/08'},
+      {empId:'009',hist:'Após atrasos da STK e alinhamentos com a ARV, confirmar novas repactuações de datas de entrega e vistorias\nObjetivo: manter conselho fiscal ciente e liberar calendário aos investidores'},
+      {empId:'038',hist:'Verificar sobre alterações do projeto arquitetônico\nAlinhar comunicação com investidores'},
+      {empId:'012',hist:'Avanço na compensação pelo INEMA — custo do terreno: R$ 50k\nAlinhar comunicação com investidores'},
+      {empId:'020',hist:'Questionamento de investidor (Evandro) sobre repactuação de valores quanto à alteração de área — direcionado ao CSI em 21/08'},
+      {empId:'018',hist:'Questionamento dos investidores sobre repactuação de valores quanto à alteração de área e realocação de unidades, após orçamento executivo'},
+      {empId:'014',hist:'Confirmar envio dos relatórios após STD\nPendência: licenciamento da placa de início de obra\nInício de obra confirmado para 31/08\nEntrega dos projetos executivos: 30/08'},
+      {empId:'031',hist:'Acompanhar alteração das áreas de varanda para convocação de STD/AGE após aprovação do projeto\nProtocolo arquitetônico previsto: 21/08'},
+      {empId:'023',hist:'Entrega dos projetos executivos prevista para 21/08 — confirmar se ocorreu ou houve realinhamentos'},
+    ];
+    FUP_PREVIA2.forEach(function(e){
+      S.fup.push({id:Date.now()+Math.random(),empId:e.empId,data:'2026-08-24',tipo:'previa',resp:'PMO',hist:e.hist});
+    });
+    saveData();
+    localStorage.setItem(SK_FUP_PREVIA2,'1');
   }
 }
 function saveData(){localStorage.setItem(SK,JSON.stringify(S));}
@@ -1000,6 +1889,21 @@ function marcoAtualDates(emp){
   if(idx<0)idx=marcos.findIndex(function(m){return m.st==='ainicial';});
   return idx>=0?(dates[idx]||{dl:null,dr:null,dt:null}):{dl:null,dr:null,dt:null};
 }
+// Retorna array de marcos a exibir no Farol por empreendimento
+// Quando o próximo é index 2 (Inicio das Obras), inclui também index 3 (Projetos Executivos)
+function marcosAtivos(emp){
+  const marcos=genMarcosSeq(emp);
+  const dates=genMarcosDates(emp);
+  let lastConclIdx=-1;
+  marcos.forEach(function(m,i){if(m.st==='concluido')lastConclIdx=i;});
+  const proxIdx=lastConclIdx+1;
+  if(proxIdx>=marcos.length)return[];
+  const result=[{nome:marcos[proxIdx].nome,st:marcos[proxIdx].st,idx:proxIdx,dates:dates[proxIdx]||{}}];
+  if(proxIdx===2&&3<marcos.length){
+    result.push({nome:marcos[3].nome,st:marcos[3].st,idx:3,dates:dates[3]||{}});
+  }
+  return result;
+}
 function calcScore(emp){
   const at=atraso(emp);
   const rc=emp.risco==='alto'?30:emp.risco==='atencao'?15:0;
@@ -1010,8 +1914,62 @@ function calcScore(emp){
 }
 function urgClass(s){return s>=70?'critico':s>=40?'atencao':'ok';}
 function urgLabel(s){return s>=70?'🔴 Crítico':s>=40?'🟡 Atenção':'🟢 Ok';}
-function fmtD(d){if(!d)return'—';const[y,m,dy]=d.split('-');return`${dy}/${m}/${y}`;}
+function fmtD(d){
+  if(!d)return'—';
+  // DD/MM/YYYY já no formato de exibição (armazenado antes da migração)
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(d))return d;
+  // YYYY-MM-DD → DD/MM/YYYY
+  const[y,m,dy]=d.split('-');
+  if(!dy||!m||!y||y==='undefined')return'—';
+  return`${dy}/${m}/${y}`;
+}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ─── EXPORTAR / IMPORTAR ─────────────────────────────────────────────────────
+function exportarDados(){
+  const json=JSON.stringify(S,null,2);
+  navigator.clipboard.writeText(json).then(function(){
+    showToast('✅ Dados copiados! Cole em outra instância usando "Importar".');
+  }).catch(function(){
+    // Fallback: abre modal com o texto para copiar manualmente
+    var m=document.getElementById('modalImport');
+    document.getElementById('importJson').value=json;
+    document.getElementById('importTitle').textContent='Copie o JSON abaixo';
+    document.getElementById('importActions').style.display='none';
+    document.getElementById('importCopyHint').style.display='block';
+    m.style.display='flex';
+  });
+}
+function importarDados(){
+  var m=document.getElementById('modalImport');
+  document.getElementById('importJson').value='';
+  document.getElementById('importTitle').textContent='Cole o JSON exportado';
+  document.getElementById('importActions').style.display='flex';
+  document.getElementById('importCopyHint').style.display='none';
+  m.style.display='flex';
+  setTimeout(function(){document.getElementById('importJson').focus();},100);
+}
+function confirmImport(){
+  var raw=document.getElementById('importJson').value.trim();
+  if(!raw){showToast('⚠ Cole o JSON antes de confirmar.');return;}
+  var parsed;
+  try{parsed=JSON.parse(raw);}catch(e){showToast('❌ JSON inválido. Verifique o conteúdo copiado.');return;}
+  // Valida estrutura mínima
+  if(typeof parsed!=='object'||!parsed.fup){showToast('❌ Estrutura não reconhecida. Exporte novamente.');return;}
+  S=parsed;
+  if(!S.urgente)S.urgente={};
+  if(!S.contrato)S.contrato={};
+  if(!S.terrenoStatus)S.terrenoStatus={};
+  if(!S.cotasData)S.cotasData={};
+  if(!S.fechamentoGrupo)S.fechamentoGrupo={};
+  saveData();
+  closeModalImport();
+  renderPainel();
+  showToast('✅ Dados importados com sucesso!');
+}
+function closeModalImport(){
+  document.getElementById('modalImport').style.display='none';
+}
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 function toggleTheme(){
@@ -1071,14 +2029,38 @@ function renderCurrentView(){
 // ─── PAINEL ──────────────────────────────────────────────────────────────────
 function renderPainel(){
   const c=document.getElementById('view-painel');
-  const sorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
-  if(!curEmpId&&sorted.length)curEmpId=sorted[0].id;
-  const emp=EMPS_RAW.find(function(e){return e.id===curEmpId;})||sorted[0];
+  const allSorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
+  const filtered=curFaseFiltro==='todos'?allSorted:curFaseFiltro==='urgente'?allSorted.filter(function(e){return S.urgente&&S.urgente[e.id];}):allSorted.filter(function(e){return e.fase===curFaseFiltro;});
+  if(!curEmpId&&filtered.length)curEmpId=filtered[0].id;
+  // If current emp not in filtered set, switch to first of filtered
+  if(!filtered.find(function(e){return e.id===curEmpId;})&&filtered.length)curEmpId=filtered[0].id;
+  const emp=filtered.find(function(e){return e.id===curEmpId;})||filtered[0];
   const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
-  const listHtml=sorted.map(function(e){
-    const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
+  const nUrgente=allSorted.filter(e=>S.urgente&&S.urgente[e.id]).length;
+  const fasePills=[
+    {v:'todos',l:'Todos',n:allSorted.length,color:null},
+    {v:'urgente',l:'Urgente',n:nUrgente,color:'#EF4444'},
+    {v:'preobra',l:'Pré-obra',n:allSorted.filter(e=>e.fase==='preobra').length,color:null},
+    {v:'obra',l:'Obra',n:allSorted.filter(e=>e.fase==='obra').length,color:null},
+    {v:'entrega',l:'Entrega',n:allSorted.filter(e=>e.fase==='entrega').length,color:null},
+  ].filter(p=>p.v==='todos'||p.n>0);
+  const pillsHtml=fasePills.map(p=>{
+    const act=p.v===curFaseFiltro;
+    const bg=act?(p.color||'var(--primary)'):'transparent';
+    const border=act?(p.color||'var(--primary)'):'var(--border)';
+    const color=act?'white':(p.color||'var(--muted-fg)');
+    const alertIcon=p.v==='urgente'?`<svg width="9" height="9" viewBox="0 0 24 24" fill="${act?'white':'#EF4444'}" stroke="${act?'white':'#EF4444'}" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13" stroke="white" stroke-width="2.5"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="white" stroke-width="2.5"/></svg> `:'';
+    return`<button onclick="setFaseFiltro('${p.v}')" style="display:flex;align-items:center;gap:3px;padding:3px 10px;border-radius:99px;border:1px solid ${border};background:${bg};color:${color};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">${alertIcon}${p.l}<span style="margin-left:4px;opacity:0.7">${p.n}</span></button>`;
+  }).join('');
+  const listHtml=filtered.map(function(e){
+    const fa=calcFarolAtraso(e),fi=calcFarolTerreno(e),fc=calcFarolCapital(e);
     const act=e.id===curEmpId?'pli-active':'';
+    const isUrg=!!(S.urgente&&S.urgente[e.id]);
+    const urgBtn=`<button id="urg-btn-${e.id}" onclick="toggleUrgente('${e.id}');event.stopPropagation()" title="${isUrg?'Remover urgência':'Marcar como urgente'}" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:1px 3px;border-radius:4px;color:${isUrg?'#EF4444':'var(--muted-fg)'};opacity:${isUrg?'1':'0.35'};transition:opacity 120ms,color 120ms" onmouseover="this.style.opacity='1';this.style.color='#EF4444'" onmouseout="this.style.opacity='${isUrg?'1':'0.35'}';this.style.color='${isUrg?'#EF4444':'var(--muted-fg)'}'">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="${isUrg?'#EF4444':'none'}" stroke="${isUrg?'#EF4444':'currentColor'}" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </button>`;
     return`<div class="painel-list-item ${act}" data-id="${e.id}" onclick="goToEmp('${e.id}')">
+      ${urgBtn}
       <span class="pli-nome">${esc(e.nome)}</span>
       <span class="pli-dots">
         <span class="pli-dot" style="background:${dotC(fa)}"></span>
@@ -1087,10 +2069,70 @@ function renderPainel(){
       </span>
     </div>`;
   }).join('');
+  const emptyMsg=filtered.length===0?`<div style="padding:16px;font-size:12px;color:var(--muted-fg);text-align:center">Nenhum empreendimento${curFaseFiltro==='urgente'?' marcado como urgente':' nesta fase'}.</div>`:'';
   c.innerHTML=`<div class="painel-split">
-    <div class="painel-list" id="painelList">${listHtml}</div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div id="fase-pills-wrap" style="padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border)">${pillsHtml}</div>
+      <div class="painel-list" id="painelList" style="max-height:calc(100vh - 200px)">${listHtml}${emptyMsg}</div>
+    </div>
     <div class="painel-detail-wrap" id="painel-detail">${emp?renderDetail(emp):''}</div>
   </div>`;
+}
+
+function setFaseFiltro(fase){
+  curFaseFiltro=fase;
+  renderPainel();
+}
+
+function toggleUrgente(empId){
+  if(!S.urgente)S.urgente={};
+  if(S.urgente[empId])delete S.urgente[empId];
+  else S.urgente[empId]=true;
+  saveData();
+  // Atualiza ícone em place sem re-render completo
+  const btn=document.getElementById('urg-btn-'+empId);
+  if(btn){
+    const isUrg=!!S.urgente[empId];
+    btn.title=isUrg?'Remover urgência':'Marcar como urgente';
+    btn.style.color=isUrg?'#EF4444':'var(--muted-fg)';
+    btn.style.opacity=isUrg?'1':'0.35';
+    const svg=btn.querySelector('svg');
+    if(svg){
+      svg.setAttribute('fill',isUrg?'#EF4444':'none');
+      svg.setAttribute('stroke',isUrg?'#EF4444':'currentColor');
+    }
+  }
+  // Atualiza pills
+  const pillsWrap=document.getElementById('fase-pills-wrap');
+  if(pillsWrap){
+    const allSorted=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');});
+    const nUrg=allSorted.filter(e=>S.urgente&&S.urgente[e.id]).length;
+    const fasePills=[
+      {v:'todos',l:'Todos',n:allSorted.length,color:null},
+      {v:'urgente',l:'Urgente',n:nUrg,color:'#EF4444'},
+      {v:'preobra',l:'Pré-obra',n:allSorted.filter(e=>e.fase==='preobra').length,color:null},
+      {v:'obra',l:'Obra',n:allSorted.filter(e=>e.fase==='obra').length,color:null},
+      {v:'entrega',l:'Entrega',n:allSorted.filter(e=>e.fase==='entrega').length,color:null},
+    ].filter(p=>p.v==='todos'||p.n>0);
+    pillsWrap.innerHTML=fasePills.map(p=>{
+      const act=p.v===curFaseFiltro;
+      const bg=act?(p.color||'var(--primary)'):'transparent';
+      const border=act?(p.color||'var(--primary)'):'var(--border)';
+      const color=act?'white':(p.color||'var(--muted-fg)');
+      const alertIcon=p.v==='urgente'?`<svg width="9" height="9" viewBox="0 0 24 24" fill="${act?'white':'#EF4444'}" stroke="${act?'white':'#EF4444'}" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13" stroke="white" stroke-width="2.5"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="white" stroke-width="2.5"/></svg> `:'';
+      return`<button onclick="setFaseFiltro('${p.v}')" style="display:flex;align-items:center;gap:3px;padding:3px 10px;border-radius:99px;border:1px solid ${border};background:${bg};color:${color};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">${alertIcon}${p.l}<span style="margin-left:4px;opacity:0.7">${p.n}</span></button>`;
+    }).join('');
+  }
+  // Se filtro urgente ativo e acabou de desmarcar, re-renderiza lista
+  if(curFaseFiltro==='urgente')renderPainel();
+}
+
+function setContrato(empId,field,val){
+  if(!S.contrato)S.contrato={};
+  if(!S.contrato[empId])S.contrato[empId]={st:'sem_prev',farol:null};
+  S.contrato[empId][field]=val;
+  saveData();
+  renderPainel();
 }
 
 function goToEmp(id){
@@ -1119,8 +2161,16 @@ function renderDetail(emp){
   const fupsEmp=S.fup.filter(f=>f.empId===emp.id).sort((a,b)=>b.data.localeCompare(a.data));
   const faseLabel={preobra:'Pré-Obra',obra:'Obra',entrega:'Entrega'};
   const atrasoDias=atraso(emp);
-  const fa=calcFarolAtraso(emp),fi=calcFarolIA(emp),fc=calcFarolCapital(emp);
+  const fa=calcFarolAtraso(emp),fi=calcFarolTerreno(emp),fc=calcFarolCapital(emp);
   function fdot(f,name){const c=f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';return`<div class="farol-dot-item"><div class="farol-dot-circle" style="background:${c};box-shadow:0 0 7px ${c}55"></div><div class="farol-dot-name">${name}</div></div>`;};
+  function renderIAItem(ia){
+    var lbl=ia.fonte==='reuniao'?'Reunião FUP':ia.fonte==='licenc'?'Licenciamento':'WhatsApp';
+    var dotColor=ia.fonte==='licenc'?'#EA580C':'var(--primary)';
+    var bullets=ia.txt.split('\n').filter(function(l){return l.trim();}).map(function(l){
+      return '<div class="fup-bullet"><div class="fup-bullet-dot" style="background:'+dotColor+'"></div><span>'+esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))+'</span></div>';
+    }).join('');
+    return '<div class="ia-item-new '+ia.fonte+'"><div class="ia-item-tag"><span class="ia-fonte '+ia.fonte+'">'+lbl+'</span></div><div class="ia-text">'+(bullets||esc(ia.txt))+'</div></div>';
+  }
 
   return`
   <div class="detail-page">
@@ -1135,7 +2185,7 @@ function renderDetail(emp){
         <div class="hero-name">${esc(emp.nome)}</div>
         <div class="hero-farois">
           ${fdot(fa,'Cronograma')}
-          ${fdot(fi,'IA')}
+          ${fdot(fi,'Terreno')}
           ${fdot(fc,'Ch. Capital')}
         </div>
       </div>
@@ -1156,7 +2206,7 @@ function renderDetail(emp){
             <th style="text-align:center">Lançamento</th>
             <th style="text-align:center">Repactuação</th>
             <th style="text-align:center;border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)">Tendência</th>
-            <th style="text-align:center;width:80px">Smartsheet</th>
+            <th style="text-align:center;width:90px">Smartsheet</th>
           </tr></thead>
           <tbody>
             ${(function(){
@@ -1166,17 +2216,24 @@ function renderDetail(emp){
               const svgOk=`<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>`;
               const svgAnd=`<div style="width:6px;height:6px;border-radius:50%;background:white"></div>`;
               const uid='cs'+Math.random().toString(36).slice(2,7);
-              const smLinkSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
-              const smCol=emp.sm_url?`<td style="text-align:center;padding:6px 10px"><a href="${emp.sm_url}" target="_blank" rel="noopener" style="color:var(--primary);display:inline-flex;align-items:center;gap:3px;font-size:10px">${smLinkSvg}</a></td>`:`<td style="text-align:center;font-size:10px;color:var(--muted-fg)">—</td>`;
+              const smData=SMARTSHEET_MARCOS[emp.id]||{};
+              let lastConclIdx=-1;
+              mseq.forEach(function(m,i){if(m.st==='concluido')lastConclIdx=i;});
+              const proxIdx=lastConclIdx+1;
               return mseq.map(function(m,i){
                 const d=mdates[i];
-                const ic=m.st==='concluido'?svgOk:m.st==='andamento'?svgAnd:'';
-                const drCell=`<td class="date-cell" style="text-align:center">${fmtD(d.dr)||'—'}</td>`;
+                const isDualProximo=proxIdx===2&&i===3;
+                const isProximo=i===proxIdx||isDualProximo;
+                const ic=m.st==='concluido'?svgOk:(isProximo||m.st==='andamento')?svgAnd:'';
+                const drCell=`<td class="date-cell" style="text-align:center">—</td>`;
                 const hasSubs=(m.subs||[]).length>0;
                 const chevron=hasSubs?`<svg class="sub-chev" style="flex-shrink:0;transition:transform 180ms;color:var(--muted-fg)" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`:'';
+                const smDate=smData[i]?fmtD(smData[i].dt)||'—':'—';
+                const smCol=`<td class="date-cell" style="text-align:center">${smDate}</td>`;
+                const dotClass=isProximo?'proximo':m.st;
                 const parentRow=`<tr class="cron-row-${m.st}${hasSubs?' cron-has-subs':''}" ${hasSubs?`onclick="tglSubs('${uid+i}',this)" style="cursor:pointer"`:''}>
                   <td><div class="cron-name-cell">
-                    <div class="cron-dot-s ${m.st}">${ic}</div>
+                    <div class="cron-dot-s ${dotClass}">${ic}</div>
                     <span class="cron-marco-nome ${m.st}">${esc(m.nome)}</span>
                     ${chevron}
                   </div></td>
@@ -1188,14 +2245,19 @@ function renderDetail(emp){
                 const spanCount=2;
                 const subRows=(m.subs||[]).map(function(s,si){
                   const sdot=`<div style="width:7px;height:7px;border-radius:50%;background:${s.st==='concluido'?'var(--success)':s.st==='andamento'?'var(--primary)':'var(--border)'};flex-shrink:0"></div>`;
-                  const scolor=s.st==='andamento'?'var(--primary)':s.st==='ainicial'?'var(--muted-fg)':'var(--muted-fg)';
-                  const sopacity=s.st==='ainicial'?.55:1;
+                  const scolor=s.st==='andamento'?'var(--primary)':s.st==='concluido'?'var(--muted-fg)':'var(--muted-fg)';
+                  const sopacity=s.st==='ainicial'||s.st==='nao_iniciado'?.5:1;
+                  const subSmDate=s.st==='concluido'?(s.dt?fmtD(s.dt):'—'):(s.dl?fmtD(s.dl):'—');
+                  const subStLabel=s.st==='concluido'?'✓ ':s.st==='andamento'?'● ':'○ ';
                   return`<tr class="cron-sub-row sub-of-${uid+i}" style="display:none">
-                    <td colspan="${2+spanCount}" style="border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)"><div class="cron-sub-cell" style="padding-left:32px">
+                    <td><div class="cron-sub-cell" style="padding-left:32px">
                       ${sdot}
                       <span style="color:${scolor};opacity:${sopacity};font-size:11px">${esc(s.nome)}</span>
                     </div></td>
-                    ${smCol}
+                    <td class="date-cell" style="font-size:11px">—</td>
+                    <td class="date-cell" style="text-align:center">—</td>
+                    <td class="date-cell" style="font-size:11px;border-right:1px solid color-mix(in srgb,var(--border) 50%,transparent)">—</td>
+                    <td class="date-cell" style="font-size:11px;opacity:${sopacity}">${subSmDate}</td>
                   </tr>`;
                 }).join('');
                 return parentRow+subRows;
@@ -1206,29 +2268,114 @@ function renderDetail(emp){
       </div>
     </div>
 
-    <!-- COL DIREITA: IA -->
+    <!-- COL DIREITA: Terreno + Capital -->
     <div class="detail-col-right">
-      <!-- IA -->
-      <div class="caixinha" style="flex:1">
-        <div class="cx-head">
-          <div class="cx-icon cx-icon-ia"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-          <div class="cx-title">IA — Resumo Semanal</div>
-          ${ias.length?`<div class="cx-badge-count">${ias.length}</div>`:''}
-        </div>
-        <div class="cx-body">
-          ${ias.length?ias.map(ia=>`
-            <div class="ia-item-new ${ia.fonte}">
-              <div class="ia-item-tag"><span class="ia-fonte ${ia.fonte}">${ia.fonte==='reuniao'?'Reunião FUP':'WhatsApp'}</span></div>
-              <div class="ia-text">${esc(ia.txt)}</div>
-            </div>`).join('')
-          :`<div style="font-size:12px;color:var(--muted-fg);padding:4px 0">Nenhuma atualização registrada nesta semana.</div>`}
-        </div>
-      </div>
+      <!-- Terreno transferido à SPE -->
+      ${(function(){
+        const terrVal=(S.terrenoStatus&&S.terrenoStatus[emp.id])||'pendente';
+        const terrColor=terrVal==='concluido'?'var(--success)':terrVal==='andamento'?'#EA580C':'var(--muted-fg)';
+        const opts=[
+          {v:'pendente',l:'Pendente'},
+          {v:'andamento',l:'Em andamento'},
+          {v:'concluido',l:'Concluído'}
+        ];
+        return`<div class="caixinha" style="flex:1">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,${terrColor} 15%,transparent);color:${terrColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Terreno transferido à SPE</div>
+            <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${terrColor};flex-shrink:0"></div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px">
+            <select onchange="setTerreno('${emp.id}',this.value)" style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer">
+              ${opts.map(o=>`<option value="${o.v}"${terrVal===o.v?' selected':''}>${o.l}</option>`).join('')}
+            </select>
+          </div>
+        </div>`;
+      })()}
+      <!-- Cotas -->
+      ${(function(){
+        const cd=(S.cotasData&&S.cotasData[emp.id])||{total:'',permuta:[],distratadas:[],revendas:[]};
+        const rows=[
+          {label:'Total',field:'total',placeholder:'ex: 120',isNum:true},
+        ];
+        const tags=function(arr,field,placeholder){
+          const val=(cd[field]||[]).join(', ');
+          return`<input type="text" value="${esc(val)}" placeholder="${placeholder}" onchange="setCotasField('${emp.id}','${field}',this.value,true)" style="width:100%;font-size:11px;padding:4px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg)">`;
+        };
+        return`<div class="caixinha" style="flex:none">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Cotas</div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px;gap:6px">
+            <div style="display:grid;grid-template-columns:auto 1fr;align-items:center;gap:4px 8px">
+              <span style="font-size:11px;color:var(--muted-fg);white-space:nowrap">Total</span>
+              <input type="number" min="0" value="${esc(cd.total||'')}" placeholder="0" onchange="setCotasField('${emp.id}','total',this.value,false)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg);width:100%">
+              <span style="font-size:11px;color:var(--muted-fg);white-space:nowrap">Permuta terreno</span>
+              ${tags(cd.permuta,'permuta','ex: 1, 3, 5')}
+              <span style="font-size:11px;color:var(--muted-fg);white-space:nowrap">Distratadas</span>
+              ${tags(cd.distratadas,'distratadas','ex: 2, 4')}
+              <span style="font-size:11px;color:var(--muted-fg);white-space:nowrap">Revendas</span>
+              ${tags(cd.revendas,'revendas','ex: 7, 9')}
+            </div>
+          </div>
+        </div>`;
+      })()}
+      <!-- Fechamento de Grupo -->
+      ${(function(){
+        const fg=(S.fechamentoGrupo&&S.fechamentoGrupo[emp.id])||{status:'andamento',data:'',cotasPendentes:'',percentual:''};
+        const fgColor=fg.status==='concluido'?'var(--success)':'#EA580C';
+        return`<div class="caixinha" style="flex:none">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,${fgColor} 14%,transparent);color:${fgColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Fechamento de Grupo</div>
+            <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${fgColor};flex-shrink:0"></div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px;gap:6px">
+            <div style="display:grid;grid-template-columns:auto 1fr;align-items:center;gap:5px 8px">
+              <span style="font-size:11px;color:var(--muted-fg)">Status</span>
+              <select onchange="setFechamentoGrupo('${emp.id}','status',this.value)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg)">
+                <option value="andamento"${fg.status==='andamento'?' selected':''}>Em andamento</option>
+                <option value="concluido"${fg.status==='concluido'?' selected':''}>Concluído</option>
+              </select>
+              <span style="font-size:11px;color:var(--muted-fg)">Data fechamento</span>
+              <input type="date" value="${esc(fg.data||'')}" onchange="setFechamentoGrupo('${emp.id}','data',this.value)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg);width:100%">
+              <span style="font-size:11px;color:var(--muted-fg)">Cotas pendentes</span>
+              <input type="number" min="0" value="${esc(fg.cotasPendentes||'')}" placeholder="0" onchange="setFechamentoGrupo('${emp.id}','cotasPendentes',this.value)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg);width:100%">
+              <span style="font-size:11px;color:var(--muted-fg)">% Fechamento</span>
+              <input type="text" value="${esc(fg.percentual||'')}" placeholder="ex: 85%" onchange="setFechamentoGrupo('${emp.id}','percentual',this.value)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg);width:100%">
+            </div>
+          </div>
+        </div>`;
+      })()}
+      <!-- Chamada de Capital -->
+      ${(function(){
+        const capVal=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
+        const capColor=capVal==='nok'?'var(--danger)':capVal==='analise'?'#EA580C':capVal==='orcamento'?'var(--warn)':'var(--success)';
+        const opts=[
+          {v:'ok',l:'Sem previsão'},
+          {v:'orcamento',l:'Em orçamento executivo'},
+          {v:'analise',l:'Em análise de chamada de capital'},
+          {v:'nok',l:'Em chamada de capital'}
+        ];
+        return`<div class="caixinha" style="flex:none">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,${capColor} 15%,transparent);color:${capColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Chamada de Capital</div>
+            <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${capColor};flex-shrink:0"></div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px">
+            <select onchange="setCapital('${emp.id}',this.value)" style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer">
+              ${opts.map(o=>`<option value="${o.v}"${capVal===o.v?' selected':''}>${o.l}</option>`).join('')}
+            </select>
+          </div>
+        </div>`;
+      })()}
     </div><!-- /detail-col-right -->
     </div><!-- /detail-cols -->
 
     <!-- CAIXINHAS 3 col: Assembleias, Comunicados, Capital -->
-    <div class="caixinhas-3">
+    <div class="caixinhas-3" style="display:none">
 
       <!-- ASSEMBLEIAS & ACS -->
       <div class="caixinha">
@@ -1301,20 +2448,30 @@ function renderDetail(emp){
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Histórico
         </div>
+        <button onclick="openModal()" style="margin-left:auto;display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r-md);border:none;background:var(--primary);color:white;font-size:11px;font-weight:600;cursor:pointer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Registro
+        </button>
       </div>
       <div class="fup-body">
         ${fupsEmp.length?fupsEmp.map(f=>{
-          const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':(f.tipo||'—');
-          const tipoColor=f.tipo==='entrega'?'var(--success)':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
-          const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,${tipoColor} 12%,transparent);color:${tipoColor}">${esc(tipoTxt)}</span>`;
+          const isPainelPmo=f.tipo==='painel-pmo';
+          const isPrevia=f.tipo==='previa';
+          const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':isPrevia?'Prévia FUP':(f.tipo||'—');
+          const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':isPrevia?'#B45309':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
+          const tipoBg=isPainelPmo?'#FEF3C7':'';
+          const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:${tipoBg||`color-mix(in srgb,${tipoColor} 12%,transparent)`};color:${tipoColor}">${esc(tipoTxt)}</span>`;
+          const editBtnP=`<button onclick="editFup(${f.id})" title="Editar registro" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:13px;line-height:1" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-fg)'">✎</button>`;
+          const delBtnP=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
           const histTxt=f.hist||f.disc||'';
           const bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){
-            return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^\d+\.\s*/,''))}</span></div>`;
+            return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;
           }).join('');
-          return`<div class="fup-card">
+          return`<div class="fup-card" style="${isPainelPmo?'border-left:3px solid #D97706':''}">
             <div class="fup-card-top">
               <span class="fup-card-date">${fmtD(f.data)}</span>
               ${tipoBadge}
+              ${editBtnP}${delBtnP}
             </div>
             ${bullets?`<div class="fup-card-enc">${bullets}</div>`:''}
           </div>`;
@@ -1348,28 +2505,84 @@ function salvarFup(empId){
 const WORDS_RED=['paralis','embargo','irregular','inadimpl','bloqueio','notificaç','autuaç','infraç','embargo','judicial','liminar'];
 const WORDS_AMB=['atraso','pendên','revisão','negociaç','impasse','demora','indefin','suspens'];
 function calcFarolAtraso(emp){
-  const at=(marcoAtual(emp)||{atraso:0}).atraso;
-  if(at>30)return'r';if(at>0)return'a';return'g';
+  // Vermelho quando qualquer marco ativo tem delta (dt - referência) positivo — igual à coluna Δ Marco
+  const mAtivos=marcosAtivos(emp);
+  return mAtivos.some(function(ma){
+    const mcd=ma.dates;
+    const dt=mcd.dt||null;
+    const ref=mcd.dr||mcd.dl||null;
+    if(!dt||!ref)return false;
+    return Math.round((new Date(dt)-new Date(ref))/86400000)>0;
+  })?'r':'g';
 }
-function calcFarolIA(emp){
-  const ias=IA_UPD[emp.id]||[];
-  const txt=ias.map(function(ia){return ia.txt.toLowerCase();}).join(' ');
-  if(!txt)return'g';
-  if(WORDS_RED.some(function(k){return txt.includes(k);}))return'r';
-  if(WORDS_AMB.some(function(k){return txt.includes(k);}))return'a';
-  return'g';
+function calcFarolTerreno(emp){
+  const t=(S.terrenoStatus&&S.terrenoStatus[emp.id])||'pendente';
+  return t==='concluido'?'g':t==='andamento'?'a':'r';
 }
 function calcFarolCapital(emp){
-  const cap=emp.capital||'ok';
-  if(cap==='nok')return'r';
-  if(cap==='analise')return'a';
+  const cap=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
+  if(cap==='nok'||cap==='analise')return'r';
+  if(cap==='orcamento')return'a';
   return'g';
 }
 function capitalLabel(emp){
-  const cap=emp.capital||'ok';
-  if(cap==='nok')return'NOK';
+  const cap=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
+  if(cap==='nok')return'Em chamada';
   if(cap==='analise')return'Em análise';
-  return'OK';
+  if(cap==='orcamento')return'Em orçamento';
+  return'Sem previsão';
+}
+function setCapital(empId,val){
+  if(!S.capitalStatus)S.capitalStatus={};
+  S.capitalStatus[empId]=val;
+  saveData();
+  const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+  if(emp){
+    const det=document.getElementById('painel-detail');
+    if(det)det.innerHTML=renderDetail(emp);
+    const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+    const fc=calcFarolCapital(emp);
+    const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
+    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[2])dots[2].style.background=dotC(fc);}
+    const fv=document.getElementById('view-farol');
+    if(fv&&fv.style.display!=='none')renderFarol();
+  }
+}
+function setTerreno(empId,val){
+  if(!S.terrenoStatus)S.terrenoStatus={};
+  S.terrenoStatus[empId]=val;
+  saveData();
+  const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+  if(emp){
+    const det=document.getElementById('painel-detail');
+    if(det)det.innerHTML=renderDetail(emp);
+    const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+    const fi=calcFarolTerreno(emp);
+    const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
+    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[1])dots[1].style.background=dotC(fi);}
+    const fv=document.getElementById('view-farol');
+    if(fv&&fv.style.display!=='none')renderFarol();
+  }
+}
+function setCotasField(empId,field,val,isArr){
+  if(!S.cotasData)S.cotasData={};
+  if(!S.cotasData[empId])S.cotasData[empId]={total:'',permuta:[],distratadas:[],revendas:[]};
+  if(isArr){
+    S.cotasData[empId][field]=val.split(',').map(function(x){return x.trim();}).filter(Boolean);
+  }else{
+    S.cotasData[empId][field]=val;
+  }
+  saveData();
+}
+function setFechamentoGrupo(empId,field,val){
+  if(!S.fechamentoGrupo)S.fechamentoGrupo={};
+  if(!S.fechamentoGrupo[empId])S.fechamentoGrupo[empId]={status:'andamento',data:'',cotasPendentes:'',percentual:''};
+  S.fechamentoGrupo[empId][field]=val;
+  saveData();
+  if(field==='status'){
+    const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+    if(emp){const det=document.getElementById('painel-detail');if(det)det.innerHTML=renderDetail(emp);}
+  }
 }
 function farolPri(f){return f==='r'?2:f==='a'?1:0;}
 function tglSubs(gid,tr){
@@ -1392,12 +2605,13 @@ function farolDot(f,title){
 function renderFarol(){
   const c=document.getElementById('view-farol');
   const emps=[...EMPS_RAW].map(function(e){
-    const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
+    const fa=calcFarolAtraso(e),fi=calcFarolTerreno(e),fc=calcFarolCapital(e);
     return Object.assign({},e,{
       score:calcScore(e),
       _fa:fa,_fi:fi,_fc:fc,
       _sortKey:farolPri(fa)*16+farolPri(fi)*4+farolPri(fc),
-      _marcoAt:(marcoAtual(e)||{atraso:0}).atraso
+      _marcoAt:(marcoAtual(e)||{atraso:0}).atraso,
+      _deltaFarol:function(){var mas=marcosAtivos(e);if(!mas.length)return null;var mx=null;mas.forEach(function(ma){var dt=ma.dates.dt||null;var rf=ma.dates.dr||ma.dates.dl||null;if(dt&&rf){var d2=Math.round((new Date(dt)-new Date(rf))/86400000);if(mx===null||d2>mx)mx=d2;}});return mx;}()
     });
   }).sort(function(a,b){return b._sortKey-a._sortKey||b._marcoAt-a._marcoAt;});
   if(farolSort.col){
@@ -1409,7 +2623,7 @@ function renderFarol(){
       if(farolSort.col==='dt'){const da=marcoAtualDates(a).dt||'',db=marcoAtualDates(b).dt||'';return d*(da<db?-1:da>db?1:0);}
       if(farolSort.col==='dl'){const da=marcoAtualDates(a).dl||'',db=marcoAtualDates(b).dl||'';return d*(da<db?-1:da>db?1:0);}
       if(farolSort.col==='dr'){const da=marcoAtualDates(a).dr||'',db=marcoAtualDates(b).dr||'';return d*(da<db?-1:da>db?1:0);}
-      if(farolSort.col==='delta')return d*(a._marcoAt-b._marcoAt);
+      if(farolSort.col==='delta'){var nv=d===1?9999:-9999;var da2=a._deltaFarol===null?nv:a._deltaFarol,db2=b._deltaFarol===null?nv:b._deltaFarol;return d*(da2-db2);}
       return 0;
     });
   }
@@ -1428,34 +2642,53 @@ function renderFarol(){
         return`<th onclick="sortFarol('${k}')" style="text-align:${aligns[i]};cursor:pointer;user-select:none;white-space:nowrap">${labels[i]}${arrow?` <span style="color:var(--primary);font-size:10px">${arrow}</span>`:''}</th>`;
       }).join('')}
     </tr></thead>
-    <tbody>${emps.map(function(e){
-      const mc=marcoAtual(e);
-      const mcd=marcoAtualDates(e);
-      const marcoAt=e._marcoAt;
-      const difLabel=marcoAt===0?'—':marcoAt>0?'+'+marcoAt+'d':marcoAt+'d';
-      const difColor=marcoAt>0?'var(--danger)':marcoAt<0?'var(--success)':'var(--muted-fg)';
-      const marcoHtml=mc
-        ?`<span style="font-size:12px;font-weight:400;color:var(--card-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${esc(mc.nome)}</span>`
-        :`<span style="color:var(--muted-fg)">—</span>`;
+    <tbody>${emps.flatMap(function(e){
+      const mAtivos=marcosAtivos(e);
       const hasComent=!!(S.coment[e.id]);
       const balloonColor=hasComent?'var(--primary)':'var(--muted-fg)';
       const balloonFill=hasComent?'currentColor':'none';
       const balloon=`<button onclick="tglComent('cmt-${e.id}','${e.id}')" style="background:none;border:none;cursor:pointer;padding:4px;color:${balloonColor};display:inline-flex;align-items:center;border-radius:4px" title="${hasComent?'Ver/editar comentário':'Adicionar comentário'}"><svg width="14" height="14" viewBox="0 0 24 24" fill="${balloonFill}" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>`;
-      return`<tr id="fr-${e.id}">
-        <td style="font-size:11px;font-weight:400;color:var(--card-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.nome)}</td>
-        <td style="text-align:center"><span class="fase-pill ${e.fase}">${faseLabel[e.fase]}</span></td>
-        <td style="overflow:hidden">${marcoHtml}</td>
-        <td style="text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-fg)">${fmtD(mcd.dl)||'—'}</td>
-        <td style="text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-fg)">${fmtD(mcd.dr)||'—'}</td>
-        <td style="text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-fg)">${fmtD(mcd.dt)||'—'}</td>
-        <td style="text-align:center;font-weight:400;font-size:12px;color:${difColor};font-variant-numeric:tabular-nums">${difLabel}</td>
-        <td><div style="display:flex;gap:8px;align-items:center;justify-content:center">
-          ${farolDot(e._fa,'Cron')}
-          ${farolDot(e._fi,'IA')}
-          ${farolDot(e._fc,'Cap')}
-        </div></td>
-        <td style="text-align:center">${balloon}</td>
-      </tr>`;
+      if(!mAtivos.length){
+        return[`<tr id="fr-${e.id}">
+          <td style="font-size:11px;font-weight:400;color:var(--card-fg)">${esc(e.nome)}</td>
+          <td style="text-align:center"><span class="fase-pill ${e.fase}">${faseLabel[e.fase]}</span></td>
+          <td colspan="4" style="color:var(--muted-fg);text-align:center;font-size:11px">—</td>
+          <td></td>
+          <td><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fa,'Cron')}${farolDot(e._fi,'Terreno')}${farolDot(e._fc,'Cap')}</div></td>
+          <td style="text-align:center">${balloon}</td>
+        </tr>`];
+      }
+      return mAtivos.map(function(ma,mi){
+        const mcd=ma.dates;
+        const dt=mcd.dt||null;
+        const ref=mcd.dr||mcd.dl||null;
+        const delta=dt&&ref?Math.round((new Date(dt)-new Date(ref))/86400000):null;
+        const difLabel=delta===null?'—':delta>0?'+'+delta+'d':delta===0?'0d':delta+'d';
+        const difColor=delta>0?'var(--warn)':delta<0?'var(--success)':'var(--muted-fg)';
+        const marcoHtml=`<span style="font-size:12px;font-weight:400;color:var(--card-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${esc(ma.nome)}</span>`;
+        const empCell=mi===0
+          ?`<td style="font-size:11px;font-weight:400;color:var(--card-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top" rowspan="${mAtivos.length}">${esc(e.nome)}</td>`
+          :'';
+        const faseCell=mi===0
+          ?`<td style="text-align:center;vertical-align:top" rowspan="${mAtivos.length}"><span class="fase-pill ${e.fase}">${faseLabel[e.fase]}</span></td>`
+          :'';
+        const farolCell=mi===0
+          ?`<td rowspan="${mAtivos.length}"><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fa,'Cron')}${farolDot(e._fi,'Terreno')}${farolDot(e._fc,'Cap')}</div></td>`
+          :'';
+        const balloonCell=mi===0?`<td style="text-align:center;vertical-align:top" rowspan="${mAtivos.length}">${balloon}</td>`:'';
+        const rowId=mi===0?`id="fr-${e.id}"`:'';
+        return`<tr ${rowId}>
+          ${empCell}
+          ${faseCell}
+          <td style="overflow:hidden">${marcoHtml}</td>
+          <td style="text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-fg)">${fmtD(mcd.dl)||'—'}</td>
+          <td style="text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-fg)">${fmtD(mcd.dr)||'—'}</td>
+          <td style="text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted-fg)">${fmtD(dt)||'—'}</td>
+          <td style="text-align:center;font-weight:600;font-size:12px;color:${difColor};font-variant-numeric:tabular-nums">${difLabel}</td>
+          ${farolCell}
+          ${balloonCell}
+        </tr>`;
+      });
     }).join('')}</tbody>
   </table></div>`;
 }
@@ -1480,19 +2713,25 @@ function renderHistCards(){
 
   const fupCards=fupsF.map(function(f){
     const emp=EMPS_RAW.find(function(e){return e.id===f.empId;});
-    const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':(f.tipo||'—');
-    const tipoColor=f.tipo==='entrega'?'var(--success)':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
-    const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,${tipoColor} 12%,transparent);color:${tipoColor}">${esc(tipoTxt)}</span>`;
+    const isPainelPmo=f.tipo==='painel-pmo';
+    const isPrevia=f.tipo==='previa';
+    const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':isPrevia?'Prévia FUP':(f.tipo||'—');
+    const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':isPrevia?'#B45309':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
+    const tipoBg=isPainelPmo?'#FEF3C7':'';
+    const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:${tipoBg||`color-mix(in srgb,${tipoColor} 12%,transparent)`};color:${tipoColor}">${esc(tipoTxt)}</span>`;
     const histTxt=f.hist||f.disc||'';
     const bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){
-      return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^\d+\.\s*/,''))}</span></div>`;
+      return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;
     }).join('');
-    const empLabel=!histSelId&&emp?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg);margin-left:auto">${esc(emp.nome)}</span>`:'';
-    return`<div class="fup-card">
+    const empLabel=!histSelId&&emp?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg)">${esc(emp.nome)}</span>`:'';
+    const editBtn=`<button onclick="editFup(${f.id})" title="Editar registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:13px;line-height:1" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-fg)'">✎</button>`;
+    const delBtn=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
+    return`<div class="fup-card" style="${isPainelPmo?'border-left:3px solid #D97706':''}">
       <div class="fup-card-top">
         <span class="fup-card-date">${fmtD(f.data)}</span>
         ${tipoBadge}
         ${empLabel}
+        <span style="margin-left:auto;display:flex;gap:2px">${editBtn}${delBtn}</span>
       </div>
       ${bullets?`<div class="fup-card-enc">${bullets}</div>`:''}
     </div>`;
@@ -1500,11 +2739,11 @@ function renderHistCards(){
 
   const iaCards=iaEntries.length?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);display:flex;flex-direction:column;gap:10px">${iaEntries.map(function(ia){
     const empLabel=!histSelId?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg);margin-left:auto">${esc(ia.empNome)}</span>`:'';
-    const fonteLabel=ia.fonte==='reuniao'?'Reunião FUP':'WhatsApp';
+    const fonteLabel=ia.fonte==='reuniao'?'Reunião FUP':ia.fonte==='licenc'?'Licenciamento':'WhatsApp';
     const fonteBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,#7C3AED 12%,transparent);color:#7C3AED">${esc(fonteLabel)}</span>`;
     const iaBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:color-mix(in srgb,#7C3AED 18%,transparent);color:#7C3AED">IA</span>`;
-    const bullets=ia.txt.split(/[.\n]/).filter(function(l){return l.trim().length>10;}).map(function(l){
-      return`<div class="fup-bullet"><div class="fup-bullet-dot" style="background:#7C3AED"></div><span>${esc(l.trim())}</span></div>`;
+    const bullets=ia.txt.split('\n').filter(function(l){return l.trim();}).map(function(l){
+      return`<div class="fup-bullet"><div class="fup-bullet-dot" style="background:#7C3AED"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;
     }).join('');
     return`<div class="fup-card" style="border-left:3px solid #7C3AED22">
       <div class="fup-card-top">
@@ -1536,7 +2775,7 @@ function renderHistorico(){
   const listItems=`<div class="painel-list-item ${todosAct?'pli-active':''}" data-hid="" onclick="selectHistEmp('')">
       <span class="pli-nome">Todos</span>
     </div>`+sorted.map(function(e){
-    const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
+    const fa=calcFarolAtraso(e),fi=calcFarolTerreno(e),fc=calcFarolCapital(e);
     const act=histSelId===e.id;
     return`<div class="painel-list-item ${act?'pli-active':''}" data-hid="${e.id}" onclick="selectHistEmp('${e.id}')">
       <span class="pli-nome">${esc(e.nome)}</span>
@@ -1547,10 +2786,21 @@ function renderHistorico(){
       </span>
     </div>`;
   }).join('');
-  c.innerHTML=`<div class="painel-split">
-    <div class="painel-list" id="histList">${listItems}</div>
-    <div class="painel-detail-wrap" id="hist-detail">${renderHistCards()}</div>
-  </div>`;
+  c.innerHTML=`
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px">
+      <button class="btn" onclick="importFromPainelPMO()" style="gap:6px;background:var(--accent);border:1px solid var(--border);color:var(--fg)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Importar Painel PMO
+      </button>
+      <button class="btn btn-primary" onclick="openModalHist()" style="gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Registro
+      </button>
+    </div>
+    <div class="painel-split">
+      <div class="painel-list" id="histList">${listItems}</div>
+      <div class="painel-detail-wrap" id="hist-detail">${renderHistCards()}</div>
+    </div>`;
 }
 
 // ─── CRONOGRAMA ──────────────────────────────────────────────────────────────
@@ -1595,7 +2845,7 @@ function renderCronograma(){
       if(cronSort.col==='dl'){return d*((a.dl||'').localeCompare(b.dl||''));}
       if(cronSort.col==='dr'){return d*((a.dr||'').localeCompare(b.dr||''));}
       if(cronSort.col==='dt'){return d*((a.dt||'').localeCompare(b.dt||''));}
-      if(cronSort.col==='delta'){const da=a.delta===null?9999:a.delta,db=b.delta===null?9999:b.delta;return d*(da-db);}
+      if(cronSort.col==='delta'){const nv=d===1?9999:-9999;const da=a.delta===null?nv:a.delta,db=b.delta===null?nv:b.delta;return d*(da-db);}
       return 0;
     });
   } else {
@@ -1671,26 +2921,59 @@ function renderCronograma(){
         ?`<td style="font-size:11px;font-weight:400;color:var(--fg);text-transform:uppercase;letter-spacing:.04em;vertical-align:top;padding-top:8px">${esc(r.nome_emp)}</td>`
         :`<td style="border-top:none;color:transparent;font-size:8px">·</td>`;
       const deltaC=r.delta===null?'—':(r.delta>0?`<span style="color:var(--warn);font-weight:600">+${r.delta}d</span>`:(r.delta<0?`<span style="color:var(--success);font-weight:600">${r.delta}d</span>`:`<span style="color:var(--muted-fg)">0d</span>`));
-      const smCell=r.emp.sm_url
-        ?`<a href="${r.emp.sm_url}" target="_blank" rel="noopener" style="color:var(--primary);display:inline-flex;align-items:center;gap:3px;font-size:10px">${smLinkSvg}</a>`
-        :'—';
+      const smData=SMARTSHEET_MARCOS[r.emp.id]||{};
+      const smDt=smData[r.i]?fmtD(smData[r.i].dt)||'—':'—';
       const rowBorder=newGroup&&ri>0?'border-top:2px solid var(--border)':'';
       return`<tr style="${rowBorder}">
         ${empCell}
-        <td style="font-size:11px"><div style="display:flex;align-items:center">${stDot(r.st)}<span style="color:${r.st==='andamento'?'var(--primary)':r.st==='concluido'?'var(--muted-fg)':'var(--fg)'}">${esc(r.marco)}</span></div></td>
+        <td style="font-size:12px"><div style="display:flex;align-items:center">${stDot(r.st)}<span style="color:${r.st==='concluido'?'var(--muted-fg)':'var(--fg)'}">${esc(r.marco)}</span></div></td>
         <td class="date-cell">${fmtD(r.dl)||'—'}</td>
-        <td class="date-cell">${fmtD(r.dr)||'—'}</td>
+        <td class="date-cell">—</td>
         <td class="date-cell">${fmtD(r.dt)||'—'}</td>
-        <td style="text-align:center;font-size:10px">${smCell}</td>
-        <td style="text-align:center;font-size:11px">${deltaC}</td>
+        <td class="date-cell" style="text-align:center">${smDt}</td>
+        <td style="text-align:center;font-size:12px">${deltaC}</td>
         <td></td>
       </tr>`;
     }).join(''):`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted-fg);font-size:12px">Nenhum resultado com os filtros selecionados.</td></tr>`}</tbody>
   </table></div>`;
 }
 
+// ─── MODAL EDIÇÃO ────────────────────────────────────────────────────────────
+var editFupId=null;
+function editFup(id){
+  const f=S.fup.find(function(x){return x.id===id;});
+  if(!f)return;
+  editFupId=id;
+  const emp=EMPS_RAW.find(function(e){return e.id===f.empId;});
+  document.getElementById('eEmpLabel').textContent=emp?emp.nome:'';
+  document.getElementById('eData').value=f.data||'';
+  document.getElementById('eTipo').value=f.tipo||'';
+  document.getElementById('eHist').value=f.hist||f.disc||'';
+  document.getElementById('modalEditFup').classList.add('open');
+  setTimeout(function(){document.getElementById('eHist').focus();},80);
+}
+function closeEditModal(){document.getElementById('modalEditFup').classList.remove('open');editFupId=null;}
+function saveEditFup(){
+  if(!editFupId)return;
+  const f=S.fup.find(function(x){return x.id===editFupId;});
+  if(!f){closeEditModal();return;}
+  const newData=document.getElementById('eData').value;
+  const newHist=document.getElementById('eHist').value;
+  const newTipo=document.getElementById('eTipo').value;
+  if(!newHist.trim()){alert('O histórico não pode ficar vazio.');return;}
+  if(newData)f.data=newData;
+  if(newTipo)f.tipo=newTipo;
+  f.hist=newHist;
+  f.disc=newHist;
+  saveData();
+  closeEditModal();
+  renderCurrentView();
+}
+document.getElementById('modalEditFup').addEventListener('click',function(e){if(e.target===this)closeEditModal();});
+
 // ─── MODAL ───────────────────────────────────────────────────────────────────
 function openModal(){document.getElementById('modalFup').classList.add('open');document.getElementById('mData').value=TODAY.toISOString().split('T')[0];if(curEmpId)document.getElementById('mEmp').value=curEmpId;}
+function openModalHist(){document.getElementById('modalFup').classList.add('open');document.getElementById('mData').value=TODAY.toISOString().split('T')[0];if(histSelId)document.getElementById('mEmp').value=histSelId;}
 function closeModal(){document.getElementById('modalFup').classList.remove('open');}
 function salvarModal(){
   const empId=document.getElementById('mEmp').value;
@@ -1734,8 +3017,252 @@ function salvarComent(empId){
   if(ex)ex.remove();
   renderFarol();
 }
+function deleteFup(id){
+  if(!confirm('Excluir este registro?'))return;
+  S.fup=S.fup.filter(function(f){return f.id!==id;});
+  saveData();
+  renderHistorico();
+  const det=document.getElementById('painel-detail');
+  if(det&&curEmpId){const emp=EMPS_RAW.find(function(e){return e.id===curEmpId;});if(emp)det.innerHTML=renderDetail(emp);}
+}
+function importFromPainelPMO(){
+  let raw;
+  try{raw=JSON.parse(localStorage.getItem('pmo_sz_v4')||'null');}catch(e){raw=null;}
+  if(!raw||!Array.isArray(raw.emps)){alert('Painel PMO não encontrado no localStorage.\nAbra https://seazone-tech.github.io/painel-pmo-spots/ primeiro.');return;}
+  const byName={};
+  EMPS_RAW.forEach(function(e){byName[e.nome.toLowerCase().trim()]=e.id;});
+  let count=0;
+  const existingSrcs=new Set(S.fup.filter(function(f){return f._src==='painel-pmo';}).map(function(f){return f._srcKey;}));
+  raw.emps.forEach(function(emp){
+    const empNome=(emp.nome||'').toLowerCase().trim();
+    const empId=byName[empNome];
+    if(!empId)return;
+    const cmts=(emp.governanca&&emp.governanca.historico&&emp.governanca.historico.comentarios)||[];
+    cmts.forEach(function(c,ci){
+      const key=empId+'_'+ci+'_'+(c.data||'')+'_'+(c.texto||'').slice(0,20);
+      if(existingSrcs.has(key))return;
+      const txt=(c.texto||'').trim();
+      if(!txt)return;
+      // converte DD/MM/YYYY → YYYY-MM-DD se necessário
+      const rawD=c.data||'';
+      let isoD;
+      if(/^\d{4}-\d{2}-\d{2}/.test(rawD)){isoD=rawD.slice(0,10);}
+      else if(/^\d{2}\/\d{2}\/\d{4}/.test(rawD)){const p=rawD.split('/');isoD=`${p[2].slice(-4)}-${p[1]}-${p[0]}`;}
+      else{isoD=TODAY.toISOString().split('T')[0];}
+      S.fup.push({
+        id:Date.now()+Math.random(),
+        empId:empId,
+        data:isoD,
+        tipo:'painel-pmo',
+        hist:txt,
+        disc:txt,
+        enc:'',
+        _src:'painel-pmo',
+        _srcKey:key
+      });
+      count++;
+    });
+  });
+  saveData();
+  renderHistorico();
+  alert('Importados '+count+' registros do Painel PMO.');
+}
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
+
+function __noop_formatarComIA(textareaId){
+  const ta=document.getElementById(textareaId);
+  const raw=(ta.value||'').trim();
+  if(!raw){
+    const t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--card-fg);padding:9px 16px;border-radius:10px;font-size:12px;z-index:99999';
+    t.textContent='Escreva algo no histórico antes de formatar.';
+    document.body.appendChild(t);setTimeout(function(){t.remove();},3000);
+    return;
+  }
+
+  // ── DICIONÁRIO DE NORMALIZAÇÃO ────────────────────────────────────────────
+  const NORM=[
+    // Abreviações informais
+    [/\bvc\b/gi,'você'],[/\bvcs\b/gi,'vocês'],[/\bpq\b/gi,'pois que'],
+    [/\bporq\b/gi,'porque'],[/\bms\b/gi,'mas'],[/\btd\b/gi,'tudo'],
+    [/\btds\b/gi,'todos'],[/\bsgr\b/gi,'seguir'],[/\bsgt\b/gi,'seguinte'],
+    [/\bqdo\b/gi,'quando'],[/\bqndo\b/gi,'quando'],[/\bqto\b/gi,'quanto'],
+    [/\bblz\b/gi,''],[/\bokk?\b/gi,'confirmado'],[/\btbm\b/gi,'também'],
+    [/\btb\b/gi,'também'],[/\bnao\b/gi,'não'],[/\beh\b/gi,'é'],
+    [/\btá\b/gi,'está'],[/\bta\b(?=\s)/gi,'está'],
+    [/\bpra\b/gi,'para'],[/\bpras\b/gi,'para as'],
+    [/\bnum\b(?=\s[^a-z])/gi,'em um'],[/\bnuma\b/gi,'em uma'],
+    [/\bprev\b/gi,'previsto'],[/\bprob\b/gi,'problema'],[/\bprobs\b/gi,'problemas'],
+    // Palavras sem acento (PMO)
+    [/\bgestao\b/gi,'gestão'],[/\borcamento\b/gi,'orçamento'],
+    [/\borcamentaria\b/gi,'orçamentária'],[/\borcamentario\b/gi,'orçamentário'],
+    [/\breuniao\b/gi,'reunião'],[/\bconvocacao\b/gi,'convocação'],
+    [/\bdeliberacao\b/gi,'deliberação'],[/\baprovacao\b/gi,'aprovação'],
+    [/\bexecucao\b/gi,'execução'],[/\bsolucao\b/gi,'solução'],
+    [/\bnegociacao\b/gi,'negociação'],[/\bcomunicacao\b/gi,'comunicação'],
+    [/\bprestacao\b/gi,'prestação'],[/\bcomissao\b/gi,'comissão'],
+    [/\bimplantacao\b/gi,'implantação'],[/\bconstrucao\b/gi,'construção'],
+    [/\bcontratacao\b/gi,'contratação'],[/\bformalizacao\b/gi,'formalização'],
+    [/\bindividualizacao\b/gi,'individualização'],[/\bregularizacao\b/gi,'regularização'],
+    [/\blicenciamento\b/gi,'licenciamento'],[/\blicenca\b/gi,'licença'],
+    [/\balvara\b/gi,'alvará'],[/\bhabite-se\b/gi,'Habite-se'],
+    [/\bvistoria\b/gi,'vistoria'],[/\bassamblea\b/gi,'assembleia'],
+    [/\brepactuacao\b/gi,'repactuação'],[/\binauguracão\b/gi,'inauguração'],
+    [/\bpendencia\b/gi,'pendência'],[/\bpendencias\b/gi,'pendências'],
+    [/\bavanco\b/gi,'avanço'],[/\bavancos\b/gi,'avanços'],
+    [/\bencaminhamento\b/gi,'encaminhamento'],[/\balinhamento\b/gi,'alinhamento'],
+    [/\bconferencia\b/gi,'conferência'],[/\badequacao\b/gi,'adequação'],
+    [/\bnescessario\b/gi,'necessário'],[/\bnecessario\b/gi,'necessário'],
+    [/\bconcluido\b/gi,'concluído'],[/\binicio\b/gi,'início'],
+    [/\bentraga\b/gi,'entrega'],[/\bintrega\b/gi,'entrega'],
+    [/\bsera\b/gi,'será'],[/\bpodera\b/gi,'poderá'],
+    [/\bdevera\b/gi,'deverá'],[/\btera\b/gi,'terá'],
+    [/\besta\b(?=\s[a-záéíóúãõâêôç])/gi,'está'],
+    [/\bcronograma\b/gi,'cronograma'],[/\boporcunidade\b/gi,'oportunidade'],
+    [/\bopartunidade\b/gi,'oportunidade'],[/\bopurtunidade\b/gi,'oportunidade'],
+    [/\bfisico\b/gi,'físico'],
+  ];
+
+  // ── PADRÕES DE REESCRITA CONTEXTUAL ──────────────────────────────────────
+  // (aplicados após normalização, sobre sentenças individuais)
+  const REWRITE=[
+    // Atraso / prazo
+    [/(?:está?|tá|ficou)\s+atrasad[ao]/gi,'apresenta realinhamento de prazo'],
+    [/\batraso\b/gi,'realinhamento de prazo'],
+    [/\batrasad[ao]s?\b/gi,'com prazo realinhado'],
+    [/prazo\s+(?:venceu|vencido|expirou)/gi,'prazo em revisão'],
+    // Paralisação
+    [/(?:está?|tá|ficou)\s+paralisad[ao]/gi,'encontra-se com andamento suspenso temporariamente'],
+    [/\bparalisad[ao]s?\b/gi,'com andamento suspenso temporariamente'],
+    [/\bparalisação\b/gi,'suspensão temporária do andamento'],
+    // Problema / falha
+    [/(?:houve|teve|tivemos)\s+(?:um\s+)?problema\s+(?:com|no|na|em)/gi,'identificou-se ponto de atenção em'],
+    [/\bproblema\s+(?:com|no|na|em)\b/gi,'ponto de atenção em'],
+    [/\bproblemas?\b(?!\s+resolvid)/gi,'pontos de atenção'],
+    [/\bfalhou\b|\bquebrou\b/gi,'requer atenção técnica'],
+    [/\berro\s+(?:de|no|na)\b/gi,'ajuste necessário em'],
+    [/\berros?\b/gi,'ajuste necessário'],
+    // Pendência negativa
+    [/não\s+(?:foi|fomos|conseguimos|conseguiu|houve)\s+(?:\w+\s+)?(?:concluíd[ao]|finalizado|realizado|feito)/gi,'aguarda conclusão'],
+    [/não\s+(?:foi|fomos|conseguimos|conseguiu)\s+possível/gi,'ainda não foi possível'],
+    [/\bnão\s+(?:foi\s+)?(?:entregue|enviado|assinado|aprovado)\b/gi,'pendente de entrega/aprovação'],
+    // Impasse
+    [/\bimpasse\b/gi,'ponto de negociação em aberto'],
+    [/\bconflito\b/gi,'divergência a ser tratada'],
+    [/\bdiscordância\b/gi,'ponto de alinhamento necessário'],
+    // Positivos / confirmações
+    [/\bconcluído\b|\bfinalizado\b|\brealizado\b/gi,'concluído com êxito'],
+    [/\baprovado\b/gi,'aprovado'],
+    [/\bassinado\b/gi,'formalizado'],
+    [/\bentregue\b/gi,'entregue conforme previsto'],
+  ];
+
+  // ── PREFIXOS CONTEXTUAIS ─────────────────────────────────────────────────
+  // Detecta o "tipo" da sentença e adiciona um prefixo adequado
+  function detectPrefix(s){
+    const sl=s.toLowerCase();
+    if(/\baguarda(ndo)?\b|\bpendente\b|\bpend[eê]ncia\b/.test(sl))return'Pendente: ';
+    if(/\bencaminh(ar|ado|amento)\b|\bresponsável\b|\bprazo\s+para\b/.test(sl))return'Encaminhamento: ';
+    if(/\bdecidiu|deliberou|aprovou|definiu|acordo/.test(sl))return'Deliberação: ';
+    if(/\bpreviist[ao]|previsto|agendad[ao]|data\s+de/.test(sl))return'Previsão: ';
+    if(/\bponto de atenção|requer atenção|ajuste necessário|revisão/.test(sl))return'Atenção: ';
+    if(/\bconcluíd[ao] com êxito|entregue conforme|formalizado|aprovado/.test(sl))return'Concluído: ';
+    if(/\binformad[ao]|comunicad[ao]|notificad[ao]/.test(sl))return'Comunicação: ';
+    if(/\balinhament[ao]|alinhad[ao]|confirmad[ao]/.test(sl))return'Alinhamento: ';
+    return'';
+  }
+
+  // ── PIPELINE ─────────────────────────────────────────────────────────────
+
+  // Passo 1 — Normaliza vocabulário
+  let txt=raw;
+  NORM.forEach(function(p){txt=txt.replace(p[0],p[1]);});
+  txt=txt.replace(/\s{2,}/g,' ');
+
+  // Passo 2 — Segmenta em frases brutas
+  const segs=[];
+  txt.split(/\n+/).forEach(function(line){
+    line=line.trim().replace(/^[•\-\*]\s*/,'').replace(/^\d+[\.\)]\s*/,'');
+    if(!line||line.length<4)return;
+    // Linha muito longa: divide por separadores internos
+    if(line.length>160){
+      line.split(/(?<=[.;])\s+(?=[A-ZÁÉÍÓÚÃ])|;\s+|—\s+/).forEach(function(seg){
+        seg=seg.trim();
+        if(seg.length>6)segs.push(seg);
+      });
+    }else{
+      segs.push(line);
+    }
+  });
+
+  // Passo 3 — Agrupa por tema (evita um bullet por linha)
+  // Estratégia: mescla segmentos curtos/relacionados com o anterior usando ";"
+  function topicWords(s){
+    // Palavras-chave temáticas (> 5 chars) que definem o assunto
+    return (s.toLowerCase().match(/\b[a-záéíóúãõâêôç]{6,}\b/g)||[]);
+  }
+  function sharesTopic(a,b){
+    const wa=new Set(topicWords(a));
+    return topicWords(b).some(function(w){return wa.has(w);});
+  }
+  // Continuações evidentes (começa com conjunção/pronome que amarra ao anterior)
+  const CONTIN=/^(e |também |além |inclusive |bem como |sendo |nesse |neste |nisso |o que |que |com isso|assim |ainda |após |antes |durante |porém |contudo |pois |já que |onde |logo |desse modo)/i;
+  // Verbo principal → sentença autônoma, não mescla com próxima a menos que curta
+  const HAS_VERB=/\b(está|estão|foi|foram|será|serão|ficou|têm|tem|deve|deve[mr]|pode[mr]|precisa[mr]|aguarda|pendente|confirmado|aprovado|definido|realizado|concluído|encaminhado|informado|apresenta|requer|encontra-se|previsto|agendado|deliberado|acordado|definiu|aprovaram|decidiram|informaram)\b/i;
+
+  const grouped=[];
+  let acc=segs[0]||'';
+  for(let i=1;i<segs.length;i++){
+    const next=segs[i];
+    const aLen=acc.length, nLen=next.length, combined=aLen+nLen;
+    const isCont=CONTIN.test(next);
+    // Segmento muito curto SEM verbo próprio: quase sempre detalhe do anterior
+    const nextFragment=nLen<55&&!HAS_VERB.test(next);
+    // Ambos curtos e compartilham palavra-tema: mesmo assunto
+    const sameTheme=aLen<90&&nLen<90&&sharesTopic(acc,next);
+    // Não mescla se resultado ficaria muito longo ou se ambos têm verbos próprios e são longos
+    const tooLong=combined>220;
+    const bothLongAutonomous=aLen>90&&nLen>90&&HAS_VERB.test(acc)&&HAS_VERB.test(next);
+
+    if(!tooLong&&!bothLongAutonomous&&(isCont||nextFragment||sameTheme)){
+      const nl=next.charAt(0).toLowerCase()+next.slice(1);
+      const sep=/[;:,]$/.test(acc.trim())?' ':'; ';
+      acc=acc+sep+nl;
+    }else{
+      if(acc.trim())grouped.push(acc.trim());
+      acc=next;
+    }
+  }
+  if(acc.trim())grouped.push(acc.trim());
+
+  // Passo 4 — Reescrita construtiva + prefixo contextual
+  const bullets=grouped.slice(0,10).map(function(s){
+    REWRITE.forEach(function(p){s=s.replace(p[0],p[1]);});
+    s=s.replace(/^[•\-\*]\s*/,'').replace(/\s{2,}/g,' ').trim();
+    s=s.charAt(0).toUpperCase()+s.slice(1);
+    const pref=detectPrefix(s);
+    const prefBase=pref.replace(/:\s*$/,'').trim();
+    if(pref&&!new RegExp('^'+prefBase,'i').test(s)){
+      s=pref+s.charAt(0).toLowerCase()+s.slice(1);
+    }
+    if(!/[.;:!?]$/.test(s))s+='.';
+    return'• '+s;
+  });
+
+  ta.value=bullets.join('\n');
+
+  // Feedback no botão
+  const btnId=textareaId==='mHist'?'btnIaNovo':'btnIaEdit';
+  const btn=document.getElementById(btnId);
+  if(btn){
+    const orig=btn.innerHTML;
+    btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>&nbsp;Formatado';
+    btn.style.background='var(--success)';btn.style.color='white';btn.style.border='none';
+    setTimeout(function(){btn.innerHTML=orig;btn.style.background='';btn.style.color='';btn.style.border='';},2000);
+  }
+}
+
 loadData();
 populateSelect();
 const th=localStorage.getItem('pmo-theme')||'light';
