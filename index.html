@@ -352,15 +352,7 @@ svg{display:inline-block;vertical-align:middle}
       <div class="mf"><label>Tipo</label><input type="text" id="eTipo" class="mi" placeholder="gestao, previa, entrega…"></div>
     </div>
     <div class="mf">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <label style="margin:0">Histórico</label>
-        <div style="display:flex;align-items:center;gap:4px">
-          <button onclick="formatarComIA('eHist')" id="btnIaEdit" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;border:1px solid #6366F1;background:transparent;color:#6366F1;font-size:11px;font-weight:600;cursor:pointer">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Formatar com IA
-          </button>
-        </div>
-      </div>
+      <label style="display:block;margin-bottom:5px">Histórico</label>
       <textarea id="eHist" class="mi mta" style="min-height:180px" placeholder="Uma linha por ponto…"></textarea>
     </div>
     <div class="ov-footer">
@@ -381,15 +373,7 @@ svg{display:inline-block;vertical-align:middle}
     </div>
     <div class="mf"><label>Data</label><input type="date" id="mData" class="mi"></div>
     <div class="mf">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <label style="margin:0">Histórico</label>
-        <div style="display:flex;align-items:center;gap:4px">
-          <button onclick="formatarComIA('mHist')" id="btnIaNovo" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;border:1px solid #6366F1;background:transparent;color:#6366F1;font-size:11px;font-weight:600;cursor:pointer">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Formatar com IA
-          </button>
-        </div>
-      </div>
+      <label style="display:block;margin-bottom:5px">Histórico</label>
       <textarea id="mHist" class="mi mta" placeholder="Registre o que foi discutido, decisões e encaminhamentos..."></textarea>
     </div>
     <div class="ov-footer">
@@ -1720,7 +1704,7 @@ const FUP_SEED=[];
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const SK='pmo-fup-spes-v2';
 const SK_SEED='pmo-fup-seeded-v4';
-let S={fup:[],coment:{},capitalStatus:{},urgente:{},contrato:{}};
+let S={fup:[],coment:{},capitalStatus:{},urgente:{},contrato:{},terrenoStatus:{},cotasData:{},fechamentoGrupo:{}};
 let farolSort={col:null,dir:1};
 let cronSort={col:null,dir:1};
 let cronFilter='todas';
@@ -1758,6 +1742,9 @@ function loadData(){
   // Migração: garante campos novos
   if(!S.urgente)S.urgente={};
   if(!S.contrato)S.contrato={};
+  if(!S.terrenoStatus)S.terrenoStatus={};
+  if(!S.cotasData)S.cotasData={};
+  if(!S.fechamentoGrupo)S.fechamentoGrupo={};
   // Seed histórico FUP Entrega 13/08/2026
   const SK_FUP_ENTREGA='pmo-fup-seed-entrega-2026-08-13-v2';
   // Remove seed v1 (campo enc errado)
@@ -1972,6 +1959,9 @@ function confirmImport(){
   S=parsed;
   if(!S.urgente)S.urgente={};
   if(!S.contrato)S.contrato={};
+  if(!S.terrenoStatus)S.terrenoStatus={};
+  if(!S.cotasData)S.cotasData={};
+  if(!S.fechamentoGrupo)S.fechamentoGrupo={};
   saveData();
   closeModalImport();
   renderPainel();
@@ -2063,7 +2053,7 @@ function renderPainel(){
     return`<button onclick="setFaseFiltro('${p.v}')" style="display:flex;align-items:center;gap:3px;padding:3px 10px;border-radius:99px;border:1px solid ${border};background:${bg};color:${color};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">${alertIcon}${p.l}<span style="margin-left:4px;opacity:0.7">${p.n}</span></button>`;
   }).join('');
   const listHtml=filtered.map(function(e){
-    const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
+    const fa=calcFarolAtraso(e),fi=calcFarolTerreno(e),fc=calcFarolCapital(e);
     const act=e.id===curEmpId?'pli-active':'';
     const isUrg=!!(S.urgente&&S.urgente[e.id]);
     const urgBtn=`<button id="urg-btn-${e.id}" onclick="toggleUrgente('${e.id}');event.stopPropagation()" title="${isUrg?'Remover urgência':'Marcar como urgente'}" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:1px 3px;border-radius:4px;color:${isUrg?'#EF4444':'var(--muted-fg)'};opacity:${isUrg?'1':'0.35'};transition:opacity 120ms,color 120ms" onmouseover="this.style.opacity='1';this.style.color='#EF4444'" onmouseout="this.style.opacity='${isUrg?'1':'0.35'}';this.style.color='${isUrg?'#EF4444':'var(--muted-fg)'}'">
@@ -2171,7 +2161,7 @@ function renderDetail(emp){
   const fupsEmp=S.fup.filter(f=>f.empId===emp.id).sort((a,b)=>b.data.localeCompare(a.data));
   const faseLabel={preobra:'Pré-Obra',obra:'Obra',entrega:'Entrega'};
   const atrasoDias=atraso(emp);
-  const fa=calcFarolAtraso(emp),fi=calcFarolIA(emp),fc=calcFarolCapital(emp);
+  const fa=calcFarolAtraso(emp),fi=calcFarolTerreno(emp),fc=calcFarolCapital(emp);
   function fdot(f,name){const c=f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';return`<div class="farol-dot-item"><div class="farol-dot-circle" style="background:${c};box-shadow:0 0 7px ${c}55"></div><div class="farol-dot-name">${name}</div></div>`;};
   function renderIAItem(ia){
     var lbl=ia.fonte==='reuniao'?'Reunião FUP':ia.fonte==='licenc'?'Licenciamento':'WhatsApp';
@@ -2195,7 +2185,7 @@ function renderDetail(emp){
         <div class="hero-name">${esc(emp.nome)}</div>
         <div class="hero-farois">
           ${fdot(fa,'Cronograma')}
-          ${fdot(fi,'IA')}
+          ${fdot(fi,'Terreno')}
           ${fdot(fc,'Ch. Capital')}
         </div>
       </div>
@@ -2278,23 +2268,86 @@ function renderDetail(emp){
       </div>
     </div>
 
-    <!-- COL DIREITA: IA -->
+    <!-- COL DIREITA: Terreno + Capital -->
     <div class="detail-col-right">
-      <!-- IA -->
-      <div class="caixinha" style="flex:1">
-        <div class="cx-head">
-          <div class="cx-icon cx-icon-ia"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-          <div class="cx-title">IA — Resumo Semanal</div>
-          ${ias.length?`<div class="cx-badge-count">${ias.length}</div>`:''}
-        </div>
-        <div class="cx-body">
-          ${ias.length?ias.map(renderIAItem).join('')
-          :`<div style="font-size:12px;color:var(--muted-fg);padding:4px 0">Nenhuma atualização registrada nesta semana.</div>`}
-        </div>
-      </div>
-      <!-- Contrato Social / Alteração Contratual (oculto — dados preservados) -->
-      ${(function(){return'';})()}
-      ${''/* caixinha Contrato Social oculta — dados em S.contrato */}
+      <!-- Terreno transferido à SPE -->
+      ${(function(){
+        const terrVal=(S.terrenoStatus&&S.terrenoStatus[emp.id])||'pendente';
+        const terrColor=terrVal==='concluido'?'var(--success)':terrVal==='andamento'?'#EA580C':'var(--muted-fg)';
+        const opts=[
+          {v:'pendente',l:'Pendente'},
+          {v:'andamento',l:'Em andamento'},
+          {v:'concluido',l:'Concluído'}
+        ];
+        return`<div class="caixinha" style="flex:1">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,${terrColor} 15%,transparent);color:${terrColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Terreno transferido à SPE</div>
+            <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${terrColor};flex-shrink:0"></div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px">
+            <select onchange="setTerreno('${emp.id}',this.value)" style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer">
+              ${opts.map(o=>`<option value="${o.v}"${terrVal===o.v?' selected':''}>${o.l}</option>`).join('')}
+            </select>
+          </div>
+        </div>`;
+      })()}
+      <!-- Cotas -->
+      ${(function(){
+        const cd=(S.cotasData&&S.cotasData[emp.id])||{total:'',permuta:[],distratadas:[],revendas:[]};
+        const rows=[
+          {label:'Total',field:'total',placeholder:'ex: 120',isNum:true},
+        ];
+        const tags=function(arr,field,placeholder){
+          const val=(cd[field]||[]).join(', ');
+          return`<input type="text" value="${esc(val)}" placeholder="${placeholder}" onchange="setCotasField('${emp.id}','${field}',this.value,true)" style="width:100%;font-size:11px;padding:4px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg)">`;
+        };
+        return`<div class="caixinha" style="flex:none">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Cotas</div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px;gap:6px">
+            <div style="display:grid;grid-template-columns:auto 1fr;align-items:center;gap:4px 8px">
+              <span style="font-size:11px;color:var(--muted-fg);white-space:nowrap">Total</span>
+              <input type="number" min="0" value="${esc(cd.total||'')}" placeholder="0" onchange="setCotasField('${emp.id}','total',this.value,false)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg);width:100%">
+              <span style="font-size:11px;color:var(--muted-fg);white-space:nowrap">Permuta terreno</span>
+              ${tags(cd.permuta,'permuta','ex: 1, 3, 5')}
+              <span style="font-size:11px;color:var(--muted-fg);white-space:nowrap">Distratadas</span>
+              ${tags(cd.distratadas,'distratadas','ex: 2, 4')}
+              <span style="font-size:11px;color:var(--muted-fg);white-space:nowrap">Revendas</span>
+              ${tags(cd.revendas,'revendas','ex: 7, 9')}
+            </div>
+          </div>
+        </div>`;
+      })()}
+      <!-- Fechamento de Grupo -->
+      ${(function(){
+        const fg=(S.fechamentoGrupo&&S.fechamentoGrupo[emp.id])||{status:'andamento',data:'',cotasPendentes:'',percentual:''};
+        const fgColor=fg.status==='concluido'?'var(--success)':'#EA580C';
+        return`<div class="caixinha" style="flex:none">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,${fgColor} 14%,transparent);color:${fgColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Fechamento de Grupo</div>
+            <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${fgColor};flex-shrink:0"></div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px;gap:6px">
+            <div style="display:grid;grid-template-columns:auto 1fr;align-items:center;gap:5px 8px">
+              <span style="font-size:11px;color:var(--muted-fg)">Status</span>
+              <select onchange="setFechamentoGrupo('${emp.id}','status',this.value)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg)">
+                <option value="andamento"${fg.status==='andamento'?' selected':''}>Em andamento</option>
+                <option value="concluido"${fg.status==='concluido'?' selected':''}>Concluído</option>
+              </select>
+              <span style="font-size:11px;color:var(--muted-fg)">Data fechamento</span>
+              <input type="date" value="${esc(fg.data||'')}" onchange="setFechamentoGrupo('${emp.id}','data',this.value)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg);width:100%">
+              <span style="font-size:11px;color:var(--muted-fg)">Cotas pendentes</span>
+              <input type="number" min="0" value="${esc(fg.cotasPendentes||'')}" placeholder="0" onchange="setFechamentoGrupo('${emp.id}','cotasPendentes',this.value)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg);width:100%">
+              <span style="font-size:11px;color:var(--muted-fg)">% Fechamento</span>
+              <input type="text" value="${esc(fg.percentual||'')}" placeholder="ex: 85%" onchange="setFechamentoGrupo('${emp.id}','percentual',this.value)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg);width:100%">
+            </div>
+          </div>
+        </div>`;
+      })()}
       <!-- Chamada de Capital -->
       ${(function(){
         const capVal=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
@@ -2462,9 +2515,9 @@ function calcFarolAtraso(emp){
     return Math.round((new Date(dt)-new Date(ref))/86400000)>0;
   })?'r':'g';
 }
-function calcFarolIA(emp){
-  const ias=IA_UPD[emp.id]||[];
-  return ias.length?'r':'g';
+function calcFarolTerreno(emp){
+  const t=(S.terrenoStatus&&S.terrenoStatus[emp.id])||'pendente';
+  return t==='concluido'?'g':t==='andamento'?'a':'r';
 }
 function calcFarolCapital(emp){
   const cap=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
@@ -2487,14 +2540,48 @@ function setCapital(empId,val){
   if(emp){
     const det=document.getElementById('painel-detail');
     if(det)det.innerHTML=renderDetail(emp);
-    // Atualiza dot de capital na sidebar
     const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
     const fc=calcFarolCapital(emp);
     const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
     if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[2])dots[2].style.background=dotC(fc);}
-    // Re-renderiza aba Farol se estiver visível
     const fv=document.getElementById('view-farol');
     if(fv&&fv.style.display!=='none')renderFarol();
+  }
+}
+function setTerreno(empId,val){
+  if(!S.terrenoStatus)S.terrenoStatus={};
+  S.terrenoStatus[empId]=val;
+  saveData();
+  const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+  if(emp){
+    const det=document.getElementById('painel-detail');
+    if(det)det.innerHTML=renderDetail(emp);
+    const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+    const fi=calcFarolTerreno(emp);
+    const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
+    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[1])dots[1].style.background=dotC(fi);}
+    const fv=document.getElementById('view-farol');
+    if(fv&&fv.style.display!=='none')renderFarol();
+  }
+}
+function setCotasField(empId,field,val,isArr){
+  if(!S.cotasData)S.cotasData={};
+  if(!S.cotasData[empId])S.cotasData[empId]={total:'',permuta:[],distratadas:[],revendas:[]};
+  if(isArr){
+    S.cotasData[empId][field]=val.split(',').map(function(x){return x.trim();}).filter(Boolean);
+  }else{
+    S.cotasData[empId][field]=val;
+  }
+  saveData();
+}
+function setFechamentoGrupo(empId,field,val){
+  if(!S.fechamentoGrupo)S.fechamentoGrupo={};
+  if(!S.fechamentoGrupo[empId])S.fechamentoGrupo[empId]={status:'andamento',data:'',cotasPendentes:'',percentual:''};
+  S.fechamentoGrupo[empId][field]=val;
+  saveData();
+  if(field==='status'){
+    const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+    if(emp){const det=document.getElementById('painel-detail');if(det)det.innerHTML=renderDetail(emp);}
   }
 }
 function farolPri(f){return f==='r'?2:f==='a'?1:0;}
@@ -2518,7 +2605,7 @@ function farolDot(f,title){
 function renderFarol(){
   const c=document.getElementById('view-farol');
   const emps=[...EMPS_RAW].map(function(e){
-    const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
+    const fa=calcFarolAtraso(e),fi=calcFarolTerreno(e),fc=calcFarolCapital(e);
     return Object.assign({},e,{
       score:calcScore(e),
       _fa:fa,_fi:fi,_fc:fc,
@@ -2567,7 +2654,7 @@ function renderFarol(){
           <td style="text-align:center"><span class="fase-pill ${e.fase}">${faseLabel[e.fase]}</span></td>
           <td colspan="4" style="color:var(--muted-fg);text-align:center;font-size:11px">—</td>
           <td></td>
-          <td><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fa,'Cron')}${farolDot(e._fi,'IA')}${farolDot(e._fc,'Cap')}</div></td>
+          <td><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fa,'Cron')}${farolDot(e._fi,'Terreno')}${farolDot(e._fc,'Cap')}</div></td>
           <td style="text-align:center">${balloon}</td>
         </tr>`];
       }
@@ -2586,7 +2673,7 @@ function renderFarol(){
           ?`<td style="text-align:center;vertical-align:top" rowspan="${mAtivos.length}"><span class="fase-pill ${e.fase}">${faseLabel[e.fase]}</span></td>`
           :'';
         const farolCell=mi===0
-          ?`<td rowspan="${mAtivos.length}"><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fa,'Cron')}${farolDot(e._fi,'IA')}${farolDot(e._fc,'Cap')}</div></td>`
+          ?`<td rowspan="${mAtivos.length}"><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fa,'Cron')}${farolDot(e._fi,'Terreno')}${farolDot(e._fc,'Cap')}</div></td>`
           :'';
         const balloonCell=mi===0?`<td style="text-align:center;vertical-align:top" rowspan="${mAtivos.length}">${balloon}</td>`:'';
         const rowId=mi===0?`id="fr-${e.id}"`:'';
@@ -2688,7 +2775,7 @@ function renderHistorico(){
   const listItems=`<div class="painel-list-item ${todosAct?'pli-active':''}" data-hid="" onclick="selectHistEmp('')">
       <span class="pli-nome">Todos</span>
     </div>`+sorted.map(function(e){
-    const fa=calcFarolAtraso(e),fi=calcFarolIA(e),fc=calcFarolCapital(e);
+    const fa=calcFarolAtraso(e),fi=calcFarolTerreno(e),fc=calcFarolCapital(e);
     const act=histSelId===e.id;
     return`<div class="painel-list-item ${act?'pli-active':''}" data-hid="${e.id}" onclick="selectHistEmp('${e.id}')">
       <span class="pli-nome">${esc(e.nome)}</span>
@@ -2982,9 +3069,8 @@ function importFromPainelPMO(){
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
-// ─── FORMATADOR INTELIGENTE (100% local, sem API) ────────────────────────────
 
-function formatarComIA(textareaId){
+function __noop_formatarComIA(textareaId){
   const ta=document.getElementById(textareaId);
   const raw=(ta.value||'').trim();
   if(!raw){
