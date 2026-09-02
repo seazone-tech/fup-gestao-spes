@@ -1,4 +1,4 @@
-<title>SpotSys — FUP: Gestão de SPEs</title>
+<title>SpotSys — Gestão de SPEs</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{
@@ -339,6 +339,56 @@ svg{display:inline-block;vertical-align:middle}
   </div>
 </div>
 
+<!-- MODAL IDENTIFICAÇÃO (primeira visita) -->
+<div class="overlay" id="modalIdent" style="display:none;z-index:4000;background:rgba(0,0,0,0.7)">
+  <div class="ov-card" style="max-width:380px;width:100%;text-align:center">
+    <div style="padding:28px 24px 8px">
+      <div style="font-size:32px;margin-bottom:10px">👋</div>
+      <div style="font-size:15px;font-weight:700;color:var(--fg);margin-bottom:6px">Olá! Como você se chama?</div>
+      <div style="font-size:12px;color:var(--muted-fg);margin-bottom:18px">Seu nome será registrado nos acessos desta página.</div>
+      <input id="identNome" type="text" placeholder="Seu nome completo..." autocomplete="name"
+        style="width:100%;font-size:13px;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--fg);box-sizing:border-box;text-align:left"
+        onkeydown="if(event.key==='Enter')salvarIdent()">
+    </div>
+    <div style="padding:14px 24px 24px">
+      <button onclick="salvarIdent()" style="width:100%;padding:9px;border-radius:8px;border:none;background:var(--primary);color:white;font-size:13px;font-weight:700;cursor:pointer">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ACESSOS -->
+<div class="overlay" id="modalAcessos" style="display:none;z-index:3500">
+  <div class="ov-card" style="max-width:540px;width:100%;max-height:80vh;display:flex;flex-direction:column">
+    <div class="ov-head">
+      <div style="font-size:13px;font-weight:700">Registro de Acessos</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onclick="trocarUsuario()" style="font-size:11px;padding:3px 10px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted-fg);cursor:pointer">Trocar nome</button>
+        <button onclick="document.getElementById('modalAcessos').style.display='none'" class="ov-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted-fg)">
+      Acessos registrados neste navegador. Cada usuário vê os acessos do seu próprio dispositivo.
+    </div>
+    <div style="overflow-y:auto;flex:1">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:var(--accent)">
+            <th style="padding:8px 14px;text-align:left;font-weight:600;color:var(--muted-fg);border-bottom:1px solid var(--border)">#</th>
+            <th style="padding:8px 14px;text-align:left;font-weight:600;color:var(--muted-fg);border-bottom:1px solid var(--border)">Nome</th>
+            <th style="padding:8px 14px;text-align:left;font-weight:600;color:var(--muted-fg);border-bottom:1px solid var(--border)">Data</th>
+            <th style="padding:8px 14px;text-align:left;font-weight:600;color:var(--muted-fg);border-bottom:1px solid var(--border)">Hora</th>
+          </tr>
+        </thead>
+        <tbody id="acessosTbody"></tbody>
+      </table>
+    </div>
+    <div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span id="acessosTotal" style="font-size:11px;color:var(--muted-fg)"></span>
+      <button onclick="limparAcessos()" style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid var(--danger);background:transparent;color:var(--danger);cursor:pointer">Limpar histórico</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL NOVO FUP -->
 <div class="overlay" id="modalEditFup">
   <div class="ov-card">
@@ -396,7 +446,7 @@ svg{display:inline-block;vertical-align:middle}
       <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Financeiro</div>
       <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20"/><path d="M5 20V8l7-5 7 5v12"/><path d="M9 20v-5h6v5"/></svg>PMO</div>
       <div class="nav-sub"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/></svg>Assembleias</div>
-      <div class="nav-sub active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><polyline points="22 4 13 13 8 8 2 14"/></svg>FUP — Gestão de SPEs</div>
+      <div class="nav-sub active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><polyline points="22 4 13 13 8 8 2 14"/></svg>Gestão de SPEs</div>
       <div class="nav-divider"></div>
       <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Indicadores</div>
     </nav>
@@ -408,8 +458,12 @@ svg{display:inline-block;vertical-align:middle}
 
   <main class="main">
     <div class="topbar">
-      <div class="topbar-path">PMO <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg> <span>FUP — Gestão de SPEs</span></div>
+      <div class="topbar-path">PMO <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg> <span>Gestão de SPEs</span></div>
       <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="abrirAcessos()" title="Ver registro de acessos" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--accent);color:var(--muted-fg);font-size:11px;font-weight:600;cursor:pointer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Acessos
+        </button>
         <button onclick="exportarDados()" title="Exportar todos os dados para colar em outra instância" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--accent);color:var(--muted-fg);font-size:11px;font-weight:600;cursor:pointer">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Exportar
@@ -431,7 +485,7 @@ svg{display:inline-block;vertical-align:middle}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><polyline points="22 4 13 13 8 8 2 14"/></svg>
         </div>
         <div>
-          <div class="module-title">FUP — Gestão de SPEs</div>
+          <div class="module-title">Gestão de SPEs</div>
           <div class="module-sub">Acompanhamento semanal dos empreendimentos Spot</div>
         </div>
       </div>
@@ -3263,6 +3317,78 @@ function __noop_formatarComIA(textareaId){
   }
 }
 
+// ─── IDENTIFICAÇÃO & ACESSOS ─────────────────────────────────────────────────
+const SK_USUARIO='pmo-fup-usuario';
+const SK_ACESSOS='pmo-fup-acessos';
+
+function getNomeUsuario(){return localStorage.getItem(SK_USUARIO)||'';}
+
+function registrarAcesso(){
+  const nome=getNomeUsuario();
+  if(!nome)return;
+  const now=new Date();
+  const pad=function(n){return String(n).padStart(2,'0');};
+  const data=`${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
+  const hora=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  let lista=[];
+  try{lista=JSON.parse(localStorage.getItem(SK_ACESSOS)||'[]');}catch(e){}
+  lista.unshift({nome,data,hora});
+  if(lista.length>200)lista=lista.slice(0,200);
+  localStorage.setItem(SK_ACESSOS,JSON.stringify(lista));
+}
+
+function checkUsuario(){
+  if(!getNomeUsuario()){
+    document.getElementById('modalIdent').style.display='flex';
+    setTimeout(function(){document.getElementById('identNome').focus();},100);
+  }else{
+    registrarAcesso();
+  }
+}
+
+function salvarIdent(){
+  const nome=(document.getElementById('identNome').value||'').trim();
+  if(!nome){document.getElementById('identNome').style.border='1px solid var(--danger)';return;}
+  localStorage.setItem(SK_USUARIO,nome);
+  document.getElementById('modalIdent').style.display='none';
+  registrarAcesso();
+}
+
+function trocarUsuario(){
+  document.getElementById('modalAcessos').style.display='none';
+  localStorage.removeItem(SK_USUARIO);
+  document.getElementById('identNome').value='';
+  document.getElementById('identNome').style.border='1px solid var(--border)';
+  document.getElementById('modalIdent').style.display='flex';
+  setTimeout(function(){document.getElementById('identNome').focus();},100);
+}
+
+function abrirAcessos(){
+  let lista=[];
+  try{lista=JSON.parse(localStorage.getItem(SK_ACESSOS)||'[]');}catch(e){}
+  const tbody=document.getElementById('acessosTbody');
+  if(!lista.length){
+    tbody.innerHTML='<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted-fg);font-size:12px">Nenhum acesso registrado ainda.</td></tr>';
+  }else{
+    tbody.innerHTML=lista.map(function(a,i){
+      return`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:7px 14px;color:var(--muted-fg)">${lista.length-i}</td>
+        <td style="padding:7px 14px;font-weight:600">${esc(a.nome)}</td>
+        <td style="padding:7px 14px">${esc(a.data)}</td>
+        <td style="padding:7px 14px">${esc(a.hora)}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('acessosTotal').textContent=lista.length?`${lista.length} registro${lista.length!==1?'s':''}. Usuário atual: ${getNomeUsuario()||'—'}`:'';
+  document.getElementById('modalAcessos').style.display='flex';
+}
+
+function limparAcessos(){
+  if(!confirm('Apagar todo o histórico de acessos?'))return;
+  localStorage.removeItem(SK_ACESSOS);
+  abrirAcessos();
+}
+
 loadData();
 populateSelect();
 const th=localStorage.getItem('pmo-theme')||'light';
@@ -3270,4 +3396,5 @@ document.documentElement.dataset.theme=th;
 document.getElementById('themeLabel').textContent=th==='dark'?'Light':'Dark';
 updateThemeIcon(th==='dark');
 renderPainel();
+checkUsuario();
 </script>
