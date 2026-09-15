@@ -1,3 +1,4 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
 <title>SpotSys — FUP: Gestão de SPEs</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
@@ -2272,6 +2273,7 @@ function renderDetail(emp){
     <div class="detail-col-right">
       <!-- Terreno transferido à SPE -->
       ${(function(){
+        return '';
         const terrVal=(S.terrenoStatus&&S.terrenoStatus[emp.id])||'pendente';
         const terrColor=terrVal==='concluido'?'var(--success)':terrVal==='andamento'?'#EA580C':'var(--muted-fg)';
         const opts=[
@@ -2294,6 +2296,7 @@ function renderDetail(emp){
       })()}
       <!-- Cotas -->
       ${(function(){
+        return '';
         const cd=(S.cotasData&&S.cotasData[emp.id])||{total:'',permuta:[],distratadas:[],revendas:[]};
         const rows=[
           {label:'Total',field:'total',placeholder:'ex: 120',isNum:true},
@@ -2323,6 +2326,7 @@ function renderDetail(emp){
       })()}
       <!-- Fechamento de Grupo -->
       ${(function(){
+        return '';
         const fg=(S.fechamentoGrupo&&S.fechamentoGrupo[emp.id])||{status:'andamento',data:'',cotasPendentes:'',percentual:''};
         const fgColor=fg.status==='concluido'?'var(--success)':'#EA580C';
         return`<div class="caixinha" style="flex:none">
@@ -3271,3 +3275,5 @@ document.getElementById('themeLabel').textContent=th==='dark'?'Light':'Dark';
 updateThemeIcon(th==='dark');
 renderPainel();
 </script>
+
+</body></html>
