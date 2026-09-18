@@ -2330,7 +2330,7 @@ function renderDetail(emp){
           {v:'andamento',l:'Em andamento'},
           {v:'concluido',l:'Concluído'}
         ];
-        return`<div class="caixinha" style="flex:1">
+        return`<div class="caixinha" style="flex:1;display:none">
           <div class="cx-head" style="padding:8px 14px">
             <div class="cx-icon" style="background:color-mix(in srgb,${terrColor} 15%,transparent);color:${terrColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
             <div class="cx-title" style="font-size:11px">Terreno transferido à SPE</div>
@@ -2353,7 +2353,7 @@ function renderDetail(emp){
           const val=(cd[field]||[]).join(', ');
           return`<input type="text" value="${esc(val)}" placeholder="${placeholder}" onchange="setCotasField('${emp.id}','${field}',this.value,true)" style="width:100%;font-size:11px;padding:4px 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg);color:var(--fg)">`;
         };
-        return`<div class="caixinha" style="flex:none">
+        return`<div class="caixinha" style="flex:none;display:none">
           <div class="cx-head" style="padding:8px 14px">
             <div class="cx-icon" style="background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
             <div class="cx-title" style="font-size:11px">Cotas</div>
@@ -2376,7 +2376,7 @@ function renderDetail(emp){
       ${(function(){
         const fg=(S.fechamentoGrupo&&S.fechamentoGrupo[emp.id])||{status:'andamento',data:'',cotasPendentes:'',percentual:''};
         const fgColor=fg.status==='concluido'?'var(--success)':'#EA580C';
-        return`<div class="caixinha" style="flex:none">
+        return`<div class="caixinha" style="flex:none;display:none">
           <div class="cx-head" style="padding:8px 14px">
             <div class="cx-icon" style="background:color-mix(in srgb,${fgColor} 14%,transparent);color:${fgColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
             <div class="cx-title" style="font-size:11px">Fechamento de Grupo</div>
