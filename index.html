@@ -2474,7 +2474,7 @@ function secJuridico(emp){
   let mtgs=[];
   for(const _k in PMO_MEETINGS_DATA){if(_rk(_k)===_ek){mtgs=PMO_MEETINGS_DATA[_k];break;}}
   if(!mtgs.length)return'';
-  const TODAY='2026-07-14';
+  const TODAY=new Date().toISOString().slice(0,10);
   const upcoming=mtgs.filter(m=>m.s==='agendada'&&m.d>=TODAY);
   const past=mtgs.filter(m=>!(m.s==='agendada'&&m.d>=TODAY)).slice(0,5);
   function fmtD(d){if(!d)return'—';const[y,mo,dy]=d.split('-');return dy+'/'+mo+'/'+y;}
