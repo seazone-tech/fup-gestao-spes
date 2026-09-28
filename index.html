@@ -2144,7 +2144,7 @@ function renderPainel(){
     return`<button onclick="setFaseFiltro('${p.v}')" style="display:flex;align-items:center;gap:3px;padding:3px 10px;border-radius:99px;border:1px solid ${border};background:${bg};color:${color};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">${alertIcon}${p.l}<span style="margin-left:4px;opacity:0.7">${p.n}</span></button>`;
   }).join('');
   const listHtml=filtered.map(function(e){
-    const fc=calcFarolCapital(e),fcom=calcFarolComunicacao(e);
+    const fc=calcFarolCapital(e),fcom=calcFarolComunicacao(e),fcg=calcFarolComunicacaoGeral(e);
     const act=e.id===curEmpId?'pli-active':'';
     const isUrg=!!(S.urgente&&S.urgente[e.id]);
     const urgBtn=`<button id="urg-btn-${e.id}" onclick="toggleUrgente('${e.id}');event.stopPropagation()" title="${isUrg?'Remover urgência':'Marcar como urgente'}" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:1px 3px;border-radius:4px;color:${isUrg?'#EF4444':'var(--muted-fg)'};opacity:${isUrg?'1':'0.35'};transition:opacity 120ms,color 120ms" onmouseover="this.style.opacity='1';this.style.color='#EF4444'" onmouseout="this.style.opacity='${isUrg?'1':'0.35'}';this.style.color='${isUrg?'#EF4444':'var(--muted-fg)'}'">
@@ -2156,6 +2156,7 @@ function renderPainel(){
       <span class="pli-dots">
         <span class="pli-dot" style="background:${dotC(fc)}"></span>
         <span class="pli-dot" style="background:${dotC(fcom)}"></span>
+        <span class="pli-dot" style="background:${dotC(fcg)}"></span>
       </span>
     </div>`;
   }).join('');
@@ -2251,7 +2252,7 @@ function renderDetail(emp){
   const fupsEmp=S.fup.filter(f=>f.empId===emp.id).sort((a,b)=>b.data.localeCompare(a.data));
   const faseLabel={preobra:'Pré-Obra',obra:'Obra',entrega:'Entrega'};
   const atrasoDias=atraso(emp);
-  const fc=calcFarolCapital(emp),fcom=calcFarolComunicacao(emp);
+  const fc=calcFarolCapital(emp),fcom=calcFarolComunicacao(emp),fcg=calcFarolComunicacaoGeral(emp);
   function fdot(f,name){const c=f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';return`<div class="farol-dot-item"><div class="farol-dot-circle" style="background:${c};box-shadow:0 0 7px ${c}55"></div><div class="farol-dot-name">${name}</div></div>`;};
   function renderIAItem(ia){
     var lbl=ia.fonte==='reuniao'?'Reunião FUP':ia.fonte==='licenc'?'Licenciamento':'WhatsApp';
@@ -2276,6 +2277,7 @@ function renderDetail(emp){
         <div class="hero-farois">
           ${fdot(fc,'Ch. Capital')}
           ${fdot(fcom,'Com. Arq. Legal')}
+          ${fdot(fcg,'Com. Geral')}
         </div>
       </div>
     </div>
@@ -2671,6 +2673,12 @@ function calcFarolComunicacao(emp){
   if(v==='andamento')return'a';
   return'g';
 }
+function calcFarolComunicacaoGeral(emp){
+  const v=(S.comunicacaoGeralStatus&&S.comunicacaoGeralStatus[emp.id])||'naoaplica';
+  if(v==='pendente')return'r';
+  if(v==='andamento')return'a';
+  return'g';
+}
 function setComunicacao(empId,val){
   if(!S.comunicacaoStatus)S.comunicacaoStatus={};
   S.comunicacaoStatus[empId]=val;
@@ -2697,7 +2705,16 @@ function setComunicacaoGeral(empId,val){
   S.comunicacaoGeralStatus[empId]=val;
   saveData();
   const emp=EMPS_RAW.find(function(e){return e.id===empId;});
-  if(emp){const det=document.getElementById('painel-detail');if(det)det.innerHTML=renderDetail(emp);}
+  if(emp){
+    const det=document.getElementById('painel-detail');
+    if(det)det.innerHTML=renderDetail(emp);
+    const dotC2=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+    const fcg=calcFarolComunicacaoGeral(emp);
+    const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
+    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[2])dots[2].style.background=dotC2(fcg);}
+    const fv=document.getElementById('view-farol');
+    if(fv&&fv.style.display!=='none')renderFarol();
+  }
 }
 function setComunicacaoGeralNota(empId,val){
   if(!S.comunicacaoGeralNota)S.comunicacaoGeralNota={};
@@ -2960,13 +2977,14 @@ function renderHistorico(){
   const listItems=`<div class="painel-list-item ${todosAct?'pli-active':''}" data-hid="" onclick="selectHistEmp('')">
       <span class="pli-nome">Todos</span>
     </div>`+sorted.map(function(e){
-    const fc=calcFarolCapital(e),fcom=calcFarolComunicacao(e);
+    const fc=calcFarolCapital(e),fcom=calcFarolComunicacao(e),fcg=calcFarolComunicacaoGeral(e);
     const act=histSelId===e.id;
     return`<div class="painel-list-item ${act?'pli-active':''}" data-hid="${e.id}" onclick="selectHistEmp('${e.id}')">
       <span class="pli-nome">${esc(e.nome)}</span>
       <span class="pli-dots">
         <span class="pli-dot" style="background:${dotC(fc)}"></span>
         <span class="pli-dot" style="background:${dotC(fcom)}"></span>
+        <span class="pli-dot" style="background:${dotC(fcg)}"></span>
       </span>
     </div>`;
   }).join('');
