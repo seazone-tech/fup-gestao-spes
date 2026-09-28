@@ -1,4 +1,4 @@
-<title>SpotSys — Gestão de SPEs</title>
+﻿<title>SpotSys — Gestão de SPEs</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{
@@ -45,17 +45,17 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 /* MAIN */
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 .main::-webkit-scrollbar{width:6px}.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:10}
+.topbar{height:40px;flex-shrink:0;border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:10}
 .topbar-path{font-size:13px;color:var(--muted-fg);display:flex;align-items:center;gap:6px}
 .topbar-path span{color:var(--fg);font-weight:600}
 .theme-btn{padding:6px 10px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--muted-fg);font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:var(--font)}
-.content{padding:32px 40px;flex:1}
-.module-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.content{padding:12px 24px;flex:1}
+.module-header{display:none}
 .module-icon{width:42px;height:42px;border-radius:11px;background:var(--primary);color:#fff;display:grid;place-items:center;box-shadow:0 4px 14px color-mix(in srgb,var(--primary) 30%,transparent)}
 .module-title{font-size:20px;font-weight:700;letter-spacing:-.01em}
 .module-sub{font-size:11px;color:var(--muted-fg);margin-top:2px}
 /* CONTROLS */
-.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .select-building{flex:1 1 240px;max-width:360px;padding:8px 12px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:14px;font-family:var(--font);cursor:pointer;outline:none}
 .view-toggle{display:inline-flex;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:3px}
 .view-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:6px;font-size:13px;font-weight:600;background:transparent;color:var(--muted-fg);border:none;cursor:pointer;font-family:var(--font);transition:all 150ms;white-space:nowrap}
@@ -145,13 +145,13 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 /* CRONOGRAMA CARD TABLE */
 .cron-card{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);overflow:hidden}
 .cron-card-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--card-fg);letter-spacing:-.01em;background:var(--accent)}
-.cron-table{width:100%;border-collapse:collapse;font-size:12px}
-.cron-table thead th{padding:6px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-fg);text-align:right;background:var(--accent);border-bottom:1px solid var(--border)}
+.cron-table{width:100%;border-collapse:collapse;font-size:14px}
+.cron-table thead th{padding:7px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-fg);text-align:right;background:var(--accent);border-bottom:1px solid var(--border)}
 .cron-table thead th:first-child{text-align:left;min-width:200px}
-.cron-table tbody td{padding:6px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:11px;font-weight:400}
+.cron-table tbody td{padding:8px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px;font-weight:400}
 .cron-table tbody tr:last-child td,.cron-table tbody .sub-last td{border-bottom:1px solid var(--border)}
 .cron-table tbody tr:last-child td{border-bottom:none}
-.date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap;color:var(--muted-fg)}
+.date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap;color:var(--muted-fg)}
 .cron-row-andamento .date-cell{color:var(--muted-fg)}
 .cron-name-cell{display:flex;align-items:center;gap:8px}
 .cron-dot-s{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
@@ -167,7 +167,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 /* Sub-marcos */
 .cron-sub-row td{padding:4px 14px 4px 42px;border-bottom:none;background:color-mix(in srgb,var(--accent) 60%,var(--card))}
 .cron-sub-row:last-of-type td{border-bottom:1px solid var(--border)}
-.cron-sub-cell{display:flex;align-items:center;gap:6px;font-size:12px}
+.cron-sub-cell{display:flex;align-items:center;gap:6px;font-size:13px}
 .cron-sub-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .cron-sub-dot.concluido{background:var(--success)}
 .cron-sub-dot.andamento{background:var(--primary)}
@@ -190,8 +190,8 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .cx-icon-ass{background:color-mix(in srgb,var(--success) 14%,transparent);color:var(--success)}
 .cx-icon-com{background:color-mix(in srgb,#7C3AED 14%,transparent);color:#7C3AED}
 .cx-icon-cap{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
-.cx-title{font-size:11px;font-weight:700;color:var(--card-fg);flex:1;letter-spacing:-.01em}
-.cx-badge-count{padding:2px 8px;border-radius:var(--r-full);font-size:11px;font-weight:700;background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary)}
+.cx-title{font-size:13px;font-weight:700;color:var(--card-fg);flex:1;letter-spacing:-.01em}
+.cx-badge-count{padding:2px 8px;border-radius:var(--r-full);font-size:12px;font-weight:700;background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary)}
 .cx-body{padding:14px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
 /* IA items */
 .ia-item-new{border-left:3px solid;padding:8px 10px;border-radius:0 var(--r-lg) var(--r-lg) 0;background:var(--accent);display:flex;flex-direction:column;gap:4px}
@@ -203,7 +203,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .ia-fonte.reuniao{background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary)}
 .ia-fonte.wpp{background:color-mix(in srgb,var(--success) 15%,transparent);color:var(--success)}
 .ia-fonte.licenc{background:color-mix(in srgb,#EA580C 15%,transparent);color:#EA580C}
-.ia-text{font-size:12px;color:var(--card-fg);line-height:1.5}
+.ia-text{font-size:13px;color:var(--card-fg);line-height:1.5}
 /* Assembleias rows */
 .ass-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
 .ass-row:last-child{border-bottom:none;padding-bottom:0}
@@ -257,9 +257,9 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .fup-card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .fup-card-date{font-size:11px;font-weight:700;color:var(--card-fg);font-variant-numeric:tabular-nums;flex-shrink:0}
 .fup-card-resp{font-size:11px;color:var(--muted-fg);margin-left:auto;flex-shrink:0}
-.fup-card-disc{font-size:12px;color:var(--card-fg);line-height:1.5}
+.fup-card-disc{font-size:13px;color:var(--card-fg);line-height:1.5}
 .fup-card-enc{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:8px}
-.fup-bullet{display:flex;gap:6px;font-size:12px;color:var(--muted-fg);line-height:1.4;align-items:flex-start}
+.fup-bullet{display:flex;gap:6px;font-size:13px;color:var(--muted-fg);line-height:1.4;align-items:flex-start}
 .fup-bullet-dot{flex-shrink:0;margin-top:5px;width:5px;height:5px;border-radius:50%;background:var(--muted-fg);opacity:.5}
 .fup-form{display:flex;flex-direction:column;gap:10px}
 .fup-form-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-fg);margin-bottom:2px}
@@ -530,10 +530,10 @@ svg{display:inline-block;vertical-align:middle}
           <button class="view-btn active" id="btnPainel" onclick="switchView('painel')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Painel
           </button>
-          <button class="view-btn" id="btnCronograma" onclick="switchView('cronograma')">
+          <button class="view-btn" id="btnCronograma" onclick="switchView('cronograma')" style="display:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>Cronograma
           </button>
-          <button class="view-btn" id="btnFarol" onclick="switchView('farol')">
+          <button class="view-btn" id="btnFarol" onclick="switchView('farol')" style="display:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>Farol
           </button>
           <button class="view-btn" id="btnHistorico" onclick="switchView('historico')">
