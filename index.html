@@ -2468,7 +2468,7 @@ function renderDetail(emp){
         const comNota=(S.comunicacaoNota&&S.comunicacaoNota[emp.id])||'';
         const comColor=comVal==='pendente'?'var(--danger)':comVal==='andamento'?'#EA580C':comVal==='concluido'?'var(--success)':'var(--muted-fg)';
         const comOpts=[
-          {v:'naoaplica',l:'Não se aplica'},
+          {v:'naoaplica',l:'Sem previsão'},
           {v:'pendente',l:'Pendente'},
           {v:'andamento',l:'Em andamento'},
           {v:'concluido',l:'Concluído'}
@@ -2493,7 +2493,7 @@ function renderDetail(emp){
         const cgNota=(S.comunicacaoGeralNota&&S.comunicacaoGeralNota[emp.id])||'';
         const cgColor=cgVal==='pendente'?'var(--danger)':cgVal==='andamento'?'#EA580C':cgVal==='concluido'?'var(--success)':'var(--muted-fg)';
         const cgOpts=[
-          {v:'naoaplica',l:'Não se aplica'},
+          {v:'naoaplica',l:'Sem previsão'},
           {v:'pendente',l:'Pendente'},
           {v:'andamento',l:'Em andamento'},
           {v:'concluido',l:'Concluído'}
