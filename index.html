@@ -2147,7 +2147,7 @@ function renderPainel(){
     const fc=calcFarolCapital(e),fcom=calcFarolComunicacao(e),fcg=calcFarolComunicacaoGeral(e);
     const act=e.id===curEmpId?'pli-active':'';
     const isUrg=!!(S.urgente&&S.urgente[e.id]);
-    const urgBtn=`<button id="urg-btn-${e.id}" onclick="toggleUrgente('${e.id}');event.stopPropagation()" title="${isUrg?'Remover urgência':'Marcar como urgente'}" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:1px 3px;border-radius:4px;color:${isUrg?'#EF4444':'var(--muted-fg)'};opacity:${isUrg?'1':'0.35'};transition:opacity 120ms,color 120ms" onmouseover="this.style.opacity='1';this.style.color='#EF4444'" onmouseout="this.style.opacity='${isUrg?'1':'0.35'}';this.style.color='${isUrg?'#EF4444':'var(--muted-fg)'}'">
+    const urgBtn=`<button id="urg-btn-${e.id}" onclick="toggleUrgente('${e.id}');event.stopPropagation()" title="${isUrg?'Remover urgência':'Marcar como urgente'}" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:1px 3px;border-radius:4px;color:${isUrg?'#EF4444':'var(--muted-fg)'};opacity:${isUrg?'1':'0.6'};transition:opacity 120ms,color 120ms" onmouseover="this.style.opacity='1';this.style.color='#EF4444'" onmouseout="this.style.opacity='${isUrg?'1':'0.6'}';this.style.color='${isUrg?'#EF4444':'var(--muted-fg)'}'">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="${isUrg?'#EF4444':'none'}" stroke="${isUrg?'#EF4444':'currentColor'}" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </button>`;
     return`<div class="painel-list-item ${act}" data-id="${e.id}" onclick="goToEmp('${e.id}')">
