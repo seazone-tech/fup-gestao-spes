@@ -2483,6 +2483,28 @@ function renderDetail(emp){
             <select onchange="setComunicacao('${emp.id}',this.value)" style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer">
               ${comOpts.map(o=>`<option value="${o.v}"${comVal===o.v?' selected':''}>${o.l}</option>`).join('')}
             </select>
+            ${(function(){
+              const aprov=(S.projArqAprovado&&S.projArqAprovado[emp.id])||'';
+              const alter=(S.projArqAlteracoes&&S.projArqAlteracoes[emp.id])||'';
+              const btnBase='display:inline-flex;align-items:center;justify-content:center;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:inherit;background:var(--card);color:var(--muted-fg);transition:all 120ms';
+              const btnOn='background:var(--primary);color:#fff;border-color:var(--primary)';
+              const btnSim='background:var(--success,#059669);color:#fff;border-color:var(--success,#059669)';
+              const btnNao='background:var(--danger,#E7000B);color:#fff;border-color:var(--danger,#E7000B)';
+              const btnAnd='background:#EA580C;color:#fff;border-color:#EA580C';
+              return`<div style="display:flex;flex-direction:column;gap:4px;padding:6px 8px;background:var(--accent);border-radius:6px;border:1px solid var(--border)">
+                <div style="font-size:10px;font-weight:700;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">Proj. arq. aprovado?</div>
+                <div style="display:flex;gap:4px">
+                  <button onclick="setProjArqAprovado('${emp.id}','sim')" style="${btnBase};${aprov==='sim'?btnSim:''}">Sim</button>
+                  <button onclick="setProjArqAprovado('${emp.id}','andamento')" style="${btnBase};${aprov==='andamento'?btnAnd:''}">Em andamento</button>
+                  <button onclick="setProjArqAprovado('${emp.id}','nao')" style="${btnBase};${aprov==='nao'?btnNao:''}">Não</button>
+                </div>
+                <div style="font-size:10px;font-weight:700;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;margin-bottom:2px">Projeto teve alterações?</div>
+                <div style="display:flex;gap:4px">
+                  <button onclick="setProjArqAlteracoes('${emp.id}','sim')" style="${btnBase};${alter==='sim'?btnSim:''}">Sim</button>
+                  <button onclick="setProjArqAlteracoes('${emp.id}','nao')" style="${btnBase};${alter==='nao'?btnNao:''}">Não</button>
+                </div>
+              </div>`;
+            })()}
             <textarea placeholder="Anotações..." onchange="setComunicacaoNota('${emp.id}',this.value)" style="width:100%;font-size:11px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);resize:vertical;min-height:52px;font-family:inherit;box-sizing:border-box">${esc(comNota)}</textarea>
           </div>
         </div>`;
@@ -2720,6 +2742,20 @@ function setComunicacaoGeralNota(empId,val){
   if(!S.comunicacaoGeralNota)S.comunicacaoGeralNota={};
   S.comunicacaoGeralNota[empId]=val;
   saveData();
+}
+function setProjArqAprovado(empId,val){
+  if(!S.projArqAprovado)S.projArqAprovado={};
+  S.projArqAprovado[empId]=val;
+  saveData();
+  const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+  if(emp){const det=document.getElementById('painel-detail');if(det)det.innerHTML=renderDetail(emp);}
+}
+function setProjArqAlteracoes(empId,val){
+  if(!S.projArqAlteracoes)S.projArqAlteracoes={};
+  S.projArqAlteracoes[empId]=val;
+  saveData();
+  const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+  if(emp){const det=document.getElementById('painel-detail');if(det)det.innerHTML=renderDetail(emp);}
 }
 function capitalLabel(emp){
   const cap=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
