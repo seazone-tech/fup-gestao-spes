@@ -23,7 +23,7 @@
   --bg:#FFF;--fg:#080E32;--card:#FFF;--card-fg:#141A3C;--border:#E6E7EA;--muted:#E6E7EA;--muted-fg:#6B6E84;--accent:#F3F3F5;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--fg);font-size:14px}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--fg);font-size:15px}
 .shell{display:flex;height:100vh;overflow:hidden}
 /* SIDEBAR */
 .sidebar{width:240px;flex-shrink:0;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
@@ -45,20 +45,20 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 /* MAIN */
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 .main::-webkit-scrollbar{width:6px}.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:10}
-.topbar-path{font-size:12px;color:var(--muted-fg);display:flex;align-items:center;gap:6px}
+.topbar{height:40px;flex-shrink:0;border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:10}
+.topbar-path{font-size:13px;color:var(--muted-fg);display:flex;align-items:center;gap:6px}
 .topbar-path span{color:var(--fg);font-weight:600}
 .theme-btn{padding:6px 10px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--muted-fg);font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:var(--font)}
-.content{padding:28px;flex:1}
-.module-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.content{padding:12px 24px;flex:1}
+.module-header{display:none}
 .module-icon{width:42px;height:42px;border-radius:11px;background:var(--primary);color:#fff;display:grid;place-items:center;box-shadow:0 4px 14px color-mix(in srgb,var(--primary) 30%,transparent)}
 .module-title{font-size:20px;font-weight:700;letter-spacing:-.01em}
 .module-sub{font-size:11px;color:var(--muted-fg);margin-top:2px}
 /* CONTROLS */
-.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px}
-.select-building{flex:1 1 220px;max-width:320px;padding:8px 12px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:13px;font-family:var(--font);cursor:pointer;outline:none}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.select-building{flex:1 1 240px;max-width:360px;padding:8px 12px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:14px;font-family:var(--font);cursor:pointer;outline:none}
 .view-toggle{display:inline-flex;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:3px}
-.view-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--muted-fg);border:none;cursor:pointer;font-family:var(--font);transition:all 150ms;white-space:nowrap}
+.view-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:6px;font-size:13px;font-weight:600;background:transparent;color:var(--muted-fg);border:none;cursor:pointer;font-family:var(--font);transition:all 150ms;white-space:nowrap}
 .view-btn.active{background:var(--primary);color:#fff}.view-btn:not(.active):hover{background:var(--accent);color:var(--fg)}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-lg);font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--fg);cursor:pointer;font-family:var(--font)}
 .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
@@ -69,14 +69,14 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .overview-stat-l{font-size:10px;color:var(--muted-fg);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 /* SPLIT LAYOUT */
-.painel-split{display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:start}
+.painel-split{display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start}
 .painel-list{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);overflow-y:auto;max-height:calc(100vh - 152px);position:sticky;top:16px}
 .painel-list-item{padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background 100ms;user-select:none}
 .painel-list-item:last-child{border-bottom:none}
 .painel-list-item:hover{background:var(--accent)}
 .painel-list-item.pli-active{background:color-mix(in srgb,var(--primary) 7%,transparent);border-left:3px solid var(--primary)}
 .painel-list-item:not(.pli-active){border-left:3px solid transparent}
-.pli-nome{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--card-fg)}
+.pli-nome{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--card-fg)}
 .pli-active .pli-nome{color:var(--primary);font-weight:600}
 .pli-dots{display:flex;gap:4px;flex-shrink:0}
 .pli-dot{width:7px;height:7px;border-radius:50%}
@@ -102,6 +102,13 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .mini-bar-track{flex:1;height:4px;background:var(--muted);border-radius:2px;overflow:hidden}
 .mini-bar-fill{height:100%;border-radius:2px;background:var(--primary)}
 .mini-bar-pct{font-size:10px;font-weight:700;color:var(--muted-fg);width:28px;text-align:right;font-variant-numeric:tabular-nums}
+/* CRONOGRAMA ENTREGA */
+.cr-field{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.cr-field label{font-size:11px;font-weight:600;color:var(--muted-fg)}
+.cr-field input{padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:12px;font-family:var(--font);outline:none}
+.cr-field input:focus{border-color:var(--primary)}
+.cr-sub{padding-left:14px}
+.cr-sec-title{font-size:12px;font-weight:700;margin-bottom:8px;margin-top:4px;color:var(--primary)}
 /* DETAIL PAGE */
 .detail-page{display:flex;flex-direction:column;gap:20px}
 .detail-back{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted-fg);cursor:pointer;padding:6px 10px;border-radius:var(--r-lg);border:1px solid var(--border);background:var(--card);margin-bottom:4px}
@@ -138,13 +145,13 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 /* CRONOGRAMA CARD TABLE */
 .cron-card{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--card);overflow:hidden}
 .cron-card-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--card-fg);letter-spacing:-.01em;background:var(--accent)}
-.cron-table{width:100%;border-collapse:collapse;font-size:12px}
-.cron-table thead th{padding:6px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-fg);text-align:right;background:var(--accent);border-bottom:1px solid var(--border)}
+.cron-table{width:100%;border-collapse:collapse;font-size:14px}
+.cron-table thead th{padding:7px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-fg);text-align:right;background:var(--accent);border-bottom:1px solid var(--border)}
 .cron-table thead th:first-child{text-align:left;min-width:200px}
-.cron-table tbody td{padding:6px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:11px;font-weight:400}
+.cron-table tbody td{padding:8px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px;font-weight:400}
 .cron-table tbody tr:last-child td,.cron-table tbody .sub-last td{border-bottom:1px solid var(--border)}
 .cron-table tbody tr:last-child td{border-bottom:none}
-.date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap;color:var(--muted-fg)}
+.date-cell{text-align:center;font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap;color:var(--muted-fg)}
 .cron-row-andamento .date-cell{color:var(--muted-fg)}
 .cron-name-cell{display:flex;align-items:center;gap:8px}
 .cron-dot-s{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
@@ -160,7 +167,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 /* Sub-marcos */
 .cron-sub-row td{padding:4px 14px 4px 42px;border-bottom:none;background:color-mix(in srgb,var(--accent) 60%,var(--card))}
 .cron-sub-row:last-of-type td{border-bottom:1px solid var(--border)}
-.cron-sub-cell{display:flex;align-items:center;gap:6px;font-size:12px}
+.cron-sub-cell{display:flex;align-items:center;gap:6px;font-size:13px}
 .cron-sub-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .cron-sub-dot.concluido{background:var(--success)}
 .cron-sub-dot.andamento{background:var(--primary)}
@@ -183,8 +190,8 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .cx-icon-ass{background:color-mix(in srgb,var(--success) 14%,transparent);color:var(--success)}
 .cx-icon-com{background:color-mix(in srgb,#7C3AED 14%,transparent);color:#7C3AED}
 .cx-icon-cap{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
-.cx-title{font-size:11px;font-weight:700;color:var(--card-fg);flex:1;letter-spacing:-.01em}
-.cx-badge-count{padding:2px 8px;border-radius:var(--r-full);font-size:11px;font-weight:700;background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary)}
+.cx-title{font-size:13px;font-weight:700;color:var(--card-fg);flex:1;letter-spacing:-.01em}
+.cx-badge-count{padding:2px 8px;border-radius:var(--r-full);font-size:12px;font-weight:700;background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary)}
 .cx-body{padding:14px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
 /* IA items */
 .ia-item-new{border-left:3px solid;padding:8px 10px;border-radius:0 var(--r-lg) var(--r-lg) 0;background:var(--accent);display:flex;flex-direction:column;gap:4px}
@@ -196,7 +203,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .ia-fonte.reuniao{background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary)}
 .ia-fonte.wpp{background:color-mix(in srgb,var(--success) 15%,transparent);color:var(--success)}
 .ia-fonte.licenc{background:color-mix(in srgb,#EA580C 15%,transparent);color:#EA580C}
-.ia-text{font-size:12px;color:var(--card-fg);line-height:1.5}
+.ia-text{font-size:13px;color:var(--card-fg);line-height:1.5}
 /* Assembleias rows */
 .ass-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
 .ass-row:last-child{border-bottom:none;padding-bottom:0}
@@ -250,9 +257,9 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--f
 .fup-card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .fup-card-date{font-size:11px;font-weight:700;color:var(--card-fg);font-variant-numeric:tabular-nums;flex-shrink:0}
 .fup-card-resp{font-size:11px;color:var(--muted-fg);margin-left:auto;flex-shrink:0}
-.fup-card-disc{font-size:12px;color:var(--card-fg);line-height:1.5}
+.fup-card-disc{font-size:13px;color:var(--card-fg);line-height:1.5}
 .fup-card-enc{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border);padding-top:8px}
-.fup-bullet{display:flex;gap:6px;font-size:12px;color:var(--muted-fg);line-height:1.4;align-items:flex-start}
+.fup-bullet{display:flex;gap:6px;font-size:13px;color:var(--muted-fg);line-height:1.4;align-items:flex-start}
 .fup-bullet-dot{flex-shrink:0;margin-top:5px;width:5px;height:5px;border-radius:50%;background:var(--muted-fg);opacity:.5}
 .fup-form{display:flex;flex-direction:column;gap:10px}
 .fup-form-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-fg);margin-bottom:2px}
@@ -433,26 +440,54 @@ svg{display:inline-block;vertical-align:middle}
   </div>
 </div>
 
-<div class="shell">
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-mark">S</div>
-      <div><div class="logo-text">SpotSys</div><div class="logo-sub">Seazone</div></div>
+<!-- MODAL CRONOGRAMA ENTREGA -->
+<div class="overlay" id="modalCronograma">
+  <div class="ov-card" style="max-width:800px;width:96vw">
+    <div class="ov-head">
+      <div class="ov-title">📦 Cronograma Entrega</div>
+      <button class="ov-close" onclick="closeModalCronograma()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Início</div>
-      <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20"/><path d="M5 20V8l7-5 7 5v12"/><path d="M9 20v-5h6v5"/></svg>PMO</div>
-      <div class="nav-sub"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/></svg>Assembleias</div>
-      <div class="nav-sub active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><polyline points="22 4 13 13 8 8 2 14"/></svg>Gestão de SPEs</div>
-      <div class="nav-divider"></div>
-      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Indicadores</div>
-    </nav>
-    <div class="sidebar-user">
-      <div class="user-avatar">B</div>
-      <div><div class="user-name">Bruna Zanella</div><div class="user-email">obras.pmo@seazone.com.br</div><div class="user-tag">PMO</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div class="mf"><label>Empreendimento</label><select id="crEmp" class="mi" onchange="crUpdatePreview()"></select></div>
+      <div class="mf"><label>Data do registro</label><input type="date" id="crData" class="mi"></div>
     </div>
-  </aside>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="overflow-y:auto;max-height:58vh;padding-right:6px">
+        <div class="cr-sec-title">🏗️ Entrega de Obra</div>
+        <div class="cr-field"><label>Entrega da obra</label><input id="cr_entrega_obra" class="mi" placeholder="Ex: 31/08" oninput="crUpdatePreview()"></div>
+        <div class="cr-field"><label>Ligação de energia</label><input id="cr_ligacao_energia" class="mi" placeholder="Ex: 10/08" oninput="crUpdatePreview()"></div>
+        <div class="cr-field"><label>AVCB</label><input id="cr_avcb" class="mi" placeholder="Ex: a confirmar" oninput="crUpdatePreview()"></div>
+        <div class="cr-field"><label>Habite-se</label><input id="cr_habite_se" class="mi" placeholder="Ex: a confirmar" oninput="crUpdatePreview()"></div>
+        <div class="cr-field"><label>Vistoria áreas comuns</label><input id="cr_vistoria_areas" class="mi" placeholder="Ex: 01/09" oninput="crUpdatePreview()"></div>
+        <div class="cr-field cr-sub"><label>↳ Re-vistoria</label><input id="cr_revistoria_areas" class="mi" placeholder="Ex: 19/10" oninput="crUpdatePreview()"></div>
+        <div class="cr-field"><label>Vistoria unidades</label><input id="cr_vistoria_unidades" class="mi" placeholder="Ex: 02/09 a 11/09" oninput="crUpdatePreview()"></div>
+        <div class="cr-field cr-sub"><label>↳ Re-vistoria</label><input id="cr_revistoria_unidades" class="mi" placeholder="Ex: a confirmar" oninput="crUpdatePreview()"></div>
+        <div class="cr-sec-title" style="margin-top:12px">🛋️ Decor</div>
+        <div class="cr-field"><label>Decor</label><input id="cr_decor" class="mi" placeholder="Ex: 14/09 a 21/11" oninput="crUpdatePreview()"></div>
+        <div class="cr-sec-title" style="margin-top:12px">🔑 Implantação</div>
+        <div class="cr-field"><label>Condomínio</label><input id="cr_condominio" class="mi" placeholder="Ex: 02/09" oninput="crUpdatePreview()"></div>
+        <div class="cr-field"><label>Unidades gestão</label><input id="cr_unidades_gestao" class="mi" placeholder="Ex: a partir 21/11" oninput="crUpdatePreview()"></div>
+        <div class="cr-sec-title" style="margin-top:12px">📄 Documentação</div>
+        <div class="cr-field"><label>Averbação, instituição condomínio e matrículas</label><input id="cr_averbacao" class="mi" placeholder="Ex: dez/26" oninput="crUpdatePreview()"></div>
+        <div class="cr-field"><label>Dissolução SPE</label><input id="cr_dissolucao" class="mi" placeholder="Ex: jan/27" oninput="crUpdatePreview()"></div>
+        <div class="cr-sec-title" style="margin-top:12px">📌 Datas Chave</div>
+        <div class="cr-field"><label>🎯 Início operação</label><input id="cr_inicio_operacao" class="mi" placeholder="Ex: 01/12" oninput="crUpdatePreview()"></div>
+        <div class="cr-field"><label>🎉 Evento sócios</label><input id="cr_evento_socios" class="mi" placeholder="Ex: 05/12" oninput="crUpdatePreview()"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.05em">Preview Slack</div>
+        <pre id="crPreview" style="flex:1;background:var(--accent);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;white-space:pre-wrap;font-family:var(--font);line-height:1.65;overflow-y:auto;max-height:58vh;color:var(--fg);margin:0"></pre>
+      </div>
+    </div>
+    <div class="ov-footer">
+      <button class="ov-cancel" onclick="closeModalCronograma()">Cancelar</button>
+      <button class="ov-save" onclick="crSalvar()">Salvar</button>
+      <button onclick="crCopiarSlack()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-lg);border:none;background:var(--success);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">📤 Enviar Slack</button>
+    </div>
+  </div>
+</div>
 
+<div class="shell">
   <main class="main">
     <div class="topbar">
       <div class="topbar-path">PMO <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg> <span>Gestão de SPEs</span></div>
@@ -483,7 +518,7 @@ svg{display:inline-block;vertical-align:middle}
         </div>
         <div>
           <div class="module-title">Gestão de SPEs</div>
-          <div class="module-sub">Acompanhamento semanal dos empreendimentos Spot</div>
+          <div class="module-sub">Acompanhamento Spots</div>
         </div>
       </div>
 
@@ -495,10 +530,10 @@ svg{display:inline-block;vertical-align:middle}
           <button class="view-btn active" id="btnPainel" onclick="switchView('painel')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Painel
           </button>
-          <button class="view-btn" id="btnCronograma" onclick="switchView('cronograma')">
+          <button class="view-btn" id="btnCronograma" onclick="switchView('cronograma')" style="display:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>Cronograma
           </button>
-          <button class="view-btn" id="btnFarol" onclick="switchView('farol')">
+          <button class="view-btn" id="btnFarol" onclick="switchView('farol')" style="display:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>Farol
           </button>
           <button class="view-btn" id="btnHistorico" onclick="switchView('historico')">
@@ -521,49 +556,49 @@ const TODAY = new Date();
 
 // Empreendimentos — dados Nekt (gerado 2026-09-18)
 const EMPS_RAW = [
-  {id:'023',nome:'Batel Spot',fase:'obra',pf:12.9,pfin:53.9,dl:'2024-07-30',dt:'2028-05-20',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-12-01',pval:'R$ 175.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'029',nome:'Cachoeira Beach Spot',fase:'preobra',pf:0.0,pfin:43.5,dl:'2025-01-30',dt:'2029-10-16',dr:'2027-04-12',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 145.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'020',nome:'Cachoeira Spot',fase:'obra',pf:5.1,pfin:44.8,dl:'2024-06-25',dt:'2028-10-30',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-05',pval:'R$ 305.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'027',nome:'Santo Antônio Spot',fase:'preobra',pf:0.0,pfin:30.7,dl:'2024-10-24',dt:'2029-01-30',dr:'2027-03-31',risco:'semrisco',pag:'Vigente',pv:'2027-01-15',pval:'R$ 155.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'017',nome:'Canasvieiras Spot',fase:'obra',pf:37.6,pfin:50.8,dl:'2024-03-20',dt:'2028-02-26',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-01',pval:'R$ 195.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'023',nome:'Batel Spot',fase:'obra',pf:12.9,pfin:53.9,dl:'2024-07-30',dt:'2028-05-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-12-01',pval:'R$ 175.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'029',nome:'Cachoeira Beach Spot',fase:'preobra',pf:0.0,pfin:43.5,dl:'2025-01-30',dt:'2029-10-31',dr:'2027-04-12',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 145.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'020',nome:'Cachoeira Spot',fase:'obra',pf:5.1,pfin:44.8,dl:'2024-06-25',dt:'2028-10-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-05',pval:'R$ 305.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'027',nome:'Santo Antônio Spot',fase:'preobra',pf:0.0,pfin:30.7,dl:'2024-10-24',dt:'2029-01-31',dr:'2027-03-31',risco:'semrisco',pag:'Vigente',pv:'2027-01-15',pval:'R$ 155.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'017',nome:'Canasvieiras Spot',fase:'obra',pf:37.6,pfin:50.8,dl:'2024-03-20',dt:'2027-12-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-01',pval:'R$ 195.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
   {id:'018',nome:'Ilha do Campeche Spot',fase:'preobra',pf:0.0,pfin:35.6,dl:'2024-04-09',dt:'2028-11-30',dr:'2025-12-31',risco:'semrisco',pag:'Vigente',pv:'2026-10-20',pval:'R$ 260.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'012',nome:'Imbassaí Spot',fase:'preobra',pf:0.0,pfin:33.6,dl:'2023-06-21',dt:'2028-05-30',dr:'2025-10-06',risco:'semrisco',pag:'Paralisado',pv:'2026-08-20',pval:'R$ 520.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'009',nome:'Ingleses Spot',fase:'obra',pf:97.4,pfin:99.2,dl:'2022-07-24',dt:'2026-06-30',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-10-01',pval:'R$ 275.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'concluido'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'011',nome:'Japaratinga Spot',fase:'obra',pf:71.8,pfin:110.1,dl:'2023-01-09',dt:'2026-12-30',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-10-15',pval:'R$ 140.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'024',nome:'Jurerê Beach Spot',fase:'obra',pf:34.5,pfin:58.8,dl:'2024-08-08',dt:'2027-12-22',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-15',pval:'R$ 240.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'012',nome:'Imbassaí Spot',fase:'preobra',pf:0.0,pfin:33.6,dl:'2023-06-21',dt:'2028-05-31',dr:'2025-10-06',risco:'semrisco',pag:'Paralisado',pv:'2026-08-20',pval:'R$ 520.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'009',nome:'Ingleses Spot',fase:'obra',pf:97.4,pfin:99.2,dl:'2022-07-24',dt:'2026-08-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-10-01',pval:'R$ 275.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'concluido'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'011',nome:'Japaratinga Spot',fase:'obra',pf:71.8,pfin:110.1,dl:'2023-01-09',dt:'2027-02-28',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-10-15',pval:'R$ 140.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'024',nome:'Jurerê Beach Spot',fase:'obra',pf:34.5,pfin:58.8,dl:'2024-08-08',dt:'2027-12-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-15',pval:'R$ 240.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
   {id:'002',nome:'Lagoa Spot',fase:'entrega',pf:0.0,pfin:93.9,dl:'2020-02-24',dt:'2025-11-30',dr:'2027-01-13',risco:'semrisco',pag:'Vigente',pv:'2026-09-01',pval:'R$ 210.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'concluido'},{nome:'Acabamento e Mobiliário',st:'concluido'}],entrega:[{nome:'Habite-se',st:'concluido'},{nome:'Vistoria e Aceite',st:'concluido'},{nome:'Ligação Definitiva',st:'concluido'},{nome:'Decor',st:'concluido'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'022',nome:'Morro das Pedras Spot',fase:'preobra',pf:0.0,pfin:35.1,dl:'2024-07-24',dt:'2028-06-15',dr:'2026-04-24',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 90.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'019',nome:'Rosa Norte Spot',fase:'obra',pf:1.0,pfin:37.8,dl:'2024-05-28',dt:'2028-04-27',dr:null,risco:'semrisco',pag:'Paralisado',pv:'2026-08-25',pval:'R$ 490.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'022',nome:'Morro das Pedras Spot',fase:'preobra',pf:0.0,pfin:35.1,dl:'2024-07-24',dt:'2028-06-30',dr:'2026-04-24',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 90.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'019',nome:'Rosa Norte Spot',fase:'obra',pf:1.0,pfin:37.8,dl:'2024-05-28',dt:'2028-04-30',dr:null,risco:'semrisco',pag:'Paralisado',pv:'2026-08-25',pval:'R$ 490.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
   {id:'003',nome:'Rosa Spot',fase:'entrega',pf:0.0,pfin:0.0,dl:'2021-04-20',dt:'2025-11-30',dr:'2026-08-12',risco:'semrisco',pag:'Vigente',pv:'2026-09-15',pval:'R$ 185.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'concluido'},{nome:'Acabamento e Mobiliário',st:'concluido'}],entrega:[{nome:'Habite-se',st:'concluido'},{nome:'Vistoria e Aceite',st:'concluido'},{nome:'Ligação Definitiva',st:'concluido'},{nome:'Decor',st:'concluido'},{nome:'Individualização',st:'concluido'}]}},
   {id:'008',nome:'Rosa Sul Spot',fase:'obra',pf:99.1,pfin:88.8,dl:'2022-07-21',dt:'2026-09-30',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-08-01',pval:'R$ 320.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'concluido'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
   {id:'014',nome:'Salvador Spot',fase:'obra',pf:0.0,pfin:30.2,dl:'2023-08-23',dt:'2028-04-30',dr:'2025-09-26',risco:'semrisco',pag:'Vigente',pv:'2026-09-10',pval:'R$ 310.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'015',nome:'Campeche Spot',fase:'obra',pf:55.9,pfin:68.4,dl:'2023-11-30',dt:'2027-05-23',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-01',pval:'R$ 230.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'021',nome:'Sul da Ilha Spot',fase:'preobra',pf:0.0,pfin:29.0,dl:'2024-07-09',dt:'2029-01-30',dr:'2027-01-28',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 110.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'013',nome:'Trancoso Spot',fase:'obra',pf:98.6,pfin:106.8,dl:'2023-08-01',dt:'2026-09-30',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-07-01',pval:'R$ 460.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'concluido'},{nome:'Acabamento e Mobiliário',st:'concluido'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'concluido'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'010',nome:'Urubici Spot',fase:'entrega',pf:0.0,pfin:100.0,dl:'2022-10-27',dt:'2026-04-10',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-01',pval:'R$ 285.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'concluido'},{nome:'Acabamento e Mobiliário',st:'concluido'}],entrega:[{nome:'Habite-se',st:'concluido'},{nome:'Vistoria e Aceite',st:'concluido'},{nome:'Ligação Definitiva',st:'concluido'},{nome:'Decor',st:'andamento'},{nome:'Individualização',st:'concluido'}]}},
-  {id:'016',nome:'Urubici Spot II',fase:'obra',pf:34.8,pfin:58.8,dl:'2024-02-28',dt:'2027-12-18',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-07-01',pval:'R$ 380.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'015',nome:'Campeche Spot',fase:'obra',pf:55.9,pfin:68.4,dl:'2023-11-30',dt:'2027-05-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-01',pval:'R$ 230.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'021',nome:'Sul da Ilha Spot',fase:'preobra',pf:0.0,pfin:29.0,dl:'2024-07-09',dt:'2029-01-31',dr:'2027-01-28',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 110.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'013',nome:'Trancoso Spot',fase:'entrega',pf:98.6,pfin:106.8,dl:'2023-08-01',dt:'2026-08-31',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-07-01',pval:'R$ 460.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'concluido'},{nome:'Acabamento e Mobiliário',st:'concluido'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'concluido'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'010',nome:'Urubici Spot',fase:'entrega',pf:0.0,pfin:100.0,dl:'2022-10-27',dt:'2026-04-30',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-01',pval:'R$ 285.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'concluido'},{nome:'Instalações e Elevador',st:'concluido'},{nome:'Acabamento e Mobiliário',st:'concluido'}],entrega:[{nome:'Habite-se',st:'concluido'},{nome:'Vistoria e Aceite',st:'concluido'},{nome:'Ligação Definitiva',st:'concluido'},{nome:'Decor',st:'andamento'},{nome:'Individualização',st:'concluido'}]}},
+  {id:'016',nome:'Urubici Spot II',fase:'obra',pf:34.8,pfin:58.8,dl:'2024-02-28',dt:'2027-12-31',dr:null,risco:'semrisco',pag:'Em atraso',pv:'2026-07-01',pval:'R$ 380.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'concluido'},{nome:'Orçamento Executivo',st:'concluido'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
   {id:'n22',nome:'Vistas de Anitá I',fase:'entrega',pf:0.0,pfin:0.0,dl:'2021-05-05',dt:'2023-01-01',dr:null,risco:'semrisco',pag:'Vigente',pv:'',pval:'',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'n23',nome:'Vistas de Anitá II',fase:'obra',pf:0.0,pfin:0.0,dl:'2023-03-17',dt:'2030-10-01',dr:null,risco:'semrisco',pag:'Vigente',pv:'',pval:'',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'007',nome:'Barra Spot',fase:'preobra',pf:0.0,pfin:47.5,dl:'2022-06-22',dt:'2028-06-30',dr:'2027-11-24',risco:'semrisco',pag:'Paralisado',pv:'2026-08-20',pval:'R$ 540.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'031',nome:'Santinho Spot',fase:'preobra',pf:0.0,pfin:28.0,dl:'2025-03-31',dt:'2030-01-15',dr:'2028-02-24',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 185.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'030',nome:'Bonito Spot',fase:'preobra',pf:0.0,pfin:32.8,dl:'2025-03-20',dt:'2029-06-15',dr:'2028-04-24',risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 120.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'028',nome:'Meireles Spot',fase:'preobra',pf:0.0,pfin:35.0,dl:'2024-11-21',dt:'2029-08-18',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-12-01',pval:'R$ 200.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'025',nome:'Marista 144 Spot',fase:'obra',pf:1.8,pfin:23.6,dl:'2024-09-17',dt:'2028-12-30',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 130.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
-  {id:'026',nome:'Ilha do Campeche II Spot',fase:'preobra',pf:0.0,pfin:43.1,dl:'2024-12-17',dt:'2029-03-21',dr:'2026-09-15',risco:'semrisco',pag:'Vigente',pv:'2026-12-10',pval:'R$ 215.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'031',nome:'Santinho Spot',fase:'preobra',pf:0.0,pfin:28.0,dl:'2025-03-31',dt:'2030-01-31',dr:'2028-02-24',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 185.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'030',nome:'Bonito Spot',fase:'preobra',pf:0.0,pfin:32.8,dl:'2025-03-20',dt:'2029-06-30',dr:'2028-04-24',risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 120.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'028',nome:'Meireles Spot',fase:'preobra',pf:0.0,pfin:35.0,dl:'2024-11-21',dt:'2029-08-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-12-01',pval:'R$ 200.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'025',nome:'Marista 144 Spot',fase:'obra',pf:1.8,pfin:23.6,dl:'2024-09-17',dt:'2028-12-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 130.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'andamento'},{nome:'Orçamento Executivo',st:'andamento'}],obra:[{nome:'Estrutura Finalizada',st:'andamento'},{nome:'Instalações e Elevador',st:'andamento'},{nome:'Acabamento e Mobiliário',st:'andamento'}],entrega:[{nome:'Habite-se',st:'andamento'},{nome:'Vistoria e Aceite',st:'andamento'},{nome:'Ligação Definitiva',st:'andamento'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'andamento'}]}},
+  {id:'026',nome:'Ilha do Campeche II Spot',fase:'preobra',pf:0.0,pfin:43.1,dl:'2024-12-17',dt:'2029-03-31',dr:'2026-09-15',risco:'semrisco',pag:'Vigente',pv:'2026-12-10',pval:'R$ 215.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'n30',nome:'Penha Spot',fase:'entrega',pf:0.0,pfin:0.0,dl:'2021-07-01',dt:'',dr:null,risco:'semrisco',pag:'Vigente',pv:'',pval:'',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'032',nome:'Jurerê Spot II',fase:'preobra',pf:0.0,pfin:40.4,dl:'2025-04-22',dt:'2029-06-26',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 160.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'033',nome:'Caraguá Spot',fase:'preobra',pf:0.0,pfin:5.0,dl:'2025-05-27',dt:'2030-03-30',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-20',pval:'R$ 270.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'035',nome:'Itacaré Spot',fase:'preobra',pf:0.0,pfin:23.0,dl:'2025-07-01',dt:'2029-10-30',dr:'2027-06-03',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 135.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'036',nome:'Barra Grande Spot',fase:'preobra',pf:0.0,pfin:30.2,dl:'2025-07-08',dt:'2029-10-30',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 95.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'032',nome:'Jurerê Spot II',fase:'preobra',pf:0.0,pfin:40.4,dl:'2025-04-22',dt:'2029-06-30',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 160.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'033',nome:'Caraguá Spot',fase:'preobra',pf:0.0,pfin:5.0,dl:'2025-05-27',dt:'2030-03-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-09-20',pval:'R$ 270.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'concluido'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'035',nome:'Itacaré Spot',fase:'preobra',pf:0.0,pfin:23.0,dl:'2025-07-01',dt:'2029-10-31',dr:'2027-06-03',risco:'semrisco',pag:'Vigente',pv:'2027-02-01',pval:'R$ 135.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'036',nome:'Barra Grande Spot',fase:'preobra',pf:0.0,pfin:30.2,dl:'2025-07-08',dt:'2029-10-31',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 95.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'037',nome:'Ponta das Canas Spot',fase:'preobra',pf:0.0,pfin:28.6,dl:'2025-07-15',dt:'2030-04-30',dr:'2027-05-04',risco:'semrisco',pag:'Vigente',pv:'2027-01-01',pval:'R$ 150.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'034',nome:'Bonito Spot II',fase:'preobra',pf:0.0,pfin:18.1,dl:'2025-06-24',dt:'2029-09-21',dr:'2028-02-08',risco:'semrisco',pag:'Vigente',pv:'2027-05-01',pval:'R$ 105.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'038',nome:'Foz Spot',fase:'preobra',pf:0.0,pfin:27.8,dl:'2025-08-14',dt:'2030-05-30',dr:'2027-05-10',risco:'semrisco',pag:'Vigente',pv:'2026-12-15',pval:'R$ 180.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'039',nome:'Canas Beach Spot',fase:'preobra',pf:0.0,pfin:31.4,dl:'2025-08-26',dt:'2030-05-30',dr:'2027-05-10',risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 125.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'040',nome:'Ponta das Canas Spot II',fase:'preobra',pf:0.0,pfin:21.5,dl:'2025-09-02',dt:'2030-12-20',dr:'2027-05-25',risco:'semrisco',pag:'Vigente',pv:'2027-06-01',pval:'R$ 88.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'041',nome:'Novo Campeche Spot',fase:'preobra',pf:0.0,pfin:29.9,dl:'2025-10-14',dt:'2030-01-30',dr:'2027-06-25',risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 115.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'042',nome:'Natal Spot',fase:'preobra',pf:0.0,pfin:15.5,dl:'2025-10-28',dt:'2030-08-30',dr:'2027-01-28',risco:'semrisco',pag:'Vigente',pv:'2027-07-01',pval:'R$ 80.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'043',nome:'Jurerê Spot III',fase:'preobra',pf:0.0,pfin:17.0,dl:'2025-12-09',dt:'2030-03-30',dr:'2027-08-06',risco:'semrisco',pag:'Vigente',pv:'2027-08-01',pval:'R$ 75.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
-  {id:'044',nome:'Novo Campeche Spot II',fase:'preobra',pf:0.0,pfin:7.7,dl:'2026-01-06',dt:'2030-03-30',dr:'2027-07-06',risco:'semrisco',pag:'Vigente',pv:'2027-09-01',pval:'R$ 70.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'034',nome:'Bonito Spot II',fase:'preobra',pf:0.0,pfin:18.1,dl:'2025-06-24',dt:'2029-09-30',dr:'2028-02-08',risco:'semrisco',pag:'Vigente',pv:'2027-05-01',pval:'R$ 105.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'038',nome:'Foz Spot',fase:'preobra',pf:0.0,pfin:27.8,dl:'2025-08-14',dt:'2030-05-31',dr:'2027-05-10',risco:'semrisco',pag:'Vigente',pv:'2026-12-15',pval:'R$ 180.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'039',nome:'Canas Beach Spot',fase:'preobra',pf:0.0,pfin:31.4,dl:'2025-08-26',dt:'2030-05-31',dr:'2027-05-10',risco:'semrisco',pag:'Vigente',pv:'2027-04-01',pval:'R$ 125.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'040',nome:'Ponta das Canas Spot II',fase:'preobra',pf:0.0,pfin:21.5,dl:'2025-09-02',dt:'2030-12-31',dr:'2027-05-25',risco:'semrisco',pag:'Vigente',pv:'2027-06-01',pval:'R$ 88.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'041',nome:'Novo Campeche Spot',fase:'preobra',pf:0.0,pfin:29.9,dl:'2025-10-14',dt:'2030-01-31',dr:'2027-06-25',risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 115.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'042',nome:'Natal Spot',fase:'preobra',pf:0.0,pfin:15.5,dl:'2025-10-28',dt:'2030-08-31',dr:'2027-01-28',risco:'semrisco',pag:'Vigente',pv:'2027-07-01',pval:'R$ 80.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'043',nome:'Jurerê Spot III',fase:'preobra',pf:0.0,pfin:17.0,dl:'2025-12-09',dt:'2030-03-31',dr:'2027-08-06',risco:'semrisco',pag:'Vigente',pv:'2027-08-01',pval:'R$ 75.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
+  {id:'044',nome:'Novo Campeche Spot II',fase:'preobra',pf:0.0,pfin:7.7,dl:'2026-01-06',dt:'2030-03-31',dr:'2027-07-06',risco:'semrisco',pag:'Vigente',pv:'2027-09-01',pval:'R$ 70.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'andamento'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'032',nome:'Jurerê Spot',fase:'entrega',pf:0.0,pfin:0.0,dl:'2019-01-01',dt:'',dr:null,risco:'semrisco',pag:'Vigente',pv:'2027-03-01',pval:'R$ 160.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'n47',nome:'Vistas de Anitá III',fase:'preobra',pf:0.0,pfin:0.0,dl:'2026-04-17',dt:'2030-10-01',dr:null,risco:'semrisco',pag:'Vigente',pv:'',pval:'',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
   {id:'015',nome:'Novo Campeche Spot III',fase:'preobra',pf:0.0,pfin:0.0,dl:'2026-09-15',dt:'',dr:null,risco:'semrisco',pag:'Vigente',pv:'2026-11-01',pval:'R$ 230.000',marcos:{preobra:[{nome:'Alvará de Construção',st:'ainicial'},{nome:'Projetos Executivos',st:'ainicial'},{nome:'Orçamento Executivo',st:'ainicial'}],obra:[{nome:'Estrutura Finalizada',st:'ainicial'},{nome:'Instalações e Elevador',st:'ainicial'},{nome:'Acabamento e Mobiliário',st:'ainicial'}],entrega:[{nome:'Habite-se',st:'ainicial'},{nome:'Vistoria e Aceite',st:'ainicial'},{nome:'Ligação Definitiva',st:'ainicial'},{nome:'Decor',st:'ainicial'},{nome:'Individualização',st:'ainicial'}]}},
@@ -1760,7 +1795,7 @@ const FUP_SEED=[];
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const SK='pmo-fup-spes-v2';
 const SK_SEED='pmo-fup-seeded-v4';
-let S={fup:[],coment:{},capitalStatus:{},urgente:{},contrato:{},terrenoStatus:{},cotasData:{},fechamentoGrupo:{}};
+let S={fup:[],coment:{},capitalStatus:{},urgente:{},contrato:{},terrenoStatus:{},cotasData:{},fechamentoGrupo:{},comunicacaoStatus:{},comunicacaoNota:{},comunicacaoGeralStatus:{},comunicacaoGeralNota:{}};
 let farolSort={col:null,dir:1};
 let cronSort={col:null,dir:1};
 let cronFilter='todas';
@@ -2109,7 +2144,7 @@ function renderPainel(){
     return`<button onclick="setFaseFiltro('${p.v}')" style="display:flex;align-items:center;gap:3px;padding:3px 10px;border-radius:99px;border:1px solid ${border};background:${bg};color:${color};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">${alertIcon}${p.l}<span style="margin-left:4px;opacity:0.7">${p.n}</span></button>`;
   }).join('');
   const listHtml=filtered.map(function(e){
-    const fa=calcFarolAtraso(e),fi=calcFarolTerreno(e),fc=calcFarolCapital(e);
+    const fc=calcFarolCapital(e),fcom=calcFarolComunicacao(e),fcg=calcFarolComunicacaoGeral(e);
     const act=e.id===curEmpId?'pli-active':'';
     const isUrg=!!(S.urgente&&S.urgente[e.id]);
     const urgBtn=`<button id="urg-btn-${e.id}" onclick="toggleUrgente('${e.id}');event.stopPropagation()" title="${isUrg?'Remover urgência':'Marcar como urgente'}" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:1px 3px;border-radius:4px;color:${isUrg?'#EF4444':'var(--muted-fg)'};opacity:${isUrg?'1':'0.35'};transition:opacity 120ms,color 120ms" onmouseover="this.style.opacity='1';this.style.color='#EF4444'" onmouseout="this.style.opacity='${isUrg?'1':'0.35'}';this.style.color='${isUrg?'#EF4444':'var(--muted-fg)'}'">
@@ -2119,9 +2154,9 @@ function renderPainel(){
       ${urgBtn}
       <span class="pli-nome">${esc(e.nome)}</span>
       <span class="pli-dots">
-        <span class="pli-dot" style="background:${dotC(fa)}"></span>
-        <span class="pli-dot" style="background:${dotC(fi)}"></span>
         <span class="pli-dot" style="background:${dotC(fc)}"></span>
+        <span class="pli-dot" style="background:${dotC(fcom)}"></span>
+        <span class="pli-dot" style="background:${dotC(fcg)}"></span>
       </span>
     </div>`;
   }).join('');
@@ -2217,7 +2252,7 @@ function renderDetail(emp){
   const fupsEmp=S.fup.filter(f=>f.empId===emp.id).sort((a,b)=>b.data.localeCompare(a.data));
   const faseLabel={preobra:'Pré-Obra',obra:'Obra',entrega:'Entrega'};
   const atrasoDias=atraso(emp);
-  const fa=calcFarolAtraso(emp),fi=calcFarolTerreno(emp),fc=calcFarolCapital(emp);
+  const fc=calcFarolCapital(emp),fcom=calcFarolComunicacao(emp),fcg=calcFarolComunicacaoGeral(emp);
   function fdot(f,name){const c=f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';return`<div class="farol-dot-item"><div class="farol-dot-circle" style="background:${c};box-shadow:0 0 7px ${c}55"></div><div class="farol-dot-name">${name}</div></div>`;};
   function renderIAItem(ia){
     var lbl=ia.fonte==='reuniao'?'Reunião FUP':ia.fonte==='licenc'?'Licenciamento':'WhatsApp';
@@ -2240,9 +2275,9 @@ function renderDetail(emp){
       <div class="hero-body">
         <div class="hero-name">${esc(emp.nome)}</div>
         <div class="hero-farois">
-          ${fdot(fa,'Cronograma')}
-          ${fdot(fi,'Terreno')}
           ${fdot(fc,'Ch. Capital')}
+          ${fdot(fcom,'Com. Arq. Legal')}
+          ${fdot(fcg,'Com. Geral')}
         </div>
       </div>
     </div>
@@ -2427,6 +2462,56 @@ function renderDetail(emp){
           </div>
         </div>`;
       })()}
+      <!-- Comunicação Projeto Arq. Legal -->
+      ${(function(){
+        const comVal=(S.comunicacaoStatus&&S.comunicacaoStatus[emp.id])||'naoaplica';
+        const comNota=(S.comunicacaoNota&&S.comunicacaoNota[emp.id])||'';
+        const comColor=comVal==='pendente'?'var(--danger)':comVal==='andamento'?'#EA580C':comVal==='concluido'?'var(--success)':'var(--muted-fg)';
+        const comOpts=[
+          {v:'naoaplica',l:'Sem previsão'},
+          {v:'pendente',l:'Pendente'},
+          {v:'andamento',l:'Em andamento'},
+          {v:'concluido',l:'Concluído'}
+        ];
+        return`<div class="caixinha" style="flex:none">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,${comColor} 15%,transparent);color:${comColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Comunicação Projeto Arq. Legal</div>
+            <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${comColor};flex-shrink:0"></div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px;display:flex;flex-direction:column;gap:6px">
+            <select onchange="setComunicacao('${emp.id}',this.value)" style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer">
+              ${comOpts.map(o=>`<option value="${o.v}"${comVal===o.v?' selected':''}>${o.l}</option>`).join('')}
+            </select>
+            <textarea placeholder="Anotações..." onchange="setComunicacaoNota('${emp.id}',this.value)" style="width:100%;font-size:11px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);resize:vertical;min-height:52px;font-family:inherit;box-sizing:border-box">${esc(comNota)}</textarea>
+          </div>
+        </div>`;
+      })()}
+      <!-- Comunicação Geral -->
+      ${(function(){
+        const cgVal=(S.comunicacaoGeralStatus&&S.comunicacaoGeralStatus[emp.id])||'naoaplica';
+        const cgNota=(S.comunicacaoGeralNota&&S.comunicacaoGeralNota[emp.id])||'';
+        const cgColor=cgVal==='pendente'?'var(--danger)':cgVal==='andamento'?'#EA580C':cgVal==='concluido'?'var(--success)':'var(--muted-fg)';
+        const cgOpts=[
+          {v:'naoaplica',l:'Sem previsão'},
+          {v:'pendente',l:'Pendente'},
+          {v:'andamento',l:'Em andamento'},
+          {v:'concluido',l:'Concluído'}
+        ];
+        return`<div class="caixinha" style="flex:none">
+          <div class="cx-head" style="padding:8px 14px">
+            <div class="cx-icon" style="background:color-mix(in srgb,${cgColor} 15%,transparent);color:${cgColor}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+            <div class="cx-title" style="font-size:11px">Comunicação Geral</div>
+            <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${cgColor};flex-shrink:0"></div>
+          </div>
+          <div class="cx-body" style="padding:8px 14px;display:flex;flex-direction:column;gap:6px">
+            <select onchange="setComunicacaoGeral('${emp.id}',this.value)" style="width:100%;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);cursor:pointer">
+              ${cgOpts.map(o=>`<option value="${o.v}"${cgVal===o.v?' selected':''}>${o.l}</option>`).join('')}
+            </select>
+            <textarea placeholder="Anotações..." onchange="setComunicacaoGeralNota('${emp.id}',this.value)" style="width:100%;font-size:11px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg);resize:vertical;min-height:52px;font-family:inherit;box-sizing:border-box">${esc(cgNota)}</textarea>
+          </div>
+        </div>`;
+      })()}
     </div><!-- /detail-col-right -->
     </div><!-- /detail-cols -->
 
@@ -2513,16 +2598,17 @@ function renderDetail(emp){
         ${fupsEmp.length?fupsEmp.map(f=>{
           const isPainelPmo=f.tipo==='painel-pmo';
           const isPrevia=f.tipo==='previa';
-          const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':isPrevia?'Prévia FUP':(f.tipo||'—');
-          const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':isPrevia?'#B45309':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
+          const isCronogramaP=f.tipo==='cronograma_entrega';
+          const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':isPrevia?'Prévia FUP':isCronogramaP?'Cronograma Entrega':(f.tipo||'—');
+          const tipoColor=f.tipo==='entrega'||isCronogramaP?'var(--success)':isPainelPmo?'#92400E':isPrevia?'#B45309':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
           const tipoBg=isPainelPmo?'#FEF3C7':'';
           const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:${tipoBg||`color-mix(in srgb,${tipoColor} 12%,transparent)`};color:${tipoColor}">${esc(tipoTxt)}</span>`;
           const editBtnP=`<button onclick="editFup(${f.id})" title="Editar registro" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:13px;line-height:1" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-fg)'">✎</button>`;
           const delBtnP=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
           const histTxt=f.hist||f.disc||'';
-          const bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){
-            return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;
-          }).join('');
+          let bullets='';
+          if(isCronogramaP){try{const d=JSON.parse(histTxt);bullets=`<pre style="font-size:11px;white-space:pre-wrap;font-family:var(--font);line-height:1.6;color:var(--muted-fg);margin:0">${esc(crGerarSlackFromData(d,''))}</pre>`;}catch(e){bullets='';}}
+          else{bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;}).join('');}
           return`<div class="fup-card" style="${isPainelPmo?'border-left:3px solid #D97706':''}">
             <div class="fup-card-top">
               <span class="fup-card-date">${fmtD(f.data)}</span>
@@ -2581,6 +2667,60 @@ function calcFarolCapital(emp){
   if(cap==='orcamento')return'a';
   return'g';
 }
+function calcFarolComunicacao(emp){
+  const v=(S.comunicacaoStatus&&S.comunicacaoStatus[emp.id])||'naoaplica';
+  if(v==='pendente')return'r';
+  if(v==='andamento')return'a';
+  return'g';
+}
+function calcFarolComunicacaoGeral(emp){
+  const v=(S.comunicacaoGeralStatus&&S.comunicacaoGeralStatus[emp.id])||'naoaplica';
+  if(v==='pendente')return'r';
+  if(v==='andamento')return'a';
+  return'g';
+}
+function setComunicacao(empId,val){
+  if(!S.comunicacaoStatus)S.comunicacaoStatus={};
+  S.comunicacaoStatus[empId]=val;
+  saveData();
+  const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+  if(emp){
+    const det=document.getElementById('painel-detail');
+    if(det)det.innerHTML=renderDetail(emp);
+    const dotC2=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+    const fcom=calcFarolComunicacao(emp);
+    const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
+    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[1])dots[1].style.background=dotC2(fcom);}
+    const fv=document.getElementById('view-farol');
+    if(fv&&fv.style.display!=='none')renderFarol();
+  }
+}
+function setComunicacaoNota(empId,val){
+  if(!S.comunicacaoNota)S.comunicacaoNota={};
+  S.comunicacaoNota[empId]=val;
+  saveData();
+}
+function setComunicacaoGeral(empId,val){
+  if(!S.comunicacaoGeralStatus)S.comunicacaoGeralStatus={};
+  S.comunicacaoGeralStatus[empId]=val;
+  saveData();
+  const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+  if(emp){
+    const det=document.getElementById('painel-detail');
+    if(det)det.innerHTML=renderDetail(emp);
+    const dotC2=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
+    const fcg=calcFarolComunicacaoGeral(emp);
+    const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
+    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[2])dots[2].style.background=dotC2(fcg);}
+    const fv=document.getElementById('view-farol');
+    if(fv&&fv.style.display!=='none')renderFarol();
+  }
+}
+function setComunicacaoGeralNota(empId,val){
+  if(!S.comunicacaoGeralNota)S.comunicacaoGeralNota={};
+  S.comunicacaoGeralNota[empId]=val;
+  saveData();
+}
 function capitalLabel(emp){
   const cap=(S.capitalStatus&&S.capitalStatus[emp.id])||emp.capital||'ok';
   if(cap==='nok')return'Em chamada';
@@ -2599,7 +2739,7 @@ function setCapital(empId,val){
     const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
     const fc=calcFarolCapital(emp);
     const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
-    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[2])dots[2].style.background=dotC(fc);}
+    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[0])dots[0].style.background=dotC(fc);}
     const fv=document.getElementById('view-farol');
     if(fv&&fv.style.display!=='none')renderFarol();
   }
@@ -2612,10 +2752,6 @@ function setTerreno(empId,val){
   if(emp){
     const det=document.getElementById('painel-detail');
     if(det)det.innerHTML=renderDetail(emp);
-    const dotC=function(f){return f==='r'?'#EF4444':f==='a'?'#F59E0B':'#22C55E';};
-    const fi=calcFarolTerreno(emp);
-    const li=document.querySelector('.painel-list-item[data-id="'+empId+'"] .pli-dots');
-    if(li){const dots=li.querySelectorAll('.pli-dot');if(dots[1])dots[1].style.background=dotC(fi);}
     const fv=document.getElementById('view-farol');
     if(fv&&fv.style.display!=='none')renderFarol();
   }
@@ -2661,11 +2797,11 @@ function farolDot(f,title){
 function renderFarol(){
   const c=document.getElementById('view-farol');
   const emps=[...EMPS_RAW].map(function(e){
-    const fa=calcFarolAtraso(e),fi=calcFarolTerreno(e),fc=calcFarolCapital(e);
+    const fc=calcFarolCapital(e),fcom=calcFarolComunicacao(e);
     return Object.assign({},e,{
       score:calcScore(e),
-      _fa:fa,_fi:fi,_fc:fc,
-      _sortKey:farolPri(fa)*16+farolPri(fi)*4+farolPri(fc),
+      _fc:fc,_fcom:fcom,
+      _sortKey:farolPri(fc)*4+farolPri(fcom),
       _marcoAt:(marcoAtual(e)||{atraso:0}).atraso,
       _deltaFarol:function(){var mas=marcosAtivos(e);if(!mas.length)return null;var mx=null;mas.forEach(function(ma){var dt=ma.dates.dt||null;var rf=ma.dates.dr||ma.dates.dl||null;if(dt&&rf){var d2=Math.round((new Date(dt)-new Date(rf))/86400000);if(mx===null||d2>mx)mx=d2;}});return mx;}()
     });
@@ -2710,7 +2846,7 @@ function renderFarol(){
           <td style="text-align:center"><span class="fase-pill ${e.fase}">${faseLabel[e.fase]}</span></td>
           <td colspan="4" style="color:var(--muted-fg);text-align:center;font-size:11px">—</td>
           <td></td>
-          <td><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fa,'Cron')}${farolDot(e._fi,'Terreno')}${farolDot(e._fc,'Cap')}</div></td>
+          <td><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fc,'Capital')}${farolDot(e._fcom,'Com.Legal')}</div></td>
           <td style="text-align:center">${balloon}</td>
         </tr>`];
       }
@@ -2729,7 +2865,7 @@ function renderFarol(){
           ?`<td style="text-align:center;vertical-align:top" rowspan="${mAtivos.length}"><span class="fase-pill ${e.fase}">${faseLabel[e.fase]}</span></td>`
           :'';
         const farolCell=mi===0
-          ?`<td rowspan="${mAtivos.length}"><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fa,'Cron')}${farolDot(e._fi,'Terreno')}${farolDot(e._fc,'Cap')}</div></td>`
+          ?`<td rowspan="${mAtivos.length}"><div style="display:flex;gap:8px;align-items:center;justify-content:center">${farolDot(e._fc,'Capital')}${farolDot(e._fcom,'Com.Legal')}</div></td>`
           :'';
         const balloonCell=mi===0?`<td style="text-align:center;vertical-align:top" rowspan="${mAtivos.length}">${balloon}</td>`:'';
         const rowId=mi===0?`id="fr-${e.id}"`:'';
@@ -2771,14 +2907,24 @@ function renderHistCards(){
     const emp=EMPS_RAW.find(function(e){return e.id===f.empId;});
     const isPainelPmo=f.tipo==='painel-pmo';
     const isPrevia=f.tipo==='previa';
-    const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':isPrevia?'Prévia FUP':(f.tipo||'—');
-    const tipoColor=f.tipo==='entrega'?'var(--success)':isPainelPmo?'#92400E':isPrevia?'#B45309':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
+    const isCronograma=f.tipo==='cronograma_entrega';
+    const tipoTxt=f.tipo==='gestao'?'Gestão SPEs':f.tipo==='entrega'?'Entrega':isPainelPmo?'Painel PMO':isPrevia?'Prévia FUP':isCronograma?'Cronograma Entrega':(f.tipo||'—');
+    const tipoColor=f.tipo==='entrega'||isCronograma?'var(--success)':isPainelPmo?'#92400E':isPrevia?'#B45309':f.tipo==='gestao'?'var(--primary)':'var(--muted-fg)';
     const tipoBg=isPainelPmo?'#FEF3C7':'';
     const tipoBadge=`<span style="padding:1px 8px;border-radius:99px;font-size:10px;font-weight:700;background:${tipoBg||`color-mix(in srgb,${tipoColor} 12%,transparent)`};color:${tipoColor}">${esc(tipoTxt)}</span>`;
     const histTxt=f.hist||f.disc||'';
-    const bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){
-      return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;
-    }).join('');
+    let bullets='';
+    if(isCronograma){
+      try{
+        const d=JSON.parse(histTxt);
+        const preview=crGerarSlackFromData(d,emp?emp.nome:'');
+        bullets=`<pre style="font-size:11px;white-space:pre-wrap;font-family:var(--font);line-height:1.6;color:var(--muted-fg);margin:0">${esc(preview)}</pre>`;
+      }catch(e){bullets=`<div style="color:var(--muted-fg);font-size:12px">Cronograma Entrega</div>`;}
+    } else {
+      bullets=histTxt.split('\n').filter(function(l){return l.trim();}).map(function(l){
+        return`<div class="fup-bullet"><div class="fup-bullet-dot"></div><span>${esc(l.replace(/^[•\-]\s*/,'').replace(/^\d+\.\s*/,''))}</span></div>`;
+      }).join('');
+    }
     const empLabel=!histSelId&&emp?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg)">${esc(emp.nome)}</span>`:'';
     const editBtn=`<button onclick="editFup(${f.id})" title="Editar registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:13px;line-height:1" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-fg)'">✎</button>`;
     const delBtn=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
@@ -2831,14 +2977,14 @@ function renderHistorico(){
   const listItems=`<div class="painel-list-item ${todosAct?'pli-active':''}" data-hid="" onclick="selectHistEmp('')">
       <span class="pli-nome">Todos</span>
     </div>`+sorted.map(function(e){
-    const fa=calcFarolAtraso(e),fi=calcFarolTerreno(e),fc=calcFarolCapital(e);
+    const fc=calcFarolCapital(e),fcom=calcFarolComunicacao(e),fcg=calcFarolComunicacaoGeral(e);
     const act=histSelId===e.id;
     return`<div class="painel-list-item ${act?'pli-active':''}" data-hid="${e.id}" onclick="selectHistEmp('${e.id}')">
       <span class="pli-nome">${esc(e.nome)}</span>
       <span class="pli-dots">
-        <span class="pli-dot" style="background:${dotC(fa)}"></span>
-        <span class="pli-dot" style="background:${dotC(fi)}"></span>
         <span class="pli-dot" style="background:${dotC(fc)}"></span>
+        <span class="pli-dot" style="background:${dotC(fcom)}"></span>
+        <span class="pli-dot" style="background:${dotC(fcg)}"></span>
       </span>
     </div>`;
   }).join('');
@@ -2847,6 +2993,10 @@ function renderHistorico(){
       <button class="btn" onclick="importFromPainelPMO()" style="gap:6px;background:var(--accent);border:1px solid var(--border);color:var(--fg)">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Importar Painel PMO
+      </button>
+      <button class="btn" onclick="openModalCronograma()" style="gap:6px;border-color:var(--success);color:var(--success)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Cronograma Entrega
       </button>
       <button class="btn btn-primary" onclick="openModalHist()" style="gap:6px">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2999,6 +3149,7 @@ var editFupId=null;
 function editFup(id){
   const f=S.fup.find(function(x){return x.id===id;});
   if(!f)return;
+  if(f.tipo==='cronograma_entrega'){openModalCronograma(id);return;}
   editFupId=id;
   const emp=EMPS_RAW.find(function(e){return e.id===f.empId;});
   document.getElementById('eEmpLabel').textContent=emp?emp.nome:'';
@@ -3390,6 +3541,140 @@ function limparAcessos(){
   localStorage.removeItem(SK_ACESSOS);
   abrirAcessos();
 }
+
+// ─── CRONOGRAMA ENTREGA ───────────────────────────────────────────────────────
+var crEditId=null;
+const CR_KEYS=['entrega_obra','ligacao_energia','avcb','habite_se','vistoria_areas','revistoria_areas','vistoria_unidades','revistoria_unidades','decor','condominio','unidades_gestao','averbacao','dissolucao','inicio_operacao','evento_socios'];
+
+function crParseDate(str){
+  str=(str||'').trim().toLowerCase();
+  if(!str)return null;
+  const MONTHS={jan:1,fev:2,mar:3,abr:4,mai:5,jun:6,jul:7,ago:8,set:9,out:10,nov:11,dez:12};
+  const dm=str.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if(dm){const d=parseInt(dm[1]),m=parseInt(dm[2]);let y=dm[3]?(dm[3].length===2?2000+parseInt(dm[3]):parseInt(dm[3])):new Date().getFullYear();return new Date(y,m-1,d);}
+  const my=str.match(/^([a-z]{3})\/(\d{2,4})/);
+  if(my&&MONTHS[my[1]]){const m=MONTHS[my[1]],y=my[2].length===2?2000+parseInt(my[2]):parseInt(my[2]);return new Date(y,m-1,28);}
+  return null;
+}
+
+function crCalcStatus(dateStr){
+  if(!dateStr)return'previsto';
+  const s=dateStr.trim().toLowerCase();
+  if(s.includes('confirmar')||s.includes('definir'))return'previsto';
+  const today=new Date();today.setHours(0,0,0,0);
+  const parts=s.split(/\s+a\s+/);
+  if(parts.length===2){const s1=crParseDate(parts[0]),e1=crParseDate(parts[1]);if(s1&&e1){if(today>=s1&&today<=e1)return'em andamento';if(today>e1)return'realizado';return'previsto';}}
+  const ap=s.match(/a partir(?:\s+de?)?\s+(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/);
+  if(ap){const d=crParseDate(ap[1]);if(d)return today>=d?'em andamento':'previsto';}
+  const d=crParseDate(s);
+  if(d)return today>d?'realizado':'previsto';
+  return'previsto';
+}
+
+function crGerarSlackFromData(data,empNome){
+  const v=function(k){return(data[k]||'').trim();};
+  const n=empNome?empNome.toUpperCase():'EMPREENDIMENTO';
+  const SECS=[
+    {emoji:'🏗️',title:'Entrega de Obra',items:[
+      {key:'entrega_obra',label:'Entrega da obra'},{key:'ligacao_energia',label:'Ligação de energia'},
+      {key:'avcb',label:'AVCB'},{key:'habite_se',label:'Habite-se'},
+      {key:'vistoria_areas',label:'Vistoria áreas comuns'},{key:'revistoria_areas',label:'Re-vistoria',sub:true},
+      {key:'vistoria_unidades',label:'Vistoria unidades'},{key:'revistoria_unidades',label:'Re-vistoria',sub:true},
+    ]},
+    {emoji:'🛋️',title:'Decor',items:[{key:'decor',label:'Decor'}]},
+    {emoji:'🔑',title:'Implantação',items:[{key:'condominio',label:'Condomínio'},{key:'unidades_gestao',label:'Unidades gestão'}]},
+    {emoji:'📄',title:'Documentação',items:[{key:'averbacao',label:'Averbação, instituição condomínio e matrículas'},{key:'dissolucao',label:'Dissolução SPE'}]},
+  ];
+  let msg='*'+n+' — Cronograma Entrega*\n\n';
+  SECS.forEach(function(sec){
+    const lines=sec.items.map(function(item){
+      const val=v(item.key);if(!val)return'';
+      const st=crCalcStatus(val);const check=st==='realizado'?' ✔':'';
+      const indent=item.sub?'    ':'  ';
+      return indent+item.label+' • '+st+' • '+val+check;
+    }).filter(Boolean);
+    if(lines.length)msg+=sec.emoji+' *'+sec.title+'*\n'+lines.join('\n')+'\n\n';
+  });
+  const ini=v('inicio_operacao'),ev=v('evento_socios');
+  if(ini||ev){
+    const ps=[];
+    if(ini)ps.push('🎯 *Início operação: '+crCalcStatus(ini)+' • '+ini+'*');
+    if(ev)ps.push('🎉 *Evento sócios: '+crCalcStatus(ev)+' • '+ev+'*');
+    msg+=ps.join('  |  ');
+  }
+  return msg.trim();
+}
+
+function crGerarSlack(){
+  const empId=document.getElementById('crEmp').value;
+  const emp=EMPS_RAW.find(function(e){return e.id===empId;});
+  const data={};
+  CR_KEYS.forEach(function(k){const el=document.getElementById('cr_'+k);if(el)data[k]=el.value;});
+  return crGerarSlackFromData(data,emp?emp.nome:'');
+}
+
+function crUpdatePreview(){
+  const el=document.getElementById('crPreview');
+  if(el)el.textContent=crGerarSlack();
+}
+
+function openModalCronograma(id){
+  crEditId=id||null;
+  const sel=document.getElementById('crEmp');
+  sel.innerHTML=[...EMPS_RAW].sort(function(a,b){return a.nome.localeCompare(b.nome,'pt');}).map(function(e){
+    return'<option value="'+e.id+'">'+esc(e.nome)+'</option>';
+  }).join('');
+  CR_KEYS.forEach(function(k){const el=document.getElementById('cr_'+k);if(el)el.value='';});
+  document.getElementById('crData').value=new Date().toISOString().split('T')[0];
+  if(id){
+    const f=S.fup.find(function(x){return x.id===id;});
+    if(f){
+      try{
+        const d=JSON.parse(f.hist||'{}');
+        CR_KEYS.forEach(function(k){const el=document.getElementById('cr_'+k);if(el&&d[k])el.value=d[k];});
+        if(f.empId)sel.value=f.empId;
+        if(f.data)document.getElementById('crData').value=f.data;
+      }catch(e){}
+    }
+  } else {
+    if(histSelId)sel.value=histSelId;
+  }
+  crUpdatePreview();
+  document.getElementById('modalCronograma').classList.add('open');
+}
+
+function closeModalCronograma(){
+  document.getElementById('modalCronograma').classList.remove('open');
+  crEditId=null;
+}
+
+function crSalvar(){
+  const empId=document.getElementById('crEmp').value;
+  const data=document.getElementById('crData').value;
+  if(!empId||!data){alert('Selecione o empreendimento e a data.');return;}
+  const histData={};
+  CR_KEYS.forEach(function(k){const el=document.getElementById('cr_'+k);if(el&&el.value.trim())histData[k]=el.value.trim();});
+  const histJSON=JSON.stringify(histData);
+  if(crEditId){
+    const f=S.fup.find(function(x){return x.id===crEditId;});
+    if(f){f.empId=empId;f.data=data;f.tipo='cronograma_entrega';f.hist=histJSON;f.disc=histJSON;}
+  } else {
+    S.fup.push({id:Date.now(),empId,data,tipo:'cronograma_entrega',hist:histJSON,disc:histJSON,enc:''});
+  }
+  saveData();closeModalCronograma();renderCurrentView();
+}
+
+function crCopiarSlack(){
+  const msg=crGerarSlack();
+  navigator.clipboard.writeText(msg).then(function(){
+    const t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:99999;box-shadow:0 4px 14px rgba(0,0,0,.25)';
+    t.textContent='✔ Copiado! Cole no Slack.';
+    document.body.appendChild(t);setTimeout(function(){t.remove();},3000);
+  });
+}
+
+document.addEventListener('click',function(e){if(e.target===document.getElementById('modalCronograma'))closeModalCronograma();});
 
 loadData();
 populateSelect();
