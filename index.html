@@ -412,6 +412,16 @@ svg{display:inline-block;vertical-align:middle}
       <label style="display:block;margin-bottom:5px">Histórico</label>
       <textarea id="eHist" class="mi mta" style="min-height:180px" placeholder="Uma linha por ponto…"></textarea>
     </div>
+    <div class="mf" style="margin-top:4px">
+      <label style="display:block;margin-bottom:5px">Anexos <span style="font-size:10px;color:var(--muted-fg)">(PDF, imagem, doc…)</span></label>
+      <div id="eAnexosExist" style="margin-bottom:6px;display:flex;flex-direction:column;gap:4px"></div>
+      <label for="eAnexos" class="btn" style="cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        Adicionar arquivo
+      </label>
+      <input type="file" id="eAnexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp,.txt,.csv" style="display:none" onchange="stageAnexos('eAnexosPreview','eAnexos',false)">
+      <div id="eAnexosPreview" style="margin-top:6px;display:flex;flex-direction:column;gap:4px"></div>
+    </div>
     <div class="ov-footer">
       <button class="ov-cancel" onclick="closeEditModal()">Cancelar</button>
       <button class="ov-save" onclick="saveEditFup()">Salvar</button>
@@ -432,6 +442,15 @@ svg{display:inline-block;vertical-align:middle}
     <div class="mf">
       <label style="display:block;margin-bottom:5px">Histórico</label>
       <textarea id="mHist" class="mi mta" placeholder="Registre o que foi discutido, decisões e encaminhamentos..."></textarea>
+    </div>
+    <div class="mf" style="margin-top:4px">
+      <label style="display:block;margin-bottom:5px">Anexos <span style="font-size:10px;color:var(--muted-fg)">(PDF, imagem, doc…)</span></label>
+      <label for="mAnexos" class="btn" style="cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        Selecionar arquivos
+      </label>
+      <input type="file" id="mAnexos" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp,.txt,.csv" style="display:none" onchange="stageAnexos('mAnexosPreview','mAnexos',true)">
+      <div id="mAnexosPreview" style="margin-top:6px;display:flex;flex-direction:column;gap:4px"></div>
     </div>
     <div class="ov-footer">
       <button class="ov-cancel" onclick="closeModal()">Cancelar</button>
@@ -2974,6 +2993,8 @@ function renderHistCards(){
     const empLabel=!histSelId&&emp?`<span style="font-size:11px;font-weight:400;color:var(--muted-fg)">${esc(emp.nome)}</span>`:'';
     const editBtn=`<button onclick="editFup(${f.id})" title="Editar registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:13px;line-height:1" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--muted-fg)'">✎</button>`;
     const delBtn=`<button onclick="deleteFup(${f.id})" title="Excluir registro" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);padding:2px 4px;border-radius:4px;font-size:12px;line-height:1" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted-fg)'">✕</button>`;
+    const anexosArr=f.anexos&&f.anexos.length?f.anexos:[];
+    const anexosHtml=anexosArr.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;padding-top:8px;border-top:1px solid var(--border)">${anexosArr.map(function(a){return`<a href="${a.dados}" download="${esc(a.nome)}" style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:6px;background:var(--bg);border:1px solid var(--border);font-size:11px;color:var(--fg);text-decoration:none;max-width:220px" title="${esc(a.nome)}">${anexoIcon(a.tipo)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.nome)}</span></a>`;}).join('')}</div>`:'';
     return`<div class="fup-card" style="${isPainelPmo?'border-left:3px solid #D97706':''}">
       <div class="fup-card-top">
         <span class="fup-card-date">${fmtD(f.data)}</span>
@@ -2982,6 +3003,7 @@ function renderHistCards(){
         <span style="margin-left:auto;display:flex;gap:2px">${editBtn}${delBtn}</span>
       </div>
       ${bullets?`<div class="fup-card-enc">${bullets}</div>`:''}
+      ${anexosHtml}
     </div>`;
   }).join('');
 
@@ -3190,6 +3212,65 @@ function renderCronograma(){
   </table></div>`;
 }
 
+// ─── ANEXOS ──────────────────────────────────────────────────────────────────
+var mAnexosList=[];
+var eAnexosNew=[];
+var eAnexosRemovedIdx=[];
+
+function anexoIcon(tipo){
+  if(tipo&&tipo.startsWith('image/'))return'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+  if(tipo==='application/pdf')return'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+  return'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+}
+
+function stageAnexos(previewId, inputId, isNew){
+  const input=document.getElementById(inputId);
+  if(!input)return;
+  const files=Array.from(input.files);
+  const list=isNew?mAnexosList:eAnexosNew;
+  let pending=files.length;
+  if(!pending)return;
+  files.forEach(function(f){
+    if(f.size>5*1024*1024){
+      alert('Arquivo "'+f.name+'" excede 5 MB.');
+      pending--;
+      return;
+    }
+    const reader=new FileReader();
+    reader.onload=function(e){
+      list.push({nome:f.name,tipo:f.type,dados:e.target.result});
+      pending--;
+      if(pending<=0)renderAnexosPreview(previewId,list,isNew?'m':'e');
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function renderAnexosPreview(previewId,list,prefix){
+  const preview=document.getElementById(previewId);
+  if(!preview)return;
+  preview.innerHTML=list.map(function(a,i){
+    return'<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-size:11px">'+
+      anexoIcon(a.tipo)+
+      '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(a.nome)+'</span>'+
+      '<button onclick="removeNewAnexo(\''+previewId+'\','+i+',\''+(prefix==='m'?'true':'false')+'\')" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);font-size:13px;padding:1px 4px" title="Remover">✕</button>'+
+    '</div>';
+  }).join('');
+}
+
+function removeNewAnexo(previewId,idx,isNewStr){
+  const isNew=isNewStr==='true';
+  const list=isNew?mAnexosList:eAnexosNew;
+  list.splice(idx,1);
+  renderAnexosPreview(previewId,list,isNew?'m':'e');
+}
+
+function removeExistAnexo(idx){
+  if(eAnexosRemovedIdx.indexOf(idx)===-1)eAnexosRemovedIdx.push(idx);
+  const el=document.getElementById('eExist_'+idx);
+  if(el){el.style.opacity='0.35';el.style.textDecoration='line-through';}
+}
+
 // ─── MODAL EDIÇÃO ────────────────────────────────────────────────────────────
 var editFupId=null;
 function editFup(id){
@@ -3197,15 +3278,42 @@ function editFup(id){
   if(!f)return;
   if(f.tipo==='cronograma_entrega'){openModalCronograma(id);return;}
   editFupId=id;
+  eAnexosNew=[];
+  eAnexosRemovedIdx=[];
   const emp=EMPS_RAW.find(function(e){return e.id===f.empId;});
   document.getElementById('eEmpLabel').textContent=emp?emp.nome:'';
   document.getElementById('eData').value=f.data||'';
   document.getElementById('eTipo').value=f.tipo||'';
   document.getElementById('eHist').value=f.hist||f.disc||'';
+  // Render existing attachments
+  const existDiv=document.getElementById('eAnexosExist');
+  const eAnexoArr=f.anexos||[];
+  if(existDiv){
+    existDiv.innerHTML=eAnexoArr.length?eAnexoArr.map(function(a,i){
+      return'<div id="eExist_'+i+'" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-size:11px">'+
+        anexoIcon(a.tipo)+
+        '<a href="'+a.dados+'" download="'+esc(a.nome)+'" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--primary);text-decoration:none" title="'+esc(a.nome)+'">'+esc(a.nome)+'</a>'+
+        '<button onclick="removeExistAnexo('+i+')" style="background:none;border:none;cursor:pointer;color:var(--muted-fg);font-size:13px;padding:1px 4px" title="Remover">✕</button>'+
+      '</div>';
+    }).join(''):'';
+  }
+  const prevDiv=document.getElementById('eAnexosPreview');
+  if(prevDiv)prevDiv.innerHTML='';
+  const inp=document.getElementById('eAnexos');
+  if(inp)inp.value='';
   document.getElementById('modalEditFup').classList.add('open');
   setTimeout(function(){document.getElementById('eHist').focus();},80);
 }
-function closeEditModal(){document.getElementById('modalEditFup').classList.remove('open');editFupId=null;}
+function closeEditModal(){
+  document.getElementById('modalEditFup').classList.remove('open');
+  editFupId=null;
+  eAnexosNew=[];
+  eAnexosRemovedIdx=[];
+  const prev=document.getElementById('eAnexosPreview');
+  if(prev)prev.innerHTML='';
+  const inp=document.getElementById('eAnexos');
+  if(inp)inp.value='';
+}
 function saveEditFup(){
   if(!editFupId)return;
   const f=S.fup.find(function(x){return x.id===editFupId;});
@@ -3218,6 +3326,8 @@ function saveEditFup(){
   if(newTipo)f.tipo=newTipo;
   f.hist=newHist;
   f.disc=newHist;
+  const existAnexos=(f.anexos||[]).filter(function(_,i){return eAnexosRemovedIdx.indexOf(i)===-1;});
+  f.anexos=existAnexos.concat(eAnexosNew);
   saveData();
   closeEditModal();
   renderCurrentView();
@@ -3225,16 +3335,36 @@ function saveEditFup(){
 document.getElementById('modalEditFup').addEventListener('click',function(e){if(e.target===this)closeEditModal();});
 
 // ─── MODAL ───────────────────────────────────────────────────────────────────
-function openModal(){document.getElementById('modalFup').classList.add('open');document.getElementById('mData').value=TODAY.toISOString().split('T')[0];if(curEmpId)document.getElementById('mEmp').value=curEmpId;}
-function openModalHist(){document.getElementById('modalFup').classList.add('open');document.getElementById('mData').value=TODAY.toISOString().split('T')[0];if(histSelId)document.getElementById('mEmp').value=histSelId;}
-function closeModal(){document.getElementById('modalFup').classList.remove('open');}
+function openModal(){
+  document.getElementById('modalFup').classList.add('open');
+  document.getElementById('mData').value=TODAY.toISOString().split('T')[0];
+  if(curEmpId)document.getElementById('mEmp').value=curEmpId;
+  mAnexosList=[];
+  const prev=document.getElementById('mAnexosPreview');if(prev)prev.innerHTML='';
+  const inp=document.getElementById('mAnexos');if(inp)inp.value='';
+}
+function openModalHist(){
+  document.getElementById('modalFup').classList.add('open');
+  document.getElementById('mData').value=TODAY.toISOString().split('T')[0];
+  if(histSelId)document.getElementById('mEmp').value=histSelId;
+  mAnexosList=[];
+  const prev=document.getElementById('mAnexosPreview');if(prev)prev.innerHTML='';
+  const inp=document.getElementById('mAnexos');if(inp)inp.value='';
+}
+function closeModal(){
+  document.getElementById('modalFup').classList.remove('open');
+  mAnexosList=[];
+  const prev=document.getElementById('mAnexosPreview');if(prev)prev.innerHTML='';
+  const inp=document.getElementById('mAnexos');if(inp)inp.value='';
+}
 function salvarModal(){
   const empId=document.getElementById('mEmp').value;
   const data=document.getElementById('mData').value;
   const hist=document.getElementById('mHist').value;
   if(!data||!hist){alert('Preencha data e histórico.');return;}
   const tipo=document.getElementById('mTipo').value||'gestao';
-  S.fup.push({id:Date.now(),empId,data,tipo,hist,disc:hist,enc:''});
+  S.fup.push({id:Date.now(),empId,data,tipo,hist,disc:hist,enc:'',anexos:mAnexosList.slice()});
+  mAnexosList=[];
   saveData();closeModal();
   document.getElementById('mHist').value='';
   renderCurrentView();
